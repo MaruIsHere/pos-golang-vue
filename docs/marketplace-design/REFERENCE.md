@@ -112,7 +112,7 @@ Jika kamu (`MaruIsHere`) atau kontributor lain ingin menambah fitur:
 
 | File Acuan | Lokasi | Status |
 |------------|--------|--------|
-| Design (Game) | `pulau-segara-docs/00_SYSTEM_CONTEXT.md` | ✅ LOCK |
+| Design (POS) | `docs/marketplace-design/01-marketplace-architecture.md` | ✅ LOCK |
 | Komponen POS | `pos-golang-vue/docs/marketplace-design/02-components.md` | ✅ DRAFT |
 | Arsitektur POS | `pos-golang-vue/docs/marketplace-design/01-marketplace-architecture.md` | ✅ DRAFT |
 | ADR (Keputusan) | `pos-golang-vue/docs/decisions/adr-index.md` | ✅ 10 ADR |
@@ -120,4 +120,4 @@ Jika kamu (`MaruIsHere`) atau kontributor lain ingin menambah fitur:
 
 ---
 
-*File ini (`REFERENCE.md`) dibuat sebagai **kerangka acuan** agar setiap perubahan di proyek ini (`pos-golang-vue`) atau proyek lain (`pulau-segara`) bisa dicek konsistensinya. Update file ini jika desain berubah — tapi perubahan besar butuh diskusi dulu.*
+*File ini (`REFERENCE.md`) dibuat sebagai **kerangka acuan hanya untuk proyek POS** (`pos-golang-vue`). Dokumen desain `pulau-segara` (game) hidup di direktori terpisah (`~/Projects/gamedev/pulau-segara/`) dan tidak boleh dicampur dengan aturan/standar POS ini. Perubahan besar butuh diskusi dulu — lihat `docs/deployment/production-standard.md` bagian 11 (Checklist).

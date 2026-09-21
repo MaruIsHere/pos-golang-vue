@@ -362,4 +362,4 @@ File ini (`docs/deployment/production-standard.md`) adalah **referensi industri*
 ---
 
 *Disusun oleh Hermes Agent — 21 Sep 2026*
-*Untuk tim POS (`pos-golang-vue`) dan proyek lain (`pulau-segara`) sebagai referensi deploy produksi.*
+*Untuk tim POS (`pos-golang-vue`) sebagai referensi deploy produksi. Dokumen `pulau-segara` (game) hidup terpisah di `~/Projects/gamedev/pulau-segara/` — jangan dicampur dengan standar POS ini.*
