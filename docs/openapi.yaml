@@ -1,0 +1,655 @@
+openapi: 3.0.3
+info:
+  title: POS Golang Vue API
+  description: >-
+    REST API sistem kasir (POS). Backend Go + Gin + GORM.
+    Base URL dev: http://localhost:8080/api (Vite proxy /api -> 8080).
+    Semua response error memakai bentuk {"error": "pesan"}.
+    Sumber kebenaran: backend/main.go (routes), backend/handlers/handlers.go, backend/models/models.go.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Backend dev (go run . dari folder backend/)
+  - url: /api
+    description: Production (disajikan Gin dari folder backend/ + frontend/dist)
+security: []
+tags:
+  - name: Health
+  - name: Categories
+  - name: Products
+  - name: Orders
+  - name: Customers
+  - name: Stock
+  - name: Reports
+  - name: Settings
+  - name: Vouchers
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Cek status backend
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: online }
+                  system: { type: string, example: POS Kasir System Golang Backend }
+                  db_engine: { type: string, example: sqlite }
+  /categories:
+    get:
+      tags: [Categories]
+      summary: List kategori
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Category' } }
+        '500': { $ref: '#/components/responses/Error500' }
+    post:
+      tags: [Categories]
+      summary: Buat kategori
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, example: Minuman }
+                icon: { type: string, example: coffee }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /categories/{id}:
+    delete:
+      tags: [Categories]
+      summary: Hapus kategori
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Kategori berhasil dihapus }
+        '500': { $ref: '#/components/responses/Error500' }
+  /products:
+    get:
+      tags: [Products]
+      summary: List produk (preload category)
+      parameters:
+        - name: category_id
+          in: query
+          schema: { type: integer }
+          description: Filter kategori
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Cari nama atau barcode (LIKE %search%)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Product' } }
+        '500': { $ref: '#/components/responses/Error500' }
+    post:
+      tags: [Products]
+      summary: Buat produk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category_id, name, price]
+              properties:
+                category_id: { type: integer, example: 2 }
+                name: { type: string, example: Kopi Susu Gula Aren }
+                price: { type: number, example: 18000 }
+                cost_price: { type: number, example: 8000 }
+                stock: { type: integer, example: 100 }
+                barcode: { type: string, example: '8992001' }
+                image_url: { type: string }
+                is_active: { type: boolean, example: true }
+      responses:
+        '201':
+          description: Created (termasuk category)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /products/{id}:
+    put:
+      tags: [Products]
+      summary: Update produk
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductInput' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+    delete:
+      tags: [Products]
+      summary: Hapus produk
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Produk berhasil dihapus }
+        '500': { $ref: '#/components/responses/Error500' }
+  /orders:
+    get:
+      tags: [Orders]
+      summary: List order terbaru
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20 }
+          description: Default 20 jika tidak diisi
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Order' } }
+        '500': { $ref: '#/components/responses/Error500' }
+    post:
+      tags: [Orders]
+      summary: Checkout (kurangi stok atomik)
+      description: >-
+        Validasi keranjang tidak kosong, cek produk + stok per item dalam transaction.
+        grandTotal=(totalAmount-discount)+tax (min 0). Invoice format INV-YYYYMMDD-HHMMSS-xxx.
+        customer_name kosong -> "Umum".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrderInput' }
+            examples:
+              cash:
+                value:
+                  customer_name: Umum
+                  payment_method: cash
+                  paid_amount: 50000
+                  discount: 0
+                  tax: 2800
+                  items:
+                    - product_id: 4
+                      quantity: 2
+                      notes: ''
+      responses:
+        '201':
+          description: Created (termasuk order_items)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Detail order + items
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '404': { $ref: '#/components/responses/Error404' }
+  /orders/{id}/refund:
+    post:
+      tags: [Orders]
+      summary: Refund (status refunded + kembalikan stok)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Transaksi berhasil diretur dan stok telah dipulihkan }
+                  order: { $ref: '#/components/schemas/Order' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+  /customers:
+    get:
+      tags: [Customers]
+      summary: List customer terbaru
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Customer' } }
+        '500': { $ref: '#/components/responses/Error500' }
+    post:
+      tags: [Customers]
+      summary: Buat customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, example: Budi Santoso }
+                phone: { type: string, example: '081234567890' }
+                email: { type: string, example: budi@gmail.com }
+                address: { type: string, example: Jakarta }
+                points: { type: integer, example: 0 }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /customers/{id}:
+    put:
+      tags: [Customers]
+      summary: Update customer
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Customer' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+    delete:
+      tags: [Customers]
+      summary: Hapus customer
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Pelanggan berhasil dihapus }
+        '500': { $ref: '#/components/responses/Error500' }
+  /stock-movements:
+    get:
+      tags: [Stock]
+      summary: Riwayat mutasi stok (preload product)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/StockMovement' } }
+        '500': { $ref: '#/components/responses/Error500' }
+    post:
+      tags: [Stock]
+      summary: Mutasi stok in/out (update stok atomik)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateStockMovementInput' }
+            examples:
+              receive:
+                value:
+                  product_id: 4
+                  type: in
+                  quantity: 10
+                  reason: pembelian_supplier
+                  notes: Kulakan pagi
+      responses:
+        '201':
+          description: Created (termasuk product)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StockMovement' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /reports/dashboard:
+    get:
+      tags: [Reports]
+      summary: Statistik dashboard
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DashboardStats' }
+  /settings:
+    get:
+      tags: [Settings]
+      summary: Ambil setting toko (row pertama)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StoreSetting' }
+        '500': { $ref: '#/components/responses/Error500' }
+    put:
+      tags: [Settings]
+      summary: Update setting toko
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                store_name: { type: string, example: KASIR COFFEE & BISTRO }
+                address: { type: string }
+                phone: { type: string }
+                receipt_footer: { type: string }
+                tax_percentage: { type: number, example: 10 }
+                qris_image_url: { type: string, description: base64 data URL (max 5MB di frontend) }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StoreSetting' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /settings/switch-db:
+    post:
+      tags: [Settings]
+      summary: Pindah engine database live
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [engine]
+              properties:
+                engine: { type: string, enum: [sqlite, mysql], example: mysql }
+                mysql_dsn: { type: string, example: 'root:@tcp(127.0.0.1:3306)/pos_db?charset=utf8mb4&parseTime=True&loc=Local' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Berhasil berpindah ke basis data mysql }
+                  db_engine: { type: string, example: mysql }
+        '400': { $ref: '#/components/responses/Error400' }
+  /vouchers:
+    get:
+      tags: [Vouchers]
+      summary: List voucher terbaru
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Voucher' } }
+        '500': { $ref: '#/components/responses/Error500' }
+    post:
+      tags: [Vouchers]
+      summary: Buat voucher (auto aktif)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, value]
+              properties:
+                code: { type: string, example: DISKON10 }
+                type: { type: string, enum: [percent, flat], example: percent }
+                value: { type: number, example: 10 }
+                description: { type: string, example: Diskon 10% Semua Produk }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Voucher' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '500': { $ref: '#/components/responses/Error500' }
+  /vouchers/{id}:
+    delete:
+      tags: [Vouchers]
+      summary: Hapus voucher
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Voucher berhasil dihapus }
+        '500': { $ref: '#/components/responses/Error500' }
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  responses:
+    Error400:
+      description: Bad request (validasi / stok / refund ganda)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error404:
+      description: Tidak ditemukan
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Error500:
+      description: Server error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string, example: Produk tidak ditemukan }
+    Category:
+      type: object
+      properties:
+        id: { type: integer, example: 2 }
+        name: { type: string, example: Minuman }
+        icon: { type: string, example: coffee }
+        created_at: { type: string, format: date-time }
+    Product:
+      type: object
+      properties:
+        id: { type: integer, example: 4 }
+        category_id: { type: integer, example: 2 }
+        category:
+          $ref: '#/components/schemas/Category'
+        name: { type: string, example: Kopi Susu Gula Aren }
+        price: { type: number, example: 18000 }
+        cost_price: { type: number, example: 8000 }
+        stock: { type: integer, example: 100 }
+        barcode: { type: string, example: '8992001' }
+        image_url: { type: string }
+        is_active: { type: boolean, example: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ProductInput:
+      type: object
+      properties:
+        category_id: { type: integer }
+        name: { type: string }
+        price: { type: number }
+        cost_price: { type: number }
+        stock: { type: integer }
+        barcode: { type: string }
+        image_url: { type: string }
+        is_active: { type: boolean }
+    CreateOrderInput:
+      type: object
+      required: [items]
+      properties:
+        customer_name: { type: string, example: Umum }
+        payment_method: { type: string, example: cash, description: cash/qris/debit/credit/transfer (tidak divalidasi ketat di backend) }
+        paid_amount: { type: number, example: 50000 }
+        discount: { type: number, example: 0 }
+        tax: { type: number, example: 2800 }
+        items:
+          type: array
+          items:
+            type: object
+            required: [product_id, quantity]
+            properties:
+              product_id: { type: integer, example: 4 }
+              quantity: { type: integer, example: 2 }
+              notes: { type: string }
+    Order:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        invoice_no: { type: string, example: INV-20260921-120000-123 }
+        total_amount: { type: number }
+        discount: { type: number }
+        tax: { type: number }
+        grand_total: { type: number }
+        paid_amount: { type: number }
+        change_amount: { type: number }
+        payment_method: { type: string, example: cash }
+        status: { type: string, enum: [completed, refunded, cancelled], example: completed }
+        cashier_name: { type: string, example: Kasir 1 }
+        customer_name: { type: string, example: Umum }
+        created_at: { type: string, format: date-time }
+        order_items:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+    OrderItem:
+      type: object
+      properties:
+        id: { type: integer }
+        order_id: { type: integer }
+        product_id: { type: integer }
+        product_name: { type: string, example: Kopi Susu Gula Aren }
+        product_price: { type: number, example: 18000 }
+        quantity: { type: integer, example: 2 }
+        subtotal: { type: number, example: 36000 }
+        notes: { type: string }
+    Customer:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string, example: Budi Santoso }
+        phone: { type: string }
+        email: { type: string }
+        address: { type: string }
+        points: { type: integer, example: 120 }
+        created_at: { type: string, format: date-time }
+    StockMovement:
+      type: object
+      properties:
+        id: { type: integer }
+        product_id: { type: integer }
+        product: { $ref: '#/components/schemas/Product' }
+        type: { type: string, enum: [in, out], example: 'in' }
+        quantity: { type: integer, example: 10 }
+        reason: { type: string, example: pembelian_supplier }
+        notes: { type: string }
+        created_at: { type: string, format: date-time }
+    CreateStockMovementInput:
+      type: object
+      required: [product_id, type, quantity]
+      properties:
+        product_id: { type: integer, example: 4 }
+        type: { type: string, enum: [in, out] }
+        quantity: { type: integer, example: 10 }
+        reason: { type: string, example: pembelian_supplier }
+        notes: { type: string }
+    StoreSetting:
+      type: object
+      properties:
+        id: { type: integer }
+        store_name: { type: string, example: KASIR COFFEE & BISTRO }
+        address: { type: string }
+        phone: { type: string }
+        receipt_footer: { type: string }
+        tax_percentage: { type: number, example: 10 }
+        db_engine: { type: string, enum: [sqlite, mysql], example: sqlite }
+        mysql_dsn: { type: string }
+        qris_image_url: { type: string }
+    Voucher:
+      type: object
+      properties:
+        id: { type: integer }
+        code: { type: string, example: DISKON10 }
+        type: { type: string, enum: [percent, flat], example: percent }
+        value: { type: number, example: 10 }
+        description: { type: string }
+        is_active: { type: boolean, example: true }
+        created_at: { type: string, format: date-time }
+    DashboardStats:
+      type: object
+      properties:
+        total_orders: { type: integer }
+        total_revenue: { type: number }
+        total_items_sold: { type: integer }
+        top_products:
+          type: array
+          items:
+            type: object
+            properties:
+              product_name: { type: string }
+              total_qty: { type: integer }
+              total_sales: { type: number }
+        recent_orders:
+          type: array
+          items: { $ref: '#/components/schemas/Order' }
