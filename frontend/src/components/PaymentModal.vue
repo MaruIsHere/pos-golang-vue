@@ -111,8 +111,8 @@
             <!-- Custom QRIS Image or SVG QR Graphic -->
             <div class="qr-code-wrapper">
               <img 
-                v-if="storeSetting.qris_image_url" 
-                :src="storeSetting.qris_image_url" 
+                v-if="effectiveQrisUrl" 
+                :src="effectiveQrisUrl" 
                 alt="Foto QRIS Toko" 
                 class="custom-qris-img" 
               />
@@ -300,7 +300,30 @@ const fetchCustomers = async () => {
   }
 };
 
-onMounted(fetchCustomers);
+const fetchedQrisUrl = ref('');
+
+const fetchLatestSettings = async () => {
+  try {
+    const res = await fetch('/api/settings');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.qris_image_url) {
+        fetchedQrisUrl.value = data.qris_image_url;
+      }
+    }
+  } catch (err) {
+    console.error('Fetch settings error in PaymentModal:', err);
+  }
+};
+
+onMounted(() => {
+  fetchCustomers();
+  fetchLatestSettings();
+});
+
+const effectiveQrisUrl = computed(() => {
+  return props.storeSetting?.qris_image_url || fetchedQrisUrl.value || '';
+});
 
 const onCustomerSelect = () => {
   if (selectedCustomerOption.value !== 'custom') {

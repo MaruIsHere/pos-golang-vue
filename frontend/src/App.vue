@@ -6,6 +6,8 @@
       @change-tab="currentTab = $event"
     />
 
+    <PwaInstallBanner />
+
     <main class="main-content">
       <div class="view-container">
         <RegisterView 
@@ -47,6 +49,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import Navbar from './components/Navbar.vue';
+import PwaInstallBanner from './components/PwaInstallBanner.vue';
 import RegisterView from './views/RegisterView.vue';
 import ProductsView from './views/ProductsView.vue';
 import InventoryView from './views/InventoryView.vue';
