@@ -1,0 +1,78 @@
+# ========== DEPENDENCIES ==========
+node_modules/
+frontend/node_modules/
+*/node_modules/
+.pnpm-store/
+.pnp.
+
+# ========== BUILD / DIST ==========
+dist/
+frontend/dist/
+build/
+*.tgz
+
+# ========== GO BINARIES ==========
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+backend/pos_backend
+backend/pos_backend.exe
+backend/*.db
+backend/*.db-journal
+pos_backend
+
+# ========== DATABASE / DATA ==========
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.log
+logs/
+
+# ========== ENV / CONFIG ==========
+.env
+.env.local
+.env.*.local
+.env.production
+.config/
+secrets/
+
+# ========== IDE / EDITOR ==========
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========== OS / CACHE ==========
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# ========== TEST / COVERAGE ==========
+coverage/
+.nyc_output/
+*.cover
+
+# ========== DOCKER / KUBERNETES ==========
+.docker/
+.dockerignore
+
+# ========== VUE / FRONTEND ==========
+frontend/.vite/
+frontend/.nuxt/
+
+# ========== GO ==========
+*.test
+*.out
+vendor/
+
+# ========== BACKUP ==========
+*.bak
+*.orig
+*.patch
