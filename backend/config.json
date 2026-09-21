@@ -1,0 +1,6 @@
+{
+  "port": "8080",
+  "db_engine": "sqlite",
+  "sqlite_path": "pos.db",
+  "mysql_dsn": "root:@tcp(127.0.0.1:3306)/pos_db?charset=utf8mb4\u0026parseTime=True\u0026loc=Local"
+}

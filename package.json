@@ -1,0 +1,13 @@
+{
+  "name": "pos-golang-vue",
+  "version": "1.0.0",
+  "private": true,
+  "description": "POS System with Golang Backend & Vue 3 Frontend",
+  "scripts": {
+    "dev": "npx --yes concurrently -k -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && pos_backend.exe",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "cd backend && pos_backend.exe"
+  }
+}
