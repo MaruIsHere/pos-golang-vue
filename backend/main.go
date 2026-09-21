@@ -61,6 +61,17 @@ func main() {
 		api.POST("/orders", handlers.CreateOrder)
 		api.GET("/orders", handlers.GetOrders)
 		api.GET("/orders/:id", handlers.GetOrderById)
+		api.POST("/orders/:id/refund", handlers.RefundOrder)
+
+		// Customers
+		api.GET("/customers", handlers.GetCustomers)
+		api.POST("/customers", handlers.CreateCustomer)
+		api.PUT("/customers/:id", handlers.UpdateCustomer)
+		api.DELETE("/customers/:id", handlers.DeleteCustomer)
+
+		// Stock Movements (Inventory - Receive & Issue)
+		api.GET("/stock-movements", handlers.GetStockMovements)
+		api.POST("/stock-movements", handlers.CreateStockMovement)
 
 		// Reports & Dashboard
 		api.GET("/reports/dashboard", handlers.GetDashboardStats)
@@ -69,6 +80,11 @@ func main() {
 		api.GET("/settings", handlers.GetSettings)
 		api.PUT("/settings", handlers.UpdateSettings)
 		api.POST("/settings/switch-db", handlers.SwitchDatabase)
+
+		// Vouchers
+		api.GET("/vouchers", handlers.GetVouchers)
+		api.POST("/vouchers", handlers.CreateVoucher)
+		api.DELETE("/vouchers/:id", handlers.DeleteVoucher)
 	}
 
 	// Serve frontend static files if dist folder exists

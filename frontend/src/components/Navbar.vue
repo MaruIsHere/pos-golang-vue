@@ -63,6 +63,8 @@ defineEmits(['change-tab']);
 const navItems = [
   { id: 'register', label: 'Kasir', icon: '🏪' },
   { id: 'products', label: 'Produk', icon: '📦' },
+  { id: 'inventory', label: 'Inventoris', icon: '📥' },
+  { id: 'customers', label: 'Pelanggan', icon: '👥' },
   { id: 'orders', label: 'Riwayat', icon: '📜' },
   { id: 'reports', label: 'Laporan', icon: '📊' },
   { id: 'settings', label: 'Pengaturan', icon: '⚙️' }

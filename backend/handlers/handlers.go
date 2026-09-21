@@ -315,9 +315,50 @@ func UpdateSettings(c *gin.Context) {
 	setting.Phone = input.Phone
 	setting.ReceiptFooter = input.ReceiptFooter
 	setting.TaxPercentage = input.TaxPercentage
+	setting.QrisImageUrl = input.QrisImageUrl
 
 	database.DB.Save(&setting)
 	c.JSON(http.StatusOK, setting)
+}
+
+// === VOUCHER HANDLERS ===
+
+func GetVouchers(c *gin.Context) {
+	var vouchers []models.Voucher
+	if err := database.DB.Order("created_at desc").Find(&vouchers).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, vouchers)
+}
+
+func CreateVoucher(c *gin.Context) {
+	var voucher models.Voucher
+	if err := c.ShouldBindJSON(&voucher); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if voucher.Code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Kode voucher tidak boleh kosong"})
+		return
+	}
+
+	voucher.IsActive = true
+	if err := database.DB.Create(&voucher).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat voucher (kode mungkin sudah ada)"})
+		return
+	}
+	c.JSON(http.StatusCreated, voucher)
+}
+
+func DeleteVoucher(c *gin.Context) {
+	id := c.Param("id")
+	if err := database.DB.Delete(&models.Voucher{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Voucher berhasil dihapus"})
 }
 
 type SwitchDbInput struct {
@@ -364,4 +405,188 @@ func SwitchDatabase(c *gin.Context) {
 		"message":   fmt.Sprintf("Berhasil berpindah ke basis data %s", input.Engine),
 		"db_engine": input.Engine,
 	})
+}
+
+// === REFUND ORDER HANDLER ===
+
+func RefundOrder(c *gin.Context) {
+	id := c.Param("id")
+	var order models.Order
+	if err := database.DB.Preload("OrderItems").First(&order, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Transaksi tidak ditemukan"})
+		return
+	}
+
+	if order.Status == "refunded" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Transaksi ini sudah diretur sebelumnya"})
+		return
+	}
+
+	tx := database.DB.Begin()
+
+	// Update status
+	order.Status = "refunded"
+	if err := tx.Save(&order).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Restore product stocks & record stock movements
+	for _, item := range order.OrderItems {
+		var prod models.Product
+		if err := tx.First(&prod, item.ProductID).Error; err == nil {
+			prod.Stock += item.Quantity
+			tx.Save(&prod)
+		}
+
+		movement := models.StockMovement{
+			ProductID: item.ProductID,
+			Type:      "in",
+			Quantity:  item.Quantity,
+			Reason:    "retur_penjualan",
+			Notes:     fmt.Sprintf("Retur Transaksi Invoice #%s", order.InvoiceNo),
+		}
+		tx.Create(&movement)
+	}
+
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Transaksi berhasil diretur dan stok telah dipulihkan",
+		"order":   order,
+	})
+}
+
+// === CUSTOMER HANDLERS ===
+
+func GetCustomers(c *gin.Context) {
+	var customers []models.Customer
+	if err := database.DB.Order("created_at desc").Find(&customers).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, customers)
+}
+
+func CreateCustomer(c *gin.Context) {
+	var cust models.Customer
+	if err := c.ShouldBindJSON(&cust); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if cust.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama pelanggan tidak boleh kosong"})
+		return
+	}
+	if err := database.DB.Create(&cust).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, cust)
+}
+
+func UpdateCustomer(c *gin.Context) {
+	id := c.Param("id")
+	var cust models.Customer
+	if err := database.DB.First(&cust, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pelanggan tidak ditemukan"})
+		return
+	}
+	if err := c.ShouldBindJSON(&cust); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	database.DB.Save(&cust)
+	c.JSON(http.StatusOK, cust)
+}
+
+func DeleteCustomer(c *gin.Context) {
+	id := c.Param("id")
+	if err := database.DB.Delete(&models.Customer{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Pelanggan berhasil dihapus"})
+}
+
+// === STOCK MOVEMENT HANDLERS ===
+
+func GetStockMovements(c *gin.Context) {
+	var movements []models.StockMovement
+	if err := database.DB.Preload("Product").Order("created_at desc").Find(&movements).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, movements)
+}
+
+type CreateStockMovementInput struct {
+	ProductID uint   `json:"product_id"`
+	Type      string `json:"type"`   // "in" or "out"
+	Quantity  int    `json:"quantity"`
+	Reason    string `json:"reason"`
+	Notes     string `json:"notes"`
+}
+
+func CreateStockMovement(c *gin.Context) {
+	var input CreateStockMovementInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if input.ProductID == 0 || input.Quantity <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Produk dan kuantitas harus valid"})
+		return
+	}
+
+	if input.Type != "in" && input.Type != "out" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tipe mutasi stok harus 'in' atau 'out'"})
+		return
+	}
+
+	tx := database.DB.Begin()
+
+	var prod models.Product
+	if err := tx.First(&prod, input.ProductID).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
+		return
+	}
+
+	if input.Type == "in" {
+		prod.Stock += input.Quantity
+	} else {
+		if prod.Stock < input.Quantity {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Stok %s tidak mencukupi (sisa %d)", prod.Name, prod.Stock)})
+			return
+		}
+		prod.Stock -= input.Quantity
+	}
+
+	if err := tx.Save(&prod).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	movement := models.StockMovement{
+		ProductID: input.ProductID,
+		Type:      input.Type,
+		Quantity:  input.Quantity,
+		Reason:    input.Reason,
+		Notes:     input.Notes,
+	}
+
+	if err := tx.Create(&movement).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	tx.Commit()
+
+	database.DB.Preload("Product").First(&movement, movement.ID)
+	c.JSON(http.StatusCreated, movement)
 }

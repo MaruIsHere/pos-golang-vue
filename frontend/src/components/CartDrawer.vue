@@ -13,7 +13,7 @@
         <h2>Keranjang</h2>
         <span class="item-count">{{ totalItemCount }} Item</span>
       </div>
-      <button v-if="cart.length > 0" class="btn-clear" @click="$emit('clear-cart')">
+      <button v-if="cart.length > 0" class="btn-clear" @click="handleClearCart">
         Hapus Semua
       </button>
     </div>
@@ -47,21 +47,70 @@
 
     <!-- Summary & Checkout Footer -->
     <div v-if="cart.length > 0" class="cart-footer">
+      <!-- Voucher Code Input Section -->
+      <div class="voucher-container">
+        <div class="voucher-input-wrapper">
+          <span class="voucher-icon">🏷️</span>
+          <input 
+            type="text" 
+            class="voucher-input" 
+            v-model="voucherInput" 
+            placeholder="Kode Voucher (cth: DISKON10, HEMAT10K...)"
+            @keyup.enter="applyVoucher"
+          />
+          <button class="btn-voucher-apply" @click="applyVoucher">
+            Gunakan
+          </button>
+        </div>
+
+        <!-- Applied Voucher Alert Badge -->
+        <div v-if="appliedVoucher" class="voucher-badge success">
+          <div class="voucher-info">
+            <span class="voucher-title">🎟️ {{ appliedVoucher.code }}</span>
+            <span class="voucher-desc">Potongan Rp {{ formatPrice(appliedVoucher.discountAmount) }} ({{ appliedVoucher.description }})</span>
+          </div>
+          <button class="btn-voucher-remove" title="Hapus Voucher" @click="removeVoucher">✕</button>
+        </div>
+
+        <!-- Error Message -->
+        <div v-if="voucherError" class="voucher-badge error">
+          <span>⚠️ {{ voucherError }}</span>
+        </div>
+
+        <!-- Voucher Hints Pills -->
+        <div v-if="!appliedVoucher" class="voucher-hints">
+          <span class="hints-label">Rekomendasi Voucher:</span>
+          <button 
+            v-for="v in availableVouchersHint" 
+            :key="v.code" 
+            class="hint-pill"
+            @click="useHint(v.code)"
+          >
+            {{ v.code }}
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <div class="summary-row">
         <span>Subtotal</span>
         <span>Rp {{ formatPrice(subtotal) }}</span>
       </div>
 
       <div class="summary-row discount-row">
-        <span>Diskon (Rp)</span>
-        <input 
-          type="number" 
-          class="discount-input" 
-          :value="discount" 
-          @input="$emit('update-discount', parseFloat($event.target.value) || 0)"
-          placeholder="0"
-          min="0"
-        />
+        <span>Diskon {{ appliedVoucher ? '(' + appliedVoucher.code + ')' : '(Manual)' }}</span>
+        <div class="discount-input-wrapper">
+          <span class="input-rp">Rp</span>
+          <input 
+            type="number" 
+            class="discount-input" 
+            :value="discount" 
+            @input="onManualDiscountInput($event.target.value)"
+            placeholder="0"
+            min="0"
+          />
+        </div>
       </div>
 
       <div class="summary-row">
@@ -85,7 +134,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 const props = defineProps({
   cart: { type: Array, required: true },
@@ -94,7 +143,7 @@ const props = defineProps({
   isOpenMobile: { type: Boolean, default: false }
 });
 
-defineEmits(['update-qty', 'remove-item', 'clear-cart', 'update-discount', 'open-payment', 'toggle-mobile']);
+const emit = defineEmits(['update-qty', 'remove-item', 'clear-cart', 'update-discount', 'open-payment', 'toggle-mobile']);
 
 const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
 
@@ -114,6 +163,100 @@ const taxAmount = computed(() => {
 const grandTotal = computed(() => {
   return Math.max(0, subtotal.value - props.discount) + taxAmount.value;
 });
+
+// Voucher Logic
+const voucherInput = ref('');
+const appliedVoucher = ref(null);
+const voucherError = ref('');
+
+const availableVouchers = ref([
+  { code: 'DISKON10', type: 'percent', value: 10, description: 'Diskon 10%' },
+  { code: 'DISKON20', type: 'percent', value: 20, description: 'Diskon 20%' },
+  { code: 'HEMAT10K', type: 'flat', value: 10000, description: 'Potongan Rp 10.000' },
+  { code: 'HEMAT50K', type: 'flat', value: 50000, description: 'Potongan Rp 50.000' },
+  { code: 'POSHEMAT', type: 'percent', value: 15, description: 'Diskon POS 15%' }
+]);
+
+const fetchVouchers = async () => {
+  try {
+    const res = await fetch('/api/vouchers');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        availableVouchers.value = data;
+      }
+    }
+  } catch (err) {
+    console.error('Fetch vouchers error:', err);
+  }
+};
+
+onMounted(fetchVouchers);
+
+const availableVouchersHint = computed(() => {
+  return availableVouchers.value.slice(0, 4);
+});
+
+const applyVoucher = async () => {
+  voucherError.value = '';
+  const code = voucherInput.value.trim().toUpperCase();
+  if (!code) {
+    voucherError.value = 'Silakan ketik kode voucher terlebih dahulu';
+    return;
+  }
+
+  // Refresh latest vouchers from server
+  await fetchVouchers();
+
+  const found = availableVouchers.value.find(v => v.code.toUpperCase() === code);
+  if (!found) {
+    voucherError.value = `Kode voucher '${code}' tidak valid / tidak ditemukan`;
+    return;
+  }
+
+  let amount = 0;
+  if (found.type === 'percent') {
+    amount = Math.round((subtotal.value * found.value) / 100);
+  } else {
+    amount = found.value;
+  }
+
+  if (amount > subtotal.value) {
+    amount = subtotal.value;
+  }
+
+  appliedVoucher.value = {
+    code: found.code,
+    discountAmount: amount,
+    description: found.description
+  };
+  voucherInput.value = '';
+  
+  emit('update-discount', amount);
+};
+
+const removeVoucher = () => {
+  appliedVoucher.value = null;
+  voucherInput.value = '';
+  voucherError.value = '';
+  emit('update-discount', 0);
+};
+
+const useHint = (code) => {
+  voucherInput.value = code;
+  applyVoucher();
+};
+
+const onManualDiscountInput = (val) => {
+  appliedVoucher.value = null;
+  voucherError.value = '';
+  emit('update-discount', parseFloat(val) || 0);
+};
+
+const handleClearCart = () => {
+  removeVoucher();
+  emit('clear-cart');
+};
 </script>
 
 <style scoped>
@@ -308,12 +451,135 @@ const grandTotal = computed(() => {
 }
 
 .cart-footer {
-  padding: 1.25rem;
+  padding: 1rem 1.25rem;
   border-top: 1px solid var(--border-color);
   background: rgba(15, 23, 42, 0.6);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+}
+
+/* Voucher Code Styling */
+.voucher-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.voucher-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 0.5rem;
+}
+
+.voucher-icon {
+  font-size: 0.9rem;
+}
+
+.voucher-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.btn-voucher-apply {
+  padding: 0.35rem 0.75rem;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-voucher-apply:hover {
+  opacity: 0.9;
+}
+
+.voucher-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.voucher-badge.success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
+}
+
+.voucher-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.voucher-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.voucher-title {
+  font-weight: 800;
+}
+
+.voucher-desc {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.btn-voucher-remove {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.voucher-hints {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.hints-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.hint-pill {
+  padding: 0.15rem 0.45rem;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px dashed var(--border-color);
+  border-radius: 999px;
+  color: #a5b4fc;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hint-pill:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--accent-primary);
+  color: #ffffff;
 }
 
 .summary-row {
@@ -324,22 +590,36 @@ const grandTotal = computed(() => {
   color: var(--text-secondary);
 }
 
-.discount-input {
-  width: 90px;
-  padding: 0.25rem 0.5rem;
+.discount-input-wrapper {
+  display: flex;
+  align-items: center;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid var(--border-color);
   border-radius: 6px;
+  padding: 0.15rem 0.4rem;
+}
+
+.input-rp {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.discount-input {
+  width: 75px;
+  background: transparent;
+  border: none;
   color: #fff;
   font-family: var(--font-family);
   font-size: 0.85rem;
   text-align: right;
+  outline: none;
 }
 
 .divider {
   height: 1px;
   background: var(--border-color);
-  margin: 0.25rem 0;
+  margin: 0.2rem 0;
 }
 
 .grand-total-row {
@@ -358,6 +638,6 @@ const grandTotal = computed(() => {
   width: 100%;
   padding: 0.85rem;
   font-size: 1rem;
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
 }
 </style>

@@ -17,6 +17,14 @@
           v-else-if="currentTab === 'products'" 
         />
 
+        <InventoryView 
+          v-else-if="currentTab === 'inventory'" 
+        />
+
+        <CustomersView 
+          v-else-if="currentTab === 'customers'" 
+        />
+
         <OrdersView 
           v-else-if="currentTab === 'orders'" 
           :store-setting="storeSetting"
@@ -41,6 +49,8 @@ import { ref, onMounted } from 'vue';
 import Navbar from './components/Navbar.vue';
 import RegisterView from './views/RegisterView.vue';
 import ProductsView from './views/ProductsView.vue';
+import InventoryView from './views/InventoryView.vue';
+import CustomersView from './views/CustomersView.vue';
 import OrdersView from './views/OrdersView.vue';
 import ReportsView from './views/ReportsView.vue';
 import SettingsView from './views/SettingsView.vue';

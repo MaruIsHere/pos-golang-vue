@@ -96,6 +96,7 @@
       v-if="isPaymentModalOpen"
       :grand-total="grandTotal"
       :is-submitting="isSubmittingOrder"
+      :store-setting="storeSetting"
       @close="isPaymentModalOpen = false"
       @submit-order="handleCheckout"
     />

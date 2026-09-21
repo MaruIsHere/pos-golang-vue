@@ -64,6 +64,9 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 		&models.Order{},
 		&models.OrderItem{},
 		&models.StoreSetting{},
+		&models.Voucher{},
+		&models.Customer{},
+		&models.StockMovement{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to auto migrate models: %w", err)
@@ -75,6 +78,36 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 }
 
 func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
+	// Seed Customers if empty
+	var custCount int64
+	db.Model(&models.Customer{}).Count(&custCount)
+	if custCount == 0 {
+		initialCusts := []models.Customer{
+			{Name: "Budi Santoso", Phone: "081234567890", Email: "budi@gmail.com", Address: "Jakarta", Points: 120},
+			{Name: "Siti Rahma", Phone: "081987654321", Email: "siti@gmail.com", Address: "Bandung", Points: 85},
+			{Name: "Dewi Lestari", Phone: "085612345678", Email: "dewi@gmail.com", Address: "Surabaya", Points: 210},
+		}
+		for _, c := range initialCusts {
+			db.Create(&c)
+		}
+	}
+
+	// Seed Vouchers if empty
+	var voucherCount int64
+	db.Model(&models.Voucher{}).Count(&voucherCount)
+	if voucherCount == 0 {
+		initialVouchers := []models.Voucher{
+			{Code: "DISKON10", Type: "percent", Value: 10, Description: "Diskon 10% Semua Produk", IsActive: true},
+			{Code: "DISKON20", Type: "percent", Value: 20, Description: "Diskon 20% Promo Spesial", IsActive: true},
+			{Code: "HEMAT10K", Type: "flat", Value: 10000, Description: "Potongan Rp 10.000", IsActive: true},
+			{Code: "HEMAT50K", Type: "flat", Value: 50000, Description: "Potongan Rp 50.000", IsActive: true},
+			{Code: "POSHEMAT", Type: "percent", Value: 15, Description: "Diskon Kasir 15%", IsActive: true},
+		}
+		for _, v := range initialVouchers {
+			db.Create(&v)
+		}
+	}
+
 	// Seed Store Setting if not exists
 	var count int64
 	db.Model(&models.StoreSetting{}).Count(&count)
