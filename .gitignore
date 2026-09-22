@@ -19,6 +19,11 @@ build/
 *.dylib
 backend/pos_backend
 backend/pos_backend.exe
+backend/pos-backend
+backend/pos-backend.exe
+backend/pos-backend-linux
+backend/pos-backend-win.exe
+backend/pos-backend-mac
 backend/*.db
 backend/*.db-journal
 pos_backend

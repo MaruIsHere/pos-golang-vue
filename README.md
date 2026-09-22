@@ -78,41 +78,33 @@ npm run dev
 # buka http://localhost:3000
 ```
 
-Atau dari root (butuh `concurrently`):
+Atau dari root sekaligus (Windows / macOS / Linux — perlu koneksi internet pertama kali untuk `concurrently`):
 
 ```bash
-npm install -g concurrently
 npm run dev
 ```
 
-> Catatan: script root lama memanggil `pos_backend.exe` (Windows-only). Untuk universal Linux/Windows pakai `go run .` seperti di atas. Jangan commit binary `*.exe` / `*.db` (sudah di `.gitignore`).
+> Semua script root universal: `dev:backend` memakai `go run .`, `start` memakai `node scripts/start-backend.mjs` (otomatis pilih `pos-backend` / `pos-backend.exe` + build jika belum ada). Jangan commit binary / `*.db` (sudah di `.gitignore`).
 
-## Build production (universal Linux / Windows)
+## Build production (universal Linux / Windows / macOS)
 
 ```bash
-# 1. Build frontend
-cd frontend
-npm install
-npm run build
-# hasil: frontend/dist/
+# Cara singkat (semua OS):
+make build     # frontend dist + backend binary OS lokal
+make start     # = npm start, jalankan binary lokal (build otomatis jika belum ada)
 
-# 2. Build backend (jalankan dari folder backend agar config.json + serve dist benar)
-cd ../backend
-go build -o pos-backend .
-./pos-backend
-# buka http://localhost:8080 (API + frontend static jadi satu)
+# Cross-compile tanpa pindah OS (butuh waktu, SQLite pure-Go dikompilasi per target):
+make build-linux   # -> backend/pos-backend-linux (untuk server)
+make build-win     # -> backend/pos-backend-win.exe (untuk Windows)
+make build-mac     # -> backend/pos-backend-mac (untuk macOS arm64)
 ```
 
-Cross-compile tanpa pindah OS:
+Manual (setara `make`, dijalankan dari folder backend agar `config.json` + serve dist benar):
 
 ```bash
 cd backend
-# Windows dari Linux:
-GOOS=windows GOARCH=amd64 go build -o pos-backend.exe .
-# Linux server dari Windows (PowerShell):
-# $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o pos-backend-linux .
-# Linux dari Linux (server):
-GOOS=linux GOARCH=amd64 go build -o pos-backend-linux .
+go build -o pos-backend . && ./pos-backend
+# buka http://localhost:8080 (API + frontend static jadi satu)
 ```
 
 Alasan cross-compile works: SQLite driver yang dipakai (`glebarez/sqlite` / `modernc.org/sqlite`) pure-Go, tidak butuh CGO/`gcc`.
