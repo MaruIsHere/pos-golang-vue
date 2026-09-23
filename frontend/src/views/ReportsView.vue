@@ -88,10 +88,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import type { DashboardStats } from '../types';
 
-const stats = ref({
+const stats = ref<DashboardStats>({
   total_revenue: 0,
   total_orders: 0,
   total_items_sold: 0,
@@ -99,7 +100,7 @@ const stats = ref({
   recent_orders: []
 });
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
 const fetchStats = async () => {
   try {

@@ -96,17 +96,23 @@
   </div>
 </template>
 
-<script setup>
-const props = defineProps({
-  order: { type: Object, required: true },
-  storeSetting: { type: Object, default: () => ({}) }
+<script setup lang="ts">
+import { storeToRefs } from 'pinia';
+import { useSettingsStore } from '../stores/settings';
+import type { Order } from '../types';
+
+defineProps({
+  order: { type: Object as () => Order, required: true }
 });
 
 defineEmits(['close']);
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const settingsStore = useSettingsStore();
+const { settings: storeSetting } = storeToRefs(settingsStore);
 
-const formatDate = (dateStr) => {
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+
+const formatDate = (dateStr?: string): string => {
   if (!dateStr) return new Date().toLocaleString('id-ID');
   return new Date(dateStr).toLocaleString('id-ID');
 };

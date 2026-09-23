@@ -194,7 +194,7 @@
                   </span>
                 </td>
                 <td>
-                  <span class="reason-tag">{{ formatReason(m.reason) }}</span>
+                  <span class="reason-tag">{{ formatReason(m.reason ?? '') }}</span>
                 </td>
                 <td class="notes-col">{{ m.notes || '-' }}</td>
               </tr>
@@ -206,30 +206,38 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import type { Product, StockMovement } from '../types';
 
 const activeTab = ref('receive');
-const products = ref([]);
-const movements = ref([]);
+const products = ref<Product[]>([]);
+const movements = ref<StockMovement[]>([]);
 const isLoadingMovements = ref(false);
 const isSubmitting = ref(false);
 
-const receiveForm = ref({
+interface StockForm {
+  product_id: string | number;
+  quantity: number;
+  reason: string;
+  notes: string;
+}
+
+const receiveForm = ref<StockForm>({
   product_id: '',
   quantity: 1,
   reason: 'pembelian_supplier',
   notes: ''
 });
 
-const issueForm = ref({
+const issueForm = ref<StockForm>({
   product_id: '',
   quantity: 1,
   reason: 'barang_rusak',
   notes: ''
 });
 
-const formatDate = (str) => {
+const formatDate = (str?: string): string => {
   if (!str) return '-';
   return new Date(str).toLocaleString('id-ID', {
     day: '2-digit', month: 'short', year: 'numeric',
@@ -237,8 +245,8 @@ const formatDate = (str) => {
   });
 };
 
-const formatReason = (reason) => {
-  const map = {
+const formatReason = (reason: string): string => {
+  const map: Record<string, string> = {
     pembelian_supplier: 'Pembelian Supplier',
     produksi_sendiri: 'Produksi Mandiri',
     penyesuaian_opname: 'Penyesuaian Opname',
@@ -278,7 +286,7 @@ onMounted(() => {
   fetchMovements();
 });
 
-const submitStockMovement = async (type) => {
+const submitStockMovement = async (type: string): Promise<void> => {
   const form = type === 'in' ? receiveForm.value : issueForm.value;
   if (!form.product_id || form.quantity <= 0) return;
 
@@ -313,7 +321,7 @@ const submitStockMovement = async (type) => {
       alert('Gagal: ' + (errData.error || 'Terjadi kesalahan'));
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   } finally {
     isSubmitting.value = false;
   }

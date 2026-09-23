@@ -72,7 +72,7 @@
               <span class="cat-tag">{{ prod.category ? prod.category.name : '-' }}</span>
             </td>
             <td class="font-bold price-text">Rp {{ formatPrice(prod.price) }}</td>
-            <td class="text-muted">Rp {{ formatPrice(prod.cost_price) }}</td>
+            <td class="text-muted">Rp {{ formatPrice(prod.cost_price ?? 0) }}</td>
             <td>
               <span class="badge" :class="getStockBadge(prod.stock)">
                 {{ prod.stock }} unit
@@ -171,24 +171,25 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import type { Category, Product } from '../types';
 
-const products = ref([]);
-const categories = ref([]);
+const products = ref<Product[]>([]);
+const categories = ref<Category[]>([]);
 const isLoading = ref(true);
 
 const searchQuery = ref('');
-const selectedCatId = ref(null);
+const selectedCatId = ref<number | null>(null);
 
 const isProductModalOpen = ref(false);
 const isCategoryModalOpen = ref(false);
 const isSaving = ref(false);
-const editingId = ref(null);
+const editingId = ref<number | null>(null);
 
 const form = ref({
   name: '',
-  category_id: '',
+  category_id: '' as string | number,
   price: 0,
   cost_price: 0,
   stock: 0,
@@ -198,7 +199,7 @@ const form = ref({
 
 const catForm = ref({ name: '' });
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
 const fetchProducts = async () => {
   isLoading.value = true;
@@ -233,7 +234,7 @@ const filteredProducts = computed(() => {
   });
 });
 
-const getStockBadge = (stock) => {
+const getStockBadge = (stock: number): string => {
   if (stock <= 0) return 'badge-danger';
   if (stock <= 10) return 'badge-warning';
   return 'badge-success';
@@ -253,16 +254,16 @@ const openAddModal = () => {
   isProductModalOpen.value = true;
 };
 
-const openEditModal = (prod) => {
+const openEditModal = (prod: Product): void => {
   editingId.value = prod.id;
   form.value = {
     name: prod.name,
     category_id: prod.category_id,
     price: prod.price,
-    cost_price: prod.cost_price,
+    cost_price: prod.cost_price ?? 0,
     stock: prod.stock,
-    barcode: prod.barcode,
-    image_url: prod.image_url
+    barcode: prod.barcode ?? '',
+    image_url: prod.image_url ?? ''
   };
   isProductModalOpen.value = true;
 };
@@ -290,7 +291,7 @@ const saveProduct = async () => {
   }
 };
 
-const deleteProduct = async (prod) => {
+const deleteProduct = async (prod: Product): Promise<void> => {
   if (confirm(`Hapus produk "${prod.name}"?`)) {
     const res = await fetch(`/api/products/${prod.id}`, { method: 'DELETE' });
     if (res.ok) fetchProducts();

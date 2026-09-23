@@ -177,7 +177,7 @@
                     </td>
                     <td class="voucher-desc-col">{{ v.description || '-' }}</td>
                     <td>
-                      <button class="btn-delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id, v.code)">
+                      <button class="btn-delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
                         🗑️ Hapus
                       </button>
                     </td>
@@ -261,16 +261,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
-
-const props = defineProps({
-  storeSetting: { type: Object, default: () => ({}) }
-});
+import type { Voucher } from '../types';
 
 const emit = defineEmits(['refresh-settings']);
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
 const dbEngine = ref('sqlite');
 const selectedEngine = ref('sqlite');
@@ -292,7 +289,7 @@ const storeForm = ref({
 });
 
 // Vouchers State
-const vouchers = ref([]);
+const vouchers = ref<Voucher[]>([]);
 const isLoadingVouchers = ref(false);
 const isCreatingVoucher = ref(false);
 const newVoucher = ref({
@@ -344,8 +341,9 @@ onMounted(() => {
   loadVouchers();
 });
 
-const onQrisFileSelected = (event) => {
-  const file = event.target.files && event.target.files[0];
+const onQrisFileSelected = (event: Event): void => {
+  const input = event.target as HTMLInputElement | null;
+  const file = input?.files?.[0];
   if (!file) return;
 
   if (file.size > 5 * 1024 * 1024) {
@@ -354,8 +352,8 @@ const onQrisFileSelected = (event) => {
   }
 
   const reader = new FileReader();
-  reader.onload = (e) => {
-    storeForm.value.qris_image_url = e.target.result;
+  reader.onload = (e: ProgressEvent<FileReader>) => {
+    storeForm.value.qris_image_url = (e.target?.result as string) ?? '';
   };
   reader.readAsDataURL(file);
 };
@@ -376,7 +374,7 @@ const saveStoreSettings = async () => {
       alert('Gagal menyimpan pengaturan toko');
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   } finally {
     isSavingStore.value = false;
   }
@@ -409,13 +407,13 @@ const createVoucher = async () => {
       alert('Gagal menambahkan voucher: ' + (errData.error || 'Terjadi kesalahan'));
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   } finally {
     isCreatingVoucher.value = false;
   }
 };
 
-const deleteVoucher = async (id, code) => {
+const deleteVoucher = async (id: number, code: string): Promise<void> => {
   if (!confirm(`Apakah Anda yakin ingin menghapus voucher '${code}'?`)) return;
 
   try {
@@ -429,7 +427,7 @@ const deleteVoucher = async (id, code) => {
       alert('Gagal menghapus voucher');
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   }
 };
 
@@ -457,7 +455,7 @@ const switchDatabaseEngine = async () => {
       dbMessageType.value = 'error';
     }
   } catch (err) {
-    dbMessage.value = 'Terjadi kesalahan koneksi server: ' + err.message;
+    dbMessage.value = 'Terjadi kesalahan koneksi server: ' + (err as Error).message;
     dbMessageType.value = 'error';
   } finally {
     isSwitchingDb.value = false;

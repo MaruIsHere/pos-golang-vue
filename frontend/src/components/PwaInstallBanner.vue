@@ -26,20 +26,30 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 
+// Minimal typing for the PWA install prompt (not in TS DOM lib).
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+interface IosNavigator extends Navigator {
+  standalone?: boolean;
+}
+
 const showBanner = ref(false);
-const deferredPrompt = ref(null);
+const deferredPrompt = ref<BeforeInstallPromptEvent | null>(null);
 const isIos = ref(false);
 
-const checkIfIos = () => {
+const checkIfIos = (): boolean => {
   const userAgent = window.navigator.userAgent.toLowerCase();
   return /iphone|ipad|ipod/.test(userAgent);
 };
 
-const checkIfStandalone = () => {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const checkIfStandalone = (): boolean => {
+  return window.matchMedia('(display-mode: standalone)').matches || (window.navigator as IosNavigator).standalone === true;
 };
 
 onMounted(() => {
@@ -54,7 +64,7 @@ onMounted(() => {
   // Handle Chrome / Edge / Android install prompt
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
-    deferredPrompt.value = e;
+    deferredPrompt.value = e as BeforeInstallPromptEvent;
     showBanner.value = true;
   });
 
@@ -64,7 +74,7 @@ onMounted(() => {
   }
 });
 
-const installPwa = async () => {
+const installPwa = async (): Promise<void> => {
   if (!deferredPrompt.value) return;
 
   deferredPrompt.value.prompt();
@@ -77,7 +87,7 @@ const installPwa = async () => {
   deferredPrompt.value = null;
 };
 
-const dismissBanner = () => {
+const dismissBanner = (): void => {
   showBanner.value = false;
 };
 </script>

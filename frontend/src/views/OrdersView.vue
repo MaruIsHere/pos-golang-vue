@@ -74,27 +74,23 @@
     <ReceiptModal 
       v-if="selectedOrder"
       :order="selectedOrder"
-      :store-setting="storeSetting"
       @close="selectedOrder = null"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import ReceiptModal from '../components/ReceiptModal.vue';
+import type { Order } from '../types';
 
-const props = defineProps({
-  storeSetting: { type: Object, default: () => ({}) }
-});
-
-const orders = ref([]);
+const orders = ref<Order[]>([]);
 const isLoading = ref(true);
-const selectedOrder = ref(null);
+const selectedOrder = ref<Order | null>(null);
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
-const formatDate = (dateStr) => {
+const formatDate = (dateStr?: string): string => {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleString('id-ID', {
     day: '2-digit', month: 'short', year: 'numeric',
@@ -114,11 +110,11 @@ const fetchOrders = async () => {
 
 onMounted(fetchOrders);
 
-const openReceipt = (order) => {
+const openReceipt = (order: Order): void => {
   selectedOrder.value = order;
 };
 
-const refundOrder = async (order) => {
+const refundOrder = async (order: Order): Promise<void> => {
   if (!confirm(`Apakah Anda yakin ingin melakukan RETUR pada Invoice #${order.invoice_no}?\n\nStok barang akan dipulihkan secara otomatis.`)) {
     return;
   }
@@ -136,7 +132,7 @@ const refundOrder = async (order) => {
       alert('Gagal merefur transaksi: ' + (errData.error || 'Terjadi kesalahan'));
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   }
 };
 </script>

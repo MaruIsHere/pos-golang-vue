@@ -106,7 +106,7 @@
             type="number" 
             class="discount-input" 
             :value="discount" 
-            @input="onManualDiscountInput($event.target.value)"
+            @input="onManualDiscountInput(($event.target as HTMLInputElement).value)"
             placeholder="0"
             min="0"
           />
@@ -133,11 +133,18 @@
   </aside>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import type { CartItem, Voucher } from '../types';
+
+interface AppliedVoucher {
+  code: string;
+  discountAmount: number;
+  description: string;
+}
 
 const props = defineProps({
-  cart: { type: Array, required: true },
+  cart: { type: Array as () => CartItem[], required: true },
   discount: { type: Number, default: 0 },
   taxPercentage: { type: Number, default: 10 },
   isOpenMobile: { type: Boolean, default: false }
@@ -145,7 +152,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update-qty', 'remove-item', 'clear-cart', 'update-discount', 'open-payment', 'toggle-mobile']);
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
 const totalItemCount = computed(() => {
   return props.cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -166,10 +173,10 @@ const grandTotal = computed(() => {
 
 // Voucher Logic
 const voucherInput = ref('');
-const appliedVoucher = ref(null);
+const appliedVoucher = ref<AppliedVoucher | null>(null);
 const voucherError = ref('');
 
-const availableVouchers = ref([
+const availableVouchers = ref<Voucher[]>([
   { code: 'DISKON10', type: 'percent', value: 10, description: 'Diskon 10%' },
   { code: 'DISKON20', type: 'percent', value: 20, description: 'Diskon 20%' },
   { code: 'HEMAT10K', type: 'flat', value: 10000, description: 'Potongan Rp 10.000' },
@@ -228,7 +235,7 @@ const applyVoucher = async () => {
   appliedVoucher.value = {
     code: found.code,
     discountAmount: amount,
-    description: found.description
+    description: found.description ?? ''
   };
   voucherInput.value = '';
   
@@ -242,12 +249,12 @@ const removeVoucher = () => {
   emit('update-discount', 0);
 };
 
-const useHint = (code) => {
+const useHint = (code: string): void => {
   voucherInput.value = code;
   applyVoucher();
 };
 
-const onManualDiscountInput = (val) => {
+const onManualDiscountInput = (val: string): void => {
   appliedVoucher.value = null;
   voucherError.value = '';
   emit('update-discount', parseFloat(val) || 0);

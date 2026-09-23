@@ -96,7 +96,6 @@
       v-if="isPaymentModalOpen"
       :grand-total="grandTotal"
       :is-submitting="isSubmittingOrder"
-      :store-setting="storeSetting"
       @close="isPaymentModalOpen = false"
       @submit-order="handleCheckout"
     />
@@ -104,46 +103,47 @@
     <ReceiptModal 
       v-if="isReceiptModalOpen && lastCompletedOrder"
       :order="lastCompletedOrder"
-      :store-setting="storeSetting"
       @close="onReceiptClose"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import ProductCard from '../components/ProductCard.vue';
 import CartDrawer from '../components/CartDrawer.vue';
 import PaymentModal from '../components/PaymentModal.vue';
 import ReceiptModal from '../components/ReceiptModal.vue';
+import { useSettingsStore } from '../stores/settings';
+import type { Category, Product, CartItem, Order, CreateOrderPayload } from '../types';
 
-const props = defineProps({
-  storeSetting: { type: Object, default: () => ({}) }
-});
+defineEmits(['refresh-products']);
 
-const emit = defineEmits(['refresh-products']);
+const settingsStore = useSettingsStore();
+const { settings: storeSetting } = storeToRefs(settingsStore);
 
-const categories = ref([]);
-const products = ref([]);
+const categories = ref<Category[]>([]);
+const products = ref<Product[]>([]);
 const isLoading = ref(true);
 
 const searchQuery = ref('');
-const selectedCategoryId = ref(null);
+const selectedCategoryId = ref<number | null>(null);
 
 // Cart State
-const cart = ref([]);
+const cart = ref<CartItem[]>([]);
 const discount = ref(0);
 const isMobileCartOpen = ref(false);
 
 // Modal States
 const isPaymentModalOpen = ref(false);
 const isReceiptModalOpen = ref(false);
+const lastCompletedOrder = ref<Order | null>(null);
 const isSubmittingOrder = ref(false);
-const lastCompletedOrder = ref(null);
 
-const taxPercentage = computed(() => props.storeSetting.tax_percentage || 10);
+const taxPercentage = computed(() => storeSetting.value.tax_percentage || 10);
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
 // API Data Fetching
 const fetchCategories = async () => {
@@ -183,7 +183,7 @@ const filteredProducts = computed(() => {
 });
 
 // Cart Actions
-const addToCart = (product) => {
+const addToCart = (product: Product): void => {
   const existingIndex = cart.value.findIndex(item => item.product.id === product.id);
   if (existingIndex > -1) {
     if (cart.value[existingIndex].quantity < product.stock) {
@@ -194,7 +194,7 @@ const addToCart = (product) => {
   }
 };
 
-const updateCartQty = ({ index, delta }) => {
+const updateCartQty = ({ index, delta }: { index: number; delta: number }): void => {
   const item = cart.value[index];
   if (!item) return;
   const newQty = item.quantity + delta;
@@ -205,7 +205,7 @@ const updateCartQty = ({ index, delta }) => {
   }
 };
 
-const removeCartItem = (index) => {
+const removeCartItem = (index: number): void => {
   cart.value.splice(index, 1);
 };
 
@@ -240,10 +240,10 @@ const simulateScan = () => {
 };
 
 // Checkout API handler
-const handleCheckout = async ({ customer_name, payment_method, paid_amount }) => {
+const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { customer_name: string; payment_method: string; paid_amount: number }): Promise<void> => {
   isSubmittingOrder.value = true;
   try {
-    const payload = {
+    const payload: CreateOrderPayload = {
       customer_name,
       payment_method,
       paid_amount,
@@ -263,7 +263,7 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }) =>
     });
 
     if (res.ok) {
-      const completedOrder = await res.json();
+      const completedOrder = (await res.json()) as Order;
       lastCompletedOrder.value = completedOrder;
       isPaymentModalOpen.value = false;
       isReceiptModalOpen.value = true;
@@ -274,7 +274,7 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }) =>
       alert('Gagal memproses transaksi: ' + (errData.error || 'Terjadi kesalahan'));
     }
   } catch (err) {
-    alert('Koneksi ke server gagal: ' + err.message);
+    alert('Koneksi ke server gagal: ' + (err as Error).message);
   } finally {
     isSubmittingOrder.value = false;
   }

@@ -274,22 +274,27 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useSettingsStore } from '../stores/settings';
+import type { Customer } from '../types';
 
 const props = defineProps({
   grandTotal: { type: Number, required: true },
-  isSubmitting: { type: Boolean, default: false },
-  storeSetting: { type: Object, default: () => ({}) }
+  isSubmitting: { type: Boolean, default: false }
 });
 
 const emit = defineEmits(['close', 'submit-order']);
 
-const formatPrice = (val) => new Intl.NumberFormat('id-ID').format(val || 0);
+const settingsStore = useSettingsStore();
+const { settings: storeSetting } = storeToRefs(settingsStore);
+
+const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
 const customerName = ref('Umum');
 const selectedCustomerOption = ref('Umum');
-const customersList = ref([]);
+const customersList = ref<Customer[]>([]);
 
 const fetchCustomers = async () => {
   try {
@@ -322,7 +327,7 @@ onMounted(() => {
 });
 
 const effectiveQrisUrl = computed(() => {
-  return props.storeSetting?.qris_image_url || fetchedQrisUrl.value || '';
+  return storeSetting.value?.qris_image_url || fetchedQrisUrl.value || '';
 });
 
 const onCustomerSelect = () => {
@@ -347,8 +352,8 @@ const paymentMethods = [
 const quickCashAmounts = [10000, 20000, 50000, 100000, 200000];
 
 // Bank Transfer Accounts
-const selectedBank = ref('BCA');
-const bankAccounts = {
+const selectedBank = ref<string>('BCA');
+const bankAccounts: Record<string, { name: string; account: string; holder: string }> = {
   BCA: { name: 'Bank BCA', account: '8830192831', holder: 'KASIR POS STORE' },
   Mandiri: { name: 'Bank Mandiri', account: '137001928302', holder: 'KASIR POS STORE' },
   BRI: { name: 'Bank BRI', account: '0123010293014', holder: 'KASIR POS STORE' },
@@ -356,7 +361,7 @@ const bankAccounts = {
 };
 
 const copiedState = ref(false);
-const copyAccount = (accountNumber) => {
+const copyAccount = (accountNumber: string): void => {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(accountNumber);
     copiedState.value = true;
@@ -364,7 +369,7 @@ const copyAccount = (accountNumber) => {
   }
 };
 
-const selectMethod = (method) => {
+const selectMethod = (method: string): void => {
   paymentMethod.value = method;
   if (method !== 'cash') {
     paidAmount.value = props.grandTotal;
@@ -375,7 +380,7 @@ const setExactCash = () => {
   paidAmount.value = props.grandTotal;
 };
 
-const setPaidAmount = (amount) => {
+const setPaidAmount = (amount: number): void => {
   paidAmount.value = amount;
 };
 

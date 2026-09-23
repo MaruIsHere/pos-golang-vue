@@ -37,16 +37,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
+import type { Product } from '../types';
 
 const props = defineProps({
-  product: { type: Object, required: true }
+  product: { type: Object as () => Product, required: true }
 });
 
 const emit = defineEmits(['add-to-cart']);
 
-const formatPrice = (val) => {
+const formatPrice = (val: number): string => {
   return new Intl.NumberFormat('id-ID').format(val || 0);
 };
 
@@ -56,8 +57,8 @@ const stockBadgeClass = computed(() => {
   return 'badge-success';
 });
 
-const onImageError = (e) => {
-  e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400';
+const onImageError = (e: Event): void => {
+  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400';
 };
 
 const addToCart = () => {

@@ -14,16 +14,16 @@
 
     <!-- Desktop & Tablet Navigation -->
     <nav class="desktop-nav">
-      <button 
-        v-for="item in navItems" 
-        :key="item.id" 
-        class="nav-btn" 
-        :class="{ active: currentTab === item.id }"
-        @click="$emit('change-tab', item.id)"
+      <RouterLink
+        v-for="item in navItems"
+        :key="item.id"
+        :to="item.to"
+        class="nav-btn"
+        active-class="active"
       >
         <span class="nav-icon">{{ item.icon }}</span>
         <span class="nav-text">{{ item.label }}</span>
-      </button>
+      </RouterLink>
     </nav>
 
     <div class="header-right">
@@ -35,49 +35,50 @@
 
   <!-- Mobile Bottom Navigation Bar -->
   <nav class="mobile-bottom-nav">
-    <button 
-      v-for="item in navItems" 
-      :key="item.id" 
-      class="mobile-nav-btn" 
-      :class="{ active: currentTab === item.id }"
-      @click="$emit('change-tab', item.id)"
+    <RouterLink
+      v-for="item in navItems"
+      :key="item.id"
+      :to="item.to"
+      class="mobile-nav-btn"
+      active-class="active"
     >
       <span class="nav-icon">{{ item.icon }}</span>
       <span class="nav-text">{{ item.label }}</span>
       <span v-if="item.id === 'register' && cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-    </button>
+    </RouterLink>
   </nav>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useSettingsStore } from '../stores/settings';
 
-const props = defineProps({
-  currentTab: { type: String, default: 'register' },
-  storeSetting: { type: Object, default: () => ({}) },
+defineProps({
   cartCount: { type: Number, default: 0 }
 });
 
-defineEmits(['change-tab']);
+const settingsStore = useSettingsStore();
+const { settings: storeSetting } = storeToRefs(settingsStore);
 
 const navItems = [
-  { id: 'register', label: 'Kasir', icon: '🏪' },
-  { id: 'products', label: 'Produk', icon: '📦' },
-  { id: 'inventory', label: 'Inventoris', icon: '📥' },
-  { id: 'customers', label: 'Pelanggan', icon: '👥' },
-  { id: 'orders', label: 'Riwayat', icon: '📜' },
-  { id: 'reports', label: 'Laporan', icon: '📊' },
-  { id: 'settings', label: 'Pengaturan', icon: '⚙️' }
+  { id: 'register', to: '/', label: 'Kasir', icon: '🏪' },
+  { id: 'products', to: '/products', label: 'Produk', icon: '📦' },
+  { id: 'inventory', to: '/inventory', label: 'Inventoris', icon: '📥' },
+  { id: 'customers', to: '/customers', label: 'Pelanggan', icon: '👥' },
+  { id: 'orders', to: '/orders', label: 'Riwayat', icon: '📜' },
+  { id: 'reports', to: '/reports', label: 'Laporan', icon: '📊' },
+  { id: 'settings', to: '/settings', label: 'Pengaturan', icon: '⚙️' }
 ];
 
 const currentTime = ref('');
 
-const updateTime = () => {
+const updateTime = (): void => {
   const now = new Date();
   currentTime.value = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 };
 
-let timer = null;
+let timer: ReturnType<typeof setInterval> | null = null;
 onMounted(() => {
   updateTime();
   timer = setInterval(updateTime, 1000);

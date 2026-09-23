@@ -148,15 +148,16 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import type { Customer } from '../types';
 
-const customers = ref([]);
+const customers = ref<Customer[]>([]);
 const isLoading = ref(true);
 const isSaving = ref(false);
 const searchQuery = ref('');
 
-const editingId = ref(null);
+const editingId = ref<number | null>(null);
 const custForm = ref({
   name: '',
   phone: '',
@@ -192,7 +193,7 @@ const resetForm = () => {
   custForm.value = { name: '', phone: '', email: '', address: '', points: 0 };
 };
 
-const editCustomer = (cust) => {
+const editCustomer = (cust: Customer): void => {
   editingId.value = cust.id;
   custForm.value = {
     name: cust.name,
@@ -226,13 +227,13 @@ const saveCustomer = async () => {
       alert('Gagal: ' + (errData.error || 'Terjadi kesalahan'));
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   } finally {
     isSaving.value = false;
   }
 };
 
-const deleteCustomer = async (id, name) => {
+const deleteCustomer = async (id: number, name: string): Promise<void> => {
   if (!confirm(`Apakah Anda yakin ingin menghapus pelanggan '${name}'?`)) return;
 
   try {
@@ -243,7 +244,7 @@ const deleteCustomer = async (id, name) => {
       alert('Gagal menghapus pelanggan');
     }
   } catch (err) {
-    alert('Koneksi error: ' + err.message);
+    alert('Koneksi error: ' + (err as Error).message);
   }
 };
 </script>
