@@ -8,6 +8,32 @@ Prinsip: **update kecil sering, update besar terjadwal. Satu update = satu commi
 
 ---
 
+## 0. SOP harian: lihat hasil edit frontend + testing production
+
+Aturan port (wajib hafal):
+
+| Port | Apa | Kapan dipakai |
+|---|---|---|
+| `:3000` | Vite dev — baca `src/` langsung, save → refresh otomatis (HMR), `/api/*` di-proxy ke `:8080` | **Kerja harian / real-time** |
+| `:8080` | Go + `frontend/dist/` beku — hanya berubah setelah `npm run build` | **Testing production / rilis** |
+
+**Real-time (desain langsung terlihat):**
+```bash
+npm run dev          # dari root: backend 8080 + frontend 3000 sekaligus
+# buka http://localhost:3000 — edit src/*.vue, browser refresh sendiri
+```
+
+**Testing production (simulasi server asli):**
+```bash
+npm run build        # root: bangun frontend dist + binary backend
+npm start            # sajikan persis seperti di server: http://localhost:8080
+# buka http://localhost:8080 — yang terlihat = yang akan di-deploy
+```
+
+Jebakan klasik: edit `src/`, refresh `:8080`, tidak berubah → itu normal, `dist/` belum di-build ulang. Jangan debug — build dulu. Dan tiap commit frontend wajib sertakan `dist` terbaru (`git add -f frontend/dist`), kalau tidak server menampilkan versi basi walau `src` sudah baru.
+
+---
+
 ## 1. Ritme (tempel di kalender)
 
 | Kapan | Apa | Perintah |

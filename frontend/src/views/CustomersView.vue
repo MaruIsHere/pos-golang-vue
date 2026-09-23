@@ -1,254 +1,3 @@
-<template>
-  <div class="customers-page">
-    <div class="page-header glass-panel">
-      <div class="header-title">
-        <h2>👥 Master Data Pelanggan & Member</h2>
-        <p>Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member toko</p>
-      </div>
-    </div>
-
-    <div class="customers-grid">
-      <!-- Add / Edit Customer Form -->
-      <div class="customers-card glass-panel">
-        <div class="card-header">
-          <h3>{{ editingId ? '✏️ Edit Data Pelanggan' : '+ Tambah Pelanggan Baru' }}</h3>
-        </div>
-
-        <form @submit.prevent="saveCustomer" class="card-body">
-          <div class="form-group">
-            <label class="form-label">Nama Pelanggan</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              v-model="custForm.name" 
-              placeholder="cth: Budi Santoso" 
-              required 
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">No. Telepon / WhatsApp</label>
-            <input 
-              type="text" 
-              class="form-control" 
-              v-model="custForm.phone" 
-              placeholder="cth: 081234567890" 
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input 
-              type="email" 
-              class="form-control" 
-              v-model="custForm.email" 
-              placeholder="cth: budi@gmail.com" 
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Alamat Lengkap</label>
-            <textarea 
-              class="form-control" 
-              rows="2" 
-              v-model="custForm.address" 
-              placeholder="Alamat rumah / kantor pelanggan..."
-            ></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Poin Loyalty</label>
-            <input 
-              type="number" 
-              class="form-control" 
-              v-model.number="custForm.points" 
-              min="0" 
-            />
-          </div>
-
-          <div class="form-actions">
-            <button v-if="editingId" type="button" class="btn btn-secondary" @click="resetForm">
-              Batal Edit
-            </button>
-
-            <button type="submit" class="btn btn-success" :disabled="isSaving">
-              {{ isSaving ? 'Memproses...' : (editingId ? 'Simpan Perubahan' : '+ Tambah Pelanggan') }}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Customers Table List -->
-      <div class="customers-card glass-panel main-list-card">
-        <div class="card-header">
-          <h3>📋 Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
-          
-          <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input 
-              type="text" 
-              class="search-input" 
-              v-model="searchQuery" 
-              placeholder="Cari nama / HP..." 
-            />
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div v-if="isLoading" class="loading-box">
-            <div class="spinner"></div>
-            <p>Memuat data pelanggan...</p>
-          </div>
-
-          <div v-else-if="filteredCustomers.length === 0" class="empty-box">
-            <span class="empty-icon">👥</span>
-            <p>Belum ada data pelanggan yang tersimpan.</p>
-          </div>
-
-          <div v-else class="table-wrapper">
-            <table class="cust-table">
-              <thead>
-                <tr>
-                  <th>Nama</th>
-                  <th>No. Telepon</th>
-                  <th>Email</th>
-                  <th>Alamat</th>
-                  <th>Poin</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="c in filteredCustomers" :key="c.id">
-                  <td>
-                    <strong class="cust-name">👤 {{ c.name }}</strong>
-                  </td>
-                  <td>{{ c.phone || '-' }}</td>
-                  <td>{{ c.email || '-' }}</td>
-                  <td class="addr-col">{{ c.address || '-' }}</td>
-                  <td>
-                    <span class="points-badge">⭐ {{ c.points }} Poin</span>
-                  </td>
-                  <td>
-                    <div class="action-btns">
-                      <button class="btn-edit" title="Edit" @click="editCustomer(c)">
-                        ✏️
-                      </button>
-                      <button class="btn-delete" title="Hapus" @click="deleteCustomer(c.id, c.name)">
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import type { Customer } from '../types';
-
-const customers = ref<Customer[]>([]);
-const isLoading = ref(true);
-const isSaving = ref(false);
-const searchQuery = ref('');
-
-const editingId = ref<number | null>(null);
-const custForm = ref({
-  name: '',
-  phone: '',
-  email: '',
-  address: '',
-  points: 0
-});
-
-const loadCustomers = async () => {
-  isLoading.value = true;
-  try {
-    const res = await fetch('/api/customers');
-    if (res.ok) customers.value = await res.json();
-  } catch (err) {
-    console.error(err);
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(loadCustomers);
-
-const filteredCustomers = computed(() => {
-  if (!searchQuery.value) return customers.value;
-  const q = searchQuery.value.toLowerCase();
-  return customers.value.filter(c => 
-    c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q))
-  );
-});
-
-const resetForm = () => {
-  editingId.value = null;
-  custForm.value = { name: '', phone: '', email: '', address: '', points: 0 };
-};
-
-const editCustomer = (cust: Customer): void => {
-  editingId.value = cust.id;
-  custForm.value = {
-    name: cust.name,
-    phone: cust.phone || '',
-    email: cust.email || '',
-    address: cust.address || '',
-    points: cust.points || 0
-  };
-};
-
-const saveCustomer = async () => {
-  if (!custForm.value.name) return;
-
-  isSaving.value = true;
-  try {
-    const url = editingId.value ? `/api/customers/${editingId.value}` : '/api/customers';
-    const method = editingId.value ? 'PUT' : 'POST';
-
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(custForm.value)
-    });
-
-    if (res.ok) {
-      alert(`Data pelanggan berhasil ${editingId.value ? 'diperbarui' : 'ditambahkan'}!`);
-      resetForm();
-      loadCustomers();
-    } else {
-      const errData = await res.json();
-      alert('Gagal: ' + (errData.error || 'Terjadi kesalahan'));
-    }
-  } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
-  } finally {
-    isSaving.value = false;
-  }
-};
-
-const deleteCustomer = async (id: number, name: string): Promise<void> => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus pelanggan '${name}'?`)) return;
-
-  try {
-    const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      loadCustomers();
-    } else {
-      alert('Gagal menghapus pelanggan');
-    }
-  } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
-  }
-};
-</script>
-
 <style scoped>
 .customers-page {
   display: flex;
@@ -334,7 +83,8 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
   font-size: 0.85rem;
 }
 
-.cust-table th, .cust-table td {
+.cust-table th,
+.cust-table td {
   padding: 0.75rem 0.85rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
@@ -370,7 +120,8 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
   gap: 0.35rem;
 }
 
-.btn-edit, .btn-delete {
+.btn-edit,
+.btn-delete {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -384,9 +135,297 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
   border-color: rgba(239, 68, 68, 0.4);
 }
 
-.loading-box, .empty-box {
+.loading-box,
+.empty-box {
   padding: 3rem;
   text-align: center;
   color: var(--text-muted);
 }
 </style>
+<template>
+  <div class="flex flex-col gap-2">
+    <div class="py-5 px-6 glass-panel">
+      <h2 class="text-xl font-extrabold">👥 Master Data Pelanggan & Member</h2>
+      <p>
+        Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member
+        toko
+      </p>
+    </div>
+
+    <div class="grid gap-2 grid-col-1 lg:grid-col-[360px, 1fr]">
+      <!-- Add / Edit Customer Form -->
+      <div class="p-1 flex flex-col gap-1 glass-panel">
+        <div
+          class="flex justify-between item-center border-b border-gray-200 pb-[0.85rem]"
+        >
+          <h3>
+            <template v-if="editingId">
+              <PencilIcon />
+              <span>Edit Data Pelanggan</span>
+            </template>
+            <template v-else>
+              <UserPlusIcon />
+              <span>Tambah Pelanggan Baru</span>
+            </template>
+          </h3>
+        </div>
+
+        <form @submit.prevent="saveCustomer" class="card-body">
+          <div class="form-group">
+            <label class="form-label">Nama Pelanggan</label>
+            <input
+              type="text"
+              class="form-control"
+              v-model="custForm.name"
+              placeholder="cth: Budi Santoso"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">No. Telepon / WhatsApp</label>
+            <input
+              type="text"
+              class="form-control"
+              v-model="custForm.phone"
+              placeholder="cth: 081234567890"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              v-model="custForm.email"
+              placeholder="cth: budi@gmail.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Alamat Lengkap</label>
+            <textarea
+              class="form-control"
+              rows="2"
+              v-model="custForm.address"
+              placeholder="Alamat rumah / kantor pelanggan..."
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Poin Loyalty</label>
+            <input
+              type="number"
+              class="form-control"
+              v-model.number="custForm.points"
+              min="0"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button
+              v-if="editingId"
+              type="button"
+              class="btn btn-secondary"
+              @click="resetForm"
+            >
+              Batal Edit
+            </button>
+
+            <button type="submit" class="btn btn-success" :disabled="isSaving">
+              {{
+                isSaving
+                  ? "Memproses..."
+                  : editingId
+                    ? "Simpan Perubahan"
+                    : "+ Tambah Pelanggan"
+              }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Customers Table List -->
+      <div class="customers-card glass-panel main-list-card">
+        <div class="card-header">
+          <h3>📋 Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
+
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              class="search-input"
+              v-model="searchQuery"
+              placeholder="Cari nama / HP..."
+            />
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div v-if="isLoading" class="loading-box">
+            <div class="spinner"></div>
+            <p>Memuat data pelanggan...</p>
+          </div>
+
+          <div v-else-if="filteredCustomers.length === 0" class="empty-box">
+            <span class="empty-icon">👥</span>
+            <p>Belum ada data pelanggan yang tersimpan.</p>
+          </div>
+
+          <div v-else class="table-wrapper">
+            <table class="cust-table">
+              <thead>
+                <tr>
+                  <th>Nama</th>
+                  <th>No. Telepon</th>
+                  <th>Email</th>
+                  <th>Alamat</th>
+                  <th>Poin</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="c in filteredCustomers" :key="c.id">
+                  <td>
+                    <strong class="cust-name">👤 {{ c.name }}</strong>
+                  </td>
+                  <td>{{ c.phone || "-" }}</td>
+                  <td>{{ c.email || "-" }}</td>
+                  <td class="addr-col">{{ c.address || "-" }}</td>
+                  <td>
+                    <span class="points-badge">⭐ {{ c.points }} Poin</span>
+                  </td>
+                  <td>
+                    <div class="action-btns">
+                      <button
+                        class="btn-edit"
+                        title="Edit"
+                        @click="editCustomer(c)"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        class="btn-delete"
+                        title="Hapus"
+                        @click="deleteCustomer(c.id, c.name)"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import type { Customer } from "../types";
+import { PencilIcon, UserPlusIcon } from "@heroicons/vue/24/solid";
+
+const customers = ref<Customer[]>([]);
+const isLoading = ref(true);
+const isSaving = ref(false);
+const searchQuery = ref("");
+
+const editingId = ref<number | null>(null);
+const custForm = ref({
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+  points: 0,
+});
+
+const loadCustomers = async () => {
+  isLoading.value = true;
+  try {
+    const res = await fetch("/api/customers");
+    if (res.ok) customers.value = await res.json();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(loadCustomers);
+
+const filteredCustomers = computed(() => {
+  if (!searchQuery.value) return customers.value;
+  const q = searchQuery.value.toLowerCase();
+  return customers.value.filter(
+    (c) => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q)),
+  );
+});
+
+const resetForm = () => {
+  editingId.value = null;
+  custForm.value = { name: "", phone: "", email: "", address: "", points: 0 };
+};
+
+const editCustomer = (cust: Customer): void => {
+  editingId.value = cust.id;
+  custForm.value = {
+    name: cust.name,
+    phone: cust.phone || "",
+    email: cust.email || "",
+    address: cust.address || "",
+    points: cust.points || 0,
+  };
+};
+
+const saveCustomer = async () => {
+  if (!custForm.value.name) return;
+
+  isSaving.value = true;
+  try {
+    const url = editingId.value
+      ? `/api/customers/${editingId.value}`
+      : "/api/customers";
+    const method = editingId.value ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(custForm.value),
+    });
+
+    if (res.ok) {
+      alert(
+        `Data pelanggan berhasil ${editingId.value ? "diperbarui" : "ditambahkan"}!`,
+      );
+      resetForm();
+      loadCustomers();
+    } else {
+      const errData = await res.json();
+      alert("Gagal: " + (errData.error || "Terjadi kesalahan"));
+    }
+  } catch (err) {
+    alert("Koneksi error: " + (err as Error).message);
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const deleteCustomer = async (id: number, name: string): Promise<void> => {
+  if (!confirm(`Apakah Anda yakin ingin menghapus pelanggan '${name}'?`))
+    return;
+
+  try {
+    const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      loadCustomers();
+    } else {
+      alert("Gagal menghapus pelanggan");
+    }
+  } catch (err) {
+    alert("Koneksi error: " + (err as Error).message);
+  }
+};
+</script>

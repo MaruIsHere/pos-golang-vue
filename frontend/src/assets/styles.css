@@ -1,19 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  
+  --font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
   /* Color Palette - Vibrant Dark/Sleek theme */
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-card: rgba(30, 41, 59, 0.7);
   --bg-card-hover: rgba(51, 65, 85, 0.8);
   --bg-glass: rgba(15, 23, 42, 0.85);
-  
+
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  
+
   --accent-primary: #6366f1; /* Indigo */
   --accent-primary-hover: #4f46e5;
   --accent-secondary: #10b981; /* Emerald Green */
@@ -21,10 +22,10 @@
   --accent-warning: #f59e0b;
   --accent-danger: #ef4444;
   --accent-purple: #8b5cf6;
-  
+
   --border-color: rgba(255, 255, 255, 0.08);
   --border-focus: rgba(99, 102, 241, 0.5);
-  
+
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -142,7 +143,11 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary),
+    var(--accent-purple)
+  );
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
 }
@@ -202,7 +207,9 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .form-control:focus {
@@ -268,11 +275,21 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
