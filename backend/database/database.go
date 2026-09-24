@@ -113,13 +113,14 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 	db.Model(&models.StoreSetting{}).Count(&count)
 	if count == 0 {
 		setting := models.StoreSetting{
-			StoreName:     "KASIR COFFEE & BISTRO",
-			Address:       "Jl. Boulevard Utama No. 88, Jakarta Selatan",
-			Phone:         "0812-9876-5432",
-			ReceiptFooter: "Terima kasih atas kunjungan Anda!\nSimpan struk ini sebagai bukti pembayaran resmi.",
-			TaxPercentage: 10,
-			DbEngine:      engine,
-			MysqlDsn:      mysqlDsn,
+			StoreName:                "KASIR COFFEE & BISTRO",
+			Address:                  "Jl. Boulevard Utama No. 88, Jakarta Selatan",
+			Phone:                    "0812-9876-5432",
+			ReceiptFooter:            "Terima kasih atas kunjungan Anda!\nSimpan struk ini sebagai bukti pembayaran resmi.",
+			TaxPercentage:            10,
+			MemberDiscountPercentage: 5,
+			DbEngine:                 engine,
+			MysqlDsn:                 mysqlDsn,
 		}
 		db.Create(&setting)
 	}

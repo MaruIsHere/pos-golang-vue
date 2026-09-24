@@ -55,15 +55,16 @@ type OrderItem struct {
 }
 
 type StoreSetting struct {
-	ID            uint    `gorm:"primaryKey" json:"id"`
-	StoreName     string  `gorm:"size:150;default:'KASIR POS PRO'" json:"store_name"`
-	Address       string  `gorm:"size:255;default:'Jl. Merdeka No. 45, Jakarta'" json:"address"`
-	Phone         string  `gorm:"size:50;default:'0812-3456-7890'" json:"phone"`
-	ReceiptFooter string  `gorm:"size:255;default:'Terima kasih telah berbelanja!'" json:"receipt_footer"`
-	TaxPercentage float64 `gorm:"default:10" json:"tax_percentage"`
-	DbEngine      string  `gorm:"size:20;default:'sqlite'" json:"db_engine"` // sqlite or mysql
-	MysqlDsn      string  `gorm:"size:255;default:'root:@tcp(127.0.0.1:3306)/pos_db?charset=utf8mb4&parseTime=True&loc=Local'" json:"mysql_dsn"`
-	QrisImageUrl  string  `gorm:"type:longtext" json:"qris_image_url"`
+	ID                       uint    `gorm:"primaryKey" json:"id"`
+	StoreName                string  `gorm:"size:150;default:'KASIR POS PRO'" json:"store_name"`
+	Address                  string  `gorm:"size:255;default:'Jl. Merdeka No. 45, Jakarta'" json:"address"`
+	Phone                    string  `gorm:"size:50;default:'0812-3456-7890'" json:"phone"`
+	ReceiptFooter            string  `gorm:"size:255;default:'Terima kasih telah berbelanja!'" json:"receipt_footer"`
+	TaxPercentage            float64 `gorm:"default:10" json:"tax_percentage"`
+	MemberDiscountPercentage float64 `gorm:"default:5" json:"member_discount_percentage"`
+	DbEngine                 string  `gorm:"size:20;default:'sqlite'" json:"db_engine"` // sqlite or mysql
+	MysqlDsn                 string  `gorm:"size:255;default:'root:@tcp(127.0.0.1:3306)/pos_db?charset=utf8mb4&parseTime=True&loc=Local'" json:"mysql_dsn"`
+	QrisImageUrl             string  `gorm:"type:longtext" json:"qris_image_url"`
 }
 
 type Voucher struct {

@@ -6,24 +6,41 @@
           <h3>Pembayaran Kasir</h3>
           <p class="sub-info">Pilih metode pembayaran dan selesaikan transaksi</p>
         </div>
-        <button class="btn-close" @click="$emit('close')">✕</button>
+        <button class="btn-close" @click="$emit('close')">
+          <XMarkIcon class="w-5 h-5" />
+        </button>
       </div>
 
       <div class="modal-body">
         <!-- Total Display -->
         <div class="total-card">
-          <span class="total-label">Total Yang Harus Dibayar</span>
-          <h2 class="total-amount">Rp {{ formatPrice(grandTotal) }}</h2>
+          <div class="total-left">
+            <span class="total-label">Total Yang Harus Dibayar</span>
+            <div v-if="isMatchedMember" class="member-discount-tag flex items-center gap-1">
+              <CheckBadgeIcon class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+              <span>Diskon Member {{ memberDiscountPercent }}% (-Rp {{ formatPrice(memberDiscountAmount) }})</span>
+            </div>
+          </div>
+          <div class="total-right">
+            <h2 class="total-amount">Rp {{ formatPrice(finalGrandTotal) }}</h2>
+            <span v-if="isMatchedMember" class="original-subtotal">Semula: Rp {{ formatPrice(grandTotal) }}</span>
+          </div>
         </div>
 
         <!-- Customer Name / Member Dropdown -->
         <div class="form-group">
-          <label class="form-label">Nama Pelanggan / Member</label>
+          <label class="form-label flex justify-between items-center">
+            <span>Nama Pelanggan / Member</span>
+            <span v-if="isMatchedMember" class="member-badge success flex items-center gap-1">
+              <CheckBadgeIcon class="w-3.5 h-3.5 text-emerald-500" />
+              <span>Diskon {{ memberDiscountPercent }}% Ditambahkan</span>
+            </span>
+          </label>
           <div class="customer-input-flex">
             <select class="form-control" v-model="selectedCustomerOption" @change="onCustomerSelect">
               <option value="Umum">Umum (Non-Member)</option>
               <option v-for="c in customersList" :key="c.id" :value="c.name">
-                👤 {{ c.name }} {{ c.phone ? '(' + c.phone + ')' : '' }}
+                {{ c.name }} {{ c.phone ? '(' + c.phone + ')' : '' }} (Diskon Member {{ memberDiscountPercent }}%)
               </option>
               <option value="custom">-- Ketik Nama Manual --</option>
             </select>
@@ -36,6 +53,9 @@
               placeholder="Ketik Nama Pelanggan..." 
             />
           </div>
+          <p v-if="isMatchedMember" class="member-hint success">
+            Pelanggan "{{ matchedMember?.name }}" terdaftar di database! Potongan member {{ memberDiscountPercent }}% (-Rp {{ formatPrice(memberDiscountAmount) }}) otomatis diterapkan.
+          </p>
         </div>
 
         <!-- Payment Method Grid -->
@@ -49,7 +69,7 @@
               :class="{ active: paymentMethod === m.id }"
               @click="selectMethod(m.id)"
             >
-              <span class="method-icon">{{ m.icon }}</span>
+              <component :is="m.iconComp" class="w-5 h-5 method-icon-svg" />
               <div class="method-details">
                 <span class="method-name">{{ m.name }}</span>
                 <span class="method-desc">{{ m.desc }}</span>
@@ -76,7 +96,7 @@
           <!-- Quick Cash Buttons -->
           <div class="quick-cash-grid">
             <button class="quick-cash-btn exact-btn" @click="setExactCash">
-              ⚡ Uang Pas (Rp {{ formatPrice(grandTotal) }})
+              <BoltIcon class="w-4 h-4 inline-block mr-1" /> Uang Pas (Rp {{ formatPrice(grandTotal) }})
             </button>
             <button 
               v-for="amount in quickCashAmounts" 
@@ -99,13 +119,13 @@
 
         <!-- 2. QRIS SECTION -->
         <div v-else-if="paymentMethod === 'qris'" class="payment-section qris-section">
-          <div class="qris-card glass-panel">
+          <div class="qris-card">
             <div class="qris-header">
               <div class="qris-logo-badge">
                 <span class="qris-text">QRIS</span>
                 <span class="qris-sub">National QR Standard</span>
               </div>
-              <span class="live-pulse">🟢 Standby Scan</span>
+              <span class="live-pulse">Standby Scan</span>
             </div>
 
             <!-- Custom QRIS Image or SVG QR Graphic -->
@@ -123,45 +143,45 @@
                 <!-- Top Left -->
                 <rect x="15" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
                 <rect x="23" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
-                <rect x="30" y="30" width="15" height="15" fill="#6366f1" rx="2"/>
+                <rect x="30" y="30" width="15" height="15" fill="#4f46e5" rx="2"/>
                 <!-- Top Right -->
                 <rect x="140" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
                 <rect x="148" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
-                <rect x="155" y="30" width="15" height="15" fill="#6366f1" rx="2"/>
+                <rect x="155" y="30" width="15" height="15" fill="#4f46e5" rx="2"/>
                 <!-- Bottom Left -->
                 <rect x="15" y="140" width="45" height="45" fill="#0f172a" rx="4"/>
                 <rect x="23" y="148" width="29" height="29" fill="#ffffff" rx="2"/>
-                <rect x="30" y="155" width="15" height="15" fill="#6366f1" rx="2"/>
+                <rect x="30" y="155" width="15" height="15" fill="#4f46e5" rx="2"/>
                 <!-- QR Data Matrix Dots Simulation -->
                 <rect x="70" y="20" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="20" width="12" height="12" fill="#6366f1"/>
+                <rect x="90" y="20" width="12" height="12" fill="#4f46e5"/>
                 <rect x="110" y="20" width="12" height="12" fill="#0f172a"/>
                 <rect x="70" y="40" width="12" height="12" fill="#0f172a"/>
-                <rect x="110" y="40" width="12" height="12" fill="#6366f1"/>
-                <rect x="20" y="70" width="12" height="12" fill="#6366f1"/>
+                <rect x="110" y="40" width="12" height="12" fill="#4f46e5"/>
+                <rect x="20" y="70" width="12" height="12" fill="#4f46e5"/>
                 <rect x="40" y="70" width="12" height="12" fill="#0f172a"/>
                 <rect x="70" y="70" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="70" width="20" height="20" fill="#6366f1" rx="4"/>
+                <rect x="90" y="70" width="20" height="20" fill="#4f46e5" rx="4"/>
                 <rect x="120" y="70" width="12" height="12" fill="#0f172a"/>
-                <rect x="140" y="70" width="12" height="12" fill="#6366f1"/>
+                <rect x="140" y="70" width="12" height="12" fill="#4f46e5"/>
                 <rect x="160" y="70" width="12" height="12" fill="#0f172a"/>
                 <rect x="20" y="90" width="12" height="12" fill="#0f172a"/>
-                <rect x="40" y="90" width="12" height="12" fill="#6366f1"/>
+                <rect x="40" y="90" width="12" height="12" fill="#4f46e5"/>
                 <rect x="140" y="90" width="12" height="12" fill="#0f172a"/>
-                <rect x="170" y="90" width="12" height="12" fill="#6366f1"/>
-                <rect x="20" y="110" width="12" height="12" fill="#6366f1"/>
+                <rect x="170" y="90" width="12" height="12" fill="#4f46e5"/>
+                <rect x="20" y="110" width="12" height="12" fill="#4f46e5"/>
                 <rect x="70" y="110" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="110" width="12" height="12" fill="#6366f1"/>
+                <rect x="90" y="110" width="12" height="12" fill="#4f46e5"/>
                 <rect x="110" y="110" width="12" height="12" fill="#0f172a"/>
-                <rect x="150" y="110" width="12" height="12" fill="#6366f1"/>
+                <rect x="150" y="110" width="12" height="12" fill="#4f46e5"/>
                 <rect x="70" y="140" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="140" width="12" height="12" fill="#6366f1"/>
+                <rect x="90" y="140" width="12" height="12" fill="#4f46e5"/>
                 <rect x="110" y="140" width="12" height="12" fill="#0f172a"/>
-                <rect x="140" y="140" width="12" height="12" fill="#6366f1"/>
+                <rect x="140" y="140" width="12" height="12" fill="#4f46e5"/>
                 <rect x="160" y="140" width="12" height="12" fill="#0f172a"/>
-                <rect x="70" y="165" width="12" height="12" fill="#6366f1"/>
+                <rect x="70" y="165" width="12" height="12" fill="#4f46e5"/>
                 <rect x="90" y="165" width="12" height="12" fill="#0f172a"/>
-                <rect x="120" y="165" width="12" height="12" fill="#6366f1"/>
+                <rect x="120" y="165" width="12" height="12" fill="#4f46e5"/>
                 <rect x="150" y="165" width="20" height="20" fill="#0f172a" rx="4"/>
               </svg>
 
@@ -199,7 +219,7 @@
           </div>
 
           <!-- Account Details Box -->
-          <div class="account-card glass-panel">
+          <div class="account-card">
             <div class="acc-row">
               <span class="acc-label">Bank:</span>
               <span class="acc-val">{{ bankAccounts[selectedBank].name }}</span>
@@ -209,7 +229,8 @@
               <div class="copy-wrapper">
                 <strong class="acc-number">{{ bankAccounts[selectedBank].account }}</strong>
                 <button class="btn-copy" @click="copyAccount(bankAccounts[selectedBank].account)">
-                  {{ copiedState ? '✓ Tersalin' : '📋 Salin' }}
+                  <span v-if="copiedState" class="flex items-center gap-1 text-emerald-500"><CheckIcon class="w-3.5 h-3.5" /> Tersalin</span>
+                  <span v-else class="flex items-center gap-1"><ClipboardDocumentIcon class="w-3.5 h-3.5" /> Salin</span>
                 </button>
               </div>
             </div>
@@ -224,15 +245,16 @@
           </div>
 
           <div class="transfer-hint-box">
-            <span>ℹ️ Mohon verifikasi bahwa dana sudah masuk di m-Banking sebelum menekan tombol Selesaikan.</span>
+            <InformationCircleIcon class="w-4 h-4 inline-block mr-1 text-amber-500" />
+            <span>Mohon verifikasi bahwa dana sudah masuk di m-Banking sebelum menekan tombol Selesaikan.</span>
           </div>
         </div>
 
         <!-- 4. DEBIT / EDC CARD SECTION -->
         <div v-else-if="paymentMethod === 'debit'" class="payment-section debit-section">
-          <div class="edc-card glass-panel">
+          <div class="edc-card">
             <div class="edc-top">
-              <span class="edc-title">💳 MESIN EDC KARTU</span>
+              <span class="edc-title">MESIN EDC KARTU</span>
               <div class="card-brands">
                 <span class="brand-pill visa">VISA</span>
                 <span class="brand-pill master">MC</span>
@@ -267,7 +289,10 @@
           @click="submitPayment"
         >
           <span v-if="isSubmitting">Memproses Transaksi...</span>
-          <span v-else>Selesaikan & Cetak Struk 🖨️</span>
+          <span v-else class="flex items-center justify-center gap-1.5">
+            <PrinterIcon class="w-4 h-4" />
+            <span>Selesaikan & Cetak Struk</span>
+          </span>
         </button>
       </div>
     </div>
@@ -279,6 +304,19 @@ import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import type { Customer } from '../types';
+import { 
+  BanknotesIcon, 
+  QrCodeIcon, 
+  BuildingLibraryIcon, 
+  CreditCardIcon, 
+  PrinterIcon, 
+  XMarkIcon, 
+  BoltIcon,
+  CheckIcon,
+  ClipboardDocumentIcon,
+  InformationCircleIcon,
+  CheckBadgeIcon
+} from '@heroicons/vue/24/outline';
 
 const props = defineProps({
   grandTotal: { type: Number, required: true },
@@ -330,6 +368,26 @@ const effectiveQrisUrl = computed(() => {
   return storeSetting.value?.qris_image_url || fetchedQrisUrl.value || '';
 });
 
+// Member Discount Calculation
+const memberDiscountPercent = computed(() => storeSetting.value?.member_discount_percentage ?? 5);
+
+const matchedMember = computed(() => {
+  if (!customerName.value || customerName.value.trim() === '' || customerName.value === 'Umum') return null;
+  const q = customerName.value.trim().toLowerCase();
+  return customersList.value.find(c => c.name.trim().toLowerCase() === q);
+});
+
+const isMatchedMember = computed(() => !!matchedMember.value);
+
+const memberDiscountAmount = computed(() => {
+  if (!isMatchedMember.value) return 0;
+  return Math.round((props.grandTotal * memberDiscountPercent.value) / 100);
+});
+
+const finalGrandTotal = computed(() => {
+  return Math.max(0, props.grandTotal - memberDiscountAmount.value);
+});
+
 const onCustomerSelect = () => {
   if (selectedCustomerOption.value !== 'custom') {
     customerName.value = selectedCustomerOption.value;
@@ -343,10 +401,10 @@ const paidAmount = ref(props.grandTotal);
 const approvalCode = ref('');
 
 const paymentMethods = [
-  { id: 'cash', name: 'Tunai', icon: '💵', desc: 'Uang Tunai' },
-  { id: 'qris', name: 'QRIS', icon: '📲', desc: 'Scan QR All Pay' },
-  { id: 'transfer', name: 'Transfer Bank', icon: '🏦', desc: 'BCA/Mandiri/BRI/BNI' },
-  { id: 'debit', name: 'Kartu Debit', icon: '💳', desc: 'Mesin EDC' }
+  { id: 'cash', name: 'Tunai', iconComp: BanknotesIcon, desc: 'Uang Tunai' },
+  { id: 'qris', name: 'QRIS', iconComp: QrCodeIcon, desc: 'Scan QR All Pay' },
+  { id: 'transfer', name: 'Transfer Bank', iconComp: BuildingLibraryIcon, desc: 'BCA/Mandiri/BRI' },
+  { id: 'debit', name: 'Kartu Debit', iconComp: CreditCardIcon, desc: 'Mesin EDC' }
 ];
 
 const quickCashAmounts = [10000, 20000, 50000, 100000, 200000];
@@ -372,12 +430,12 @@ const copyAccount = (accountNumber: string): void => {
 const selectMethod = (method: string): void => {
   paymentMethod.value = method;
   if (method !== 'cash') {
-    paidAmount.value = props.grandTotal;
+    paidAmount.value = finalGrandTotal.value;
   }
 };
 
 const setExactCash = () => {
-  paidAmount.value = props.grandTotal;
+  paidAmount.value = finalGrandTotal.value;
 };
 
 const setPaidAmount = (amount: number): void => {
@@ -385,7 +443,7 @@ const setPaidAmount = (amount: number): void => {
 };
 
 const changeAmount = computed(() => {
-  return (paidAmount.value || 0) - props.grandTotal;
+  return (paidAmount.value || 0) - finalGrandTotal.value;
 });
 
 const submitPayment = () => {
@@ -399,7 +457,7 @@ const submitPayment = () => {
   emit('submit-order', {
     customer_name: customerName.value,
     payment_method: methodLabel,
-    paid_amount: paymentMethod.value === 'cash' ? paidAmount.value : props.grandTotal
+    paid_amount: paymentMethod.value === 'cash' ? paidAmount.value : finalGrandTotal.value
   });
 };
 </script>
@@ -407,6 +465,7 @@ const submitPayment = () => {
 <style scoped>
 .payment-modal-content {
   max-width: 540px;
+  background: var(--bg-card);
 }
 
 .modal-header {
@@ -418,8 +477,9 @@ const submitPayment = () => {
 }
 
 .header-info h3 {
-  font-size: 1.2rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .sub-info {
@@ -431,8 +491,16 @@ const submitPayment = () => {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 1.2rem;
   cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-close:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
 }
 
 .modal-body {
@@ -443,9 +511,9 @@ const submitPayment = () => {
 }
 
 .total-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   padding: 1rem;
   text-align: center;
 }
@@ -453,7 +521,7 @@ const submitPayment = () => {
 .total-label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -481,26 +549,31 @@ const submitPayment = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
   padding: 0.75rem 0.4rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   text-align: center;
 }
 
-.method-card.active {
-  background: rgba(99, 102, 241, 0.25);
-  border-color: var(--accent-primary);
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+.method-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-color);
 }
 
-.method-icon {
-  font-size: 1.3rem;
+.method-card.active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.method-icon-svg {
+  color: currentColor;
 }
 
 .method-details {
@@ -510,7 +583,7 @@ const submitPayment = () => {
 
 .method-name {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .method-desc {
@@ -519,9 +592,9 @@ const submitPayment = () => {
 }
 
 .payment-section {
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   padding: 1rem;
 }
 
@@ -534,14 +607,17 @@ const submitPayment = () => {
 .input-prefix {
   position: absolute;
   left: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent-secondary);
 }
 
 .paid-input {
   padding-left: 2.75rem;
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .quick-cash-grid {
@@ -553,14 +629,14 @@ const submitPayment = () => {
 
 .quick-cash-btn {
   padding: 0.45rem;
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   color: var(--text-primary);
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.15s ease;
 }
 
 .quick-cash-btn:hover {
@@ -570,8 +646,11 @@ const submitPayment = () => {
 .exact-btn {
   grid-column: span 2;
   background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+.exact-btn:hover {
+  background: rgba(16, 185, 129, 0.25);
 }
 
 .change-box {
@@ -579,18 +658,19 @@ const submitPayment = () => {
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   margin-top: 0.6rem;
   font-weight: 700;
   font-size: 0.85rem;
+  color: #10b981;
 }
 
 .change-box.insufficient {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  color: #ef4444;
 }
 
 .change-val {
@@ -606,8 +686,9 @@ const submitPayment = () => {
   gap: 0.75rem;
   padding: 1.25rem;
   text-align: center;
-  background: rgba(15, 23, 42, 0.8);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
 }
 
 .qris-header {
@@ -626,7 +707,7 @@ const submitPayment = () => {
 .qris-text {
   font-size: 1.2rem;
   font-weight: 900;
-  color: #ef4444;
+  color: #dc2626;
   letter-spacing: 0.05em;
 }
 
@@ -638,7 +719,7 @@ const submitPayment = () => {
 .live-pulse {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #34d399;
+  color: #10b981;
   background: rgba(16, 185, 129, 0.15);
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
@@ -649,8 +730,9 @@ const submitPayment = () => {
   position: relative;
   padding: 0.6rem;
   background: #ffffff;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .qr-scan-line {
@@ -659,8 +741,8 @@ const submitPayment = () => {
   left: 8px;
   right: 8px;
   height: 3px;
-  background: linear-gradient(90deg, transparent, #ef4444, transparent);
-  box-shadow: 0 0 8px #ef4444;
+  background: linear-gradient(90deg, transparent, #4f46e5, transparent);
+  box-shadow: 0 0 6px #4f46e5;
   animation: scanMove 2s infinite ease-in-out;
 }
 
@@ -678,7 +760,8 @@ const submitPayment = () => {
   background: rgba(99, 102, 241, 0.15);
   padding: 0.35rem 0.85rem;
   border-radius: 999px;
-  color: #a5b4fc;
+  color: var(--accent-primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .qris-hint {
@@ -698,22 +781,22 @@ const submitPayment = () => {
   flex-direction: column;
   align-items: center;
   padding: 0.5rem;
-  background: rgba(30, 41, 59, 0.7);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .bank-btn.active {
-  background: rgba(99, 102, 241, 0.25);
+  background: rgba(99, 102, 241, 0.15);
   border-color: var(--accent-primary);
-  color: #ffffff;
+  color: var(--accent-primary);
 }
 
 .bank-code {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.85rem;
 }
 
@@ -728,8 +811,9 @@ const submitPayment = () => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  background: rgba(15, 23, 42, 0.8);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
 }
 
 .acc-row {
@@ -741,9 +825,10 @@ const submitPayment = () => {
 }
 
 .acc-row.highlight {
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--bg-primary);
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
+  border: 1px solid var(--border-color);
 }
 
 .copy-wrapper {
@@ -755,19 +840,22 @@ const submitPayment = () => {
 .acc-number {
   font-size: 0.95rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: 0.05em;
 }
 
 .btn-copy {
-  padding: 0.2rem 0.5rem;
-  background: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.4);
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #a5b4fc;
+  color: var(--text-secondary);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+}
+.btn-copy:hover {
+  background: var(--bg-card-hover);
 }
 
 .acc-amount {
@@ -777,12 +865,14 @@ const submitPayment = () => {
 
 .transfer-hint-box {
   margin-top: 0.6rem;
-  font-size: 0.72rem;
-  color: #fbbf24;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  font-size: 0.75rem;
+  color: #d97706;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
 }
 
 /* Debit Section */
@@ -791,8 +881,9 @@ const submitPayment = () => {
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  background: rgba(15, 23, 42, 0.8);
-  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
 }
 
 .edc-top {
@@ -803,7 +894,7 @@ const submitPayment = () => {
 
 .edc-title {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -814,19 +905,19 @@ const submitPayment = () => {
 
 .brand-pill {
   font-size: 0.65rem;
-  font-weight: 900;
+  font-weight: 800;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
 }
 
-.brand-pill.visa { background: #1a1f71; color: #fff; }
-.brand-pill.master { background: #eb001b; color: #fff; }
-.brand-pill.gpn { background: #00529c; color: #fff; }
+.brand-pill.visa { background: #1e40af; color: #fff; }
+.brand-pill.master { background: #dc2626; color: #fff; }
+.brand-pill.gpn { background: #0369a1; color: #fff; }
 
 .edc-display {
-  background: #020617;
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   padding: 1rem;
   text-align: center;
 }
@@ -834,18 +925,19 @@ const submitPayment = () => {
 .edc-amount-label {
   font-size: 0.7rem;
   color: var(--text-muted);
+  font-weight: 600;
 }
 
 .edc-amount-val {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #38bdf8;
+  color: var(--accent-primary);
 }
 
 .edc-status {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #34d399;
+  color: var(--accent-secondary);
 }
 
 .modal-footer {
@@ -854,6 +946,7 @@ const submitPayment = () => {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+  background: var(--bg-card);
 }
 
 .btn-submit {

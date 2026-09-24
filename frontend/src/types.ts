@@ -7,6 +7,7 @@ export interface StoreSetting {
   phone: string;
   receipt_footer: string;
   tax_percentage: number;
+  member_discount_percentage?: number;
   db_engine: string;
   mysql_dsn?: string;
   qris_image_url?: string;

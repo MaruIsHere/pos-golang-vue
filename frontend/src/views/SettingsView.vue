@@ -2,31 +2,81 @@
   <div class="settings-page">
     <div class="page-header glass-panel">
       <div class="header-title">
-        <h2>⚙️ Pengaturan Toko, QRIS & Voucher</h2>
-        <p>Konfigurasi profil toko, gambar QRIS pembayaran, kode voucher diskon, dan database engine</p>
+        <h2>Pengaturan Toko, QRIS, Tema & Voucher</h2>
+        <p>Konfigurasi profil toko, gambar QRIS pembayaran, tema mode terang/gelap, voucher diskon, dan database engine</p>
       </div>
     </div>
 
     <div class="settings-grid">
+      <!-- 0. Theme Selection Card -->
+      <div class="settings-card glass-panel full-width-card">
+        <div class="card-header">
+          <h3 class="flex items-center gap-1.5">
+            <SunIcon class="w-5 h-5 text-amber-500" />
+            <span>Tema Tampilan (Mode Terang / Mode Gelap)</span>
+          </h3>
+          <span class="active-db-badge" :class="isDarkMode ? 'mysql' : 'sqlite'">
+            {{ isDarkMode ? 'Mode Gelap (Dark)' : 'Mode Terang (Light)' }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="section-desc">Pilih tema warna tampilan antarmuka aplikasi kasir.</p>
+
+          <div class="db-options-grid">
+            <div 
+              class="db-option-card" 
+              :class="{ selected: !isDarkMode }"
+              @click="setDark(false)"
+            >
+              <div class="db-icon">
+                <SunIcon class="w-7 h-7 text-amber-500" />
+              </div>
+              <div class="db-info">
+                <h4>Mode Terang (Light Mode)</h4>
+                <p>Tampilan serba putih yang bersih, minimalis, dan terang.</p>
+              </div>
+            </div>
+
+            <div 
+              class="db-option-card" 
+              :class="{ selected: isDarkMode }"
+              @click="setDark(true)"
+            >
+              <div class="db-icon">
+                <MoonIcon class="w-7 h-7 text-indigo-400" />
+              </div>
+              <div class="db-info">
+                <h4>Mode Gelap (Dark Mode)</h4>
+                <p>Tampilan gelap modern yang nyaman di mata untuk kondisi pencahayaan redup.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 1. Store Profile & QRIS Settings -->
       <div class="settings-card glass-panel">
         <div class="card-header">
-          <h3>🏪 Profil Toko & Foto QRIS Pembayaran</h3>
+          <h3 class="flex items-center gap-1.5">
+            <BuildingStorefrontIcon class="w-5 h-5 text-indigo-600" />
+            <span>Profil Toko & Foto QRIS Pembayaran</span>
+          </h3>
         </div>
 
         <form @submit.prevent="saveStoreSettings" class="card-body">
           <div class="form-group">
-            <label class="form-label">Nama Toko / Usaha</label>
+            <label class="form-label">Nama Toko / Usaha *</label>
             <input type="text" class="form-control" v-model="storeForm.store_name" required />
           </div>
 
           <div class="form-group">
-            <label class="form-label">Alamat Lengkap</label>
+            <label class="form-label">Alamat Lengkap *</label>
             <input type="text" class="form-control" v-model="storeForm.address" required />
           </div>
 
           <div class="form-group">
-            <label class="form-label">No. Telepon / WhatsApp</label>
+            <label class="form-label">No. Telepon / WhatsApp *</label>
             <input type="text" class="form-control" v-model="storeForm.phone" required />
           </div>
 
@@ -36,32 +86,38 @@
           </div>
 
           <div class="form-group">
+            <label class="form-label">Potongan Diskon Pelanggan Terdaftar / Member (%)</label>
+            <input type="number" class="form-control" v-model.number="storeForm.member_discount_percentage" min="0" max="100" step="0.5" />
+            <span class="input-hint">Potongan ini otomatis dihitung saat kasir memilih/menginput nama pelanggan terdaftar saat checkout.</span>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">Pesan Footer Struk</label>
             <textarea class="form-control" rows="2" v-model="storeForm.receipt_footer"></textarea>
           </div>
 
           <!-- QRIS Image Section -->
           <div class="form-group qris-upload-section">
-            <label class="form-label">📷 Foto QRIS Pembayaran Toko</label>
+            <label class="form-label">Foto QRIS Pembayaran Toko</label>
             <p class="input-hint">Upload foto/gambar QRIS resmi toko Anda agar muncul di layar Kasir saat pelanggan memilih metode QRIS.</p>
             
             <div class="qris-preview-box">
               <div v-if="storeForm.qris_image_url" class="qris-img-container">
                 <img :src="storeForm.qris_image_url" alt="QRIS Toko" class="qris-preview-img" />
                 <button type="button" class="btn-remove-qris" @click="storeForm.qris_image_url = ''">
-                  ✕ Hapus Foto QRIS
+                  Hapus Foto QRIS
                 </button>
               </div>
 
               <div v-else class="qris-empty-placeholder">
-                <span class="placeholder-icon">📲</span>
                 <p>Belum ada foto QRIS yang di-upload</p>
               </div>
             </div>
 
             <div class="qris-upload-actions">
-              <label class="btn btn-secondary btn-upload">
-                <span>📁 Upload Gambar QRIS</span>
+              <label class="btn btn-secondary btn-upload flex items-center justify-center gap-1">
+                <ArrowUpTrayIcon class="w-4 h-4" />
+                <span>Upload Gambar QRIS</span>
                 <input type="file" accept="image/*" @change="onQrisFileSelected" style="display: none;" />
               </label>
               
@@ -75,7 +131,7 @@
           </div>
 
           <button type="submit" class="btn btn-success btn-block" :disabled="isSavingStore">
-            {{ isSavingStore ? 'Memproses...' : '💾 Simpan Pengaturan Toko & QRIS' }}
+            {{ isSavingStore ? 'Memproses...' : 'Simpan Pengaturan Toko & QRIS' }}
           </button>
         </form>
       </div>
@@ -83,7 +139,10 @@
       <!-- 2. Manage Voucher Codes -->
       <div class="settings-card glass-panel">
         <div class="card-header">
-          <h3>🎟️ Manajemen Kode Voucher Diskon</h3>
+          <h3 class="flex items-center gap-1.5">
+            <TicketIcon class="w-5 h-5 text-indigo-600" />
+            <span>Manajemen Kode Voucher Diskon</span>
+          </h3>
         </div>
 
         <div class="card-body">
@@ -93,11 +152,11 @@
 
           <!-- Add Voucher Form -->
           <form @submit.prevent="createVoucher" class="voucher-form-box">
-            <h4>+ Tambah Kode Voucher Baru</h4>
+            <h4>Tambah Kode Voucher Baru</h4>
 
             <div class="voucher-form-grid">
               <div class="form-group">
-                <label class="form-label">Kode Voucher</label>
+                <label class="form-label">Kode Voucher *</label>
                 <input 
                   type="text" 
                   class="form-control code-font" 
@@ -116,7 +175,7 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Nilai Potongan</label>
+                <label class="form-label">Nilai Potongan *</label>
                 <input 
                   type="number" 
                   class="form-control" 
@@ -139,7 +198,7 @@
             </div>
 
             <button type="submit" class="btn btn-primary" :disabled="isCreatingVoucher">
-              {{ isCreatingVoucher ? 'Menambahkan...' : '+ Simpan Voucher Baru' }}
+              {{ isCreatingVoucher ? 'Menambahkan...' : 'Simpan Voucher Baru' }}
             </button>
           </form>
 
@@ -162,13 +221,13 @@
                     <th>Kode</th>
                     <th>Tipe / Nilai</th>
                     <th>Deskripsi</th>
-                    <th>Aksi</th>
+                    <th class="text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="v in vouchers" :key="v.id">
                     <td>
-                      <span class="voucher-code-badge">🎟️ {{ v.code }}</span>
+                      <span class="voucher-code-badge">{{ v.code }}</span>
                     </td>
                     <td>
                       <strong class="voucher-value">
@@ -176,9 +235,9 @@
                       </strong>
                     </td>
                     <td class="voucher-desc-col">{{ v.description || '-' }}</td>
-                    <td>
-                      <button class="btn-delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
-                        🗑️ Hapus
+                    <td class="text-right">
+                      <button class="btn-icon btn-delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
+                        <TrashIcon class="w-3.5 h-3.5 text-red-600 inline-block mr-1" /> Hapus
                       </button>
                     </td>
                   </tr>
@@ -192,7 +251,10 @@
       <!-- 3. Database Engine Switcher Panel -->
       <div class="settings-card glass-panel highlight-card full-width-card">
         <div class="card-header">
-          <h3>🗄️ Engine Basis Data (Database Switcher)</h3>
+          <h3 class="flex items-center gap-1.5">
+            <CircleStackIcon class="w-5 h-5 text-indigo-600" />
+            <span>Engine Basis Data (Database Switcher)</span>
+          </h3>
           <span class="active-db-badge" :class="dbEngine === 'mysql' ? 'mysql' : 'sqlite'">
             Aktif: {{ dbEngine.toUpperCase() }}
           </span>
@@ -209,7 +271,9 @@
               :class="{ selected: selectedEngine === 'sqlite' }"
               @click="selectedEngine = 'sqlite'"
             >
-              <div class="db-icon">📂</div>
+              <div class="db-icon">
+                <FolderIcon class="w-7 h-7 text-indigo-600" />
+              </div>
               <div class="db-info">
                 <h4>SQLite (Embedded File)</h4>
                 <p>Offline-first, tanpa butuh server MySQL. Data disimpan di file <code>pos.db</code>.</p>
@@ -221,7 +285,9 @@
               :class="{ selected: selectedEngine === 'mysql' }"
               @click="selectedEngine = 'mysql'"
             >
-              <div class="db-icon">🐬</div>
+              <div class="db-icon">
+                <ServerIcon class="w-7 h-7 text-indigo-600" />
+              </div>
               <div class="db-info">
                 <h4>MySQL Server</h4>
                 <p>Terpusat, cocok untuk multi-kasir di jaringan lokal/server cloud.</p>
@@ -253,7 +319,7 @@
             @click="switchDatabaseEngine"
           >
             <span v-if="isSwitchingDb">Mengubah Engine & Migrasi Data...</span>
-            <span v-else>⚡ Terapkan & Switch Database</span>
+            <span v-else>Terapkan & Switch Database</span>
           </button>
         </div>
       </div>
@@ -264,8 +330,22 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Voucher } from '../types';
+import { useTheme } from '../composables/useTheme';
+import { 
+  BuildingStorefrontIcon, 
+  TicketIcon, 
+  CircleStackIcon, 
+  FolderIcon, 
+  ServerIcon, 
+  TrashIcon, 
+  ArrowUpTrayIcon,
+  SunIcon,
+  MoonIcon
+} from '@heroicons/vue/24/outline';
 
 const emit = defineEmits(['refresh-settings']);
+
+const { isDarkMode, setDark } = useTheme();
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 
@@ -284,6 +364,7 @@ const storeForm = ref({
   address: '',
   phone: '',
   tax_percentage: 10,
+  member_discount_percentage: 5,
   receipt_footer: '',
   qris_image_url: ''
 });
@@ -313,6 +394,7 @@ const loadSettings = async () => {
         address: data.address,
         phone: data.phone,
         tax_percentage: data.tax_percentage,
+        member_discount_percentage: data.member_discount_percentage ?? 5,
         receipt_footer: data.receipt_footer,
         qris_image_url: data.qris_image_url || ''
       };
@@ -472,11 +554,20 @@ const switchDatabaseEngine = async () => {
 
 .page-header {
   padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .header-title h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .settings-grid {
@@ -499,10 +590,13 @@ const switchDatabaseEngine = async () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .highlight-card {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: var(--border-color);
 }
 
 .card-header {
@@ -514,8 +608,9 @@ const switchDatabaseEngine = async () => {
 }
 
 .card-header h3 {
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 /* QRIS Section */
@@ -530,9 +625,9 @@ const switchDatabaseEngine = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-primary);
   border: 1px dashed var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   padding: 1rem;
   min-height: 160px;
 }
@@ -549,13 +644,13 @@ const switchDatabaseEngine = async () => {
   max-height: 200px;
   object-fit: contain;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .btn-remove-qris {
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
   font-size: 0.75rem;
@@ -567,12 +662,6 @@ const switchDatabaseEngine = async () => {
   text-align: center;
   color: var(--text-muted);
   font-size: 0.82rem;
-}
-
-.placeholder-icon {
-  font-size: 2.2rem;
-  display: block;
-  margin-bottom: 0.35rem;
 }
 
 .qris-upload-actions {
@@ -599,10 +688,10 @@ const switchDatabaseEngine = async () => {
 
 /* Voucher Box */
 .voucher-form-box {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   padding: 1rem;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   margin-bottom: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -611,8 +700,8 @@ const switchDatabaseEngine = async () => {
 
 .voucher-form-box h4 {
   font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--accent-secondary);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .voucher-form-grid {
@@ -623,14 +712,15 @@ const switchDatabaseEngine = async () => {
 
 .vouchers-list-container h4 {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--text-primary);
   margin-bottom: 0.75rem;
 }
 
 .vouchers-table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
 }
 
 .vouchers-table {
@@ -646,61 +736,78 @@ const switchDatabaseEngine = async () => {
 }
 
 .vouchers-table th {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-primary);
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .voucher-code-badge {
-  font-weight: 800;
-  color: #a5b4fc;
+  font-weight: 700;
+  color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.12);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
 }
 
 .voucher-value {
-  color: #34d399;
+  color: var(--accent-secondary);
 }
 
 .voucher-desc-col {
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .btn-delete-voucher {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: #ef4444;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+}
+.btn-delete-voucher:hover {
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .empty-vouchers, .vouchers-loading {
   padding: 1.5rem;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.85rem;
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .active-db-badge {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .active-db-badge.sqlite {
-  background: rgba(59, 130, 246, 0.2);
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+html.dark .active-db-badge.sqlite {
+  background: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .active-db-badge.mysql {
-  background: rgba(245, 158, 11, 0.2);
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+html.dark .active-db-badge.mysql {
+  background: rgba(245, 158, 11, 0.15);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
 .section-desc {
@@ -726,11 +833,11 @@ const switchDatabaseEngine = async () => {
   align-items: flex-start;
   gap: 0.85rem;
   padding: 1rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .db-option-card:hover {
@@ -738,32 +845,34 @@ const switchDatabaseEngine = async () => {
 }
 
 .db-option-card.selected {
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(99, 102, 241, 0.1);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .db-icon {
-  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .db-info h4 {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .db-info p {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-top: 0.2rem;
 }
 
 .mysql-config-box {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   padding: 1rem;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   margin-top: 0.75rem;
 }
 
@@ -774,28 +883,28 @@ const switchDatabaseEngine = async () => {
 
 .input-hint {
   font-size: 0.7rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-top: 0.2rem;
   display: block;
 }
 
 .db-feedback-msg {
   padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 700;
 }
 
 .db-feedback-msg.success {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
 .db-feedback-msg.error {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 .btn-switch-db {
@@ -803,4 +912,6 @@ const switchDatabaseEngine = async () => {
   padding: 0.85rem;
   margin-top: 0.5rem;
 }
+
+.text-right { text-align: right; }
 </style>

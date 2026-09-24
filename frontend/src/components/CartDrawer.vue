@@ -9,7 +9,7 @@
   <aside class="cart-container glass-panel" :class="{ 'mobile-open': isOpenMobile }">
     <div class="cart-header">
       <div class="header-title">
-        <span class="cart-icon">🛒</span>
+        <ShoppingCartIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
         <h2>Keranjang</h2>
         <span class="item-count">{{ totalItemCount }} Item</span>
       </div>
@@ -20,7 +20,9 @@
 
     <!-- Empty State -->
     <div v-if="cart.length === 0" class="empty-cart">
-      <div class="empty-icon">🛍️</div>
+      <div class="empty-icon-box">
+        <ShoppingBagIcon class="w-12 h-12 text-slate-300 dark:text-slate-600" />
+      </div>
       <p class="empty-text">Keranjang masih kosong</p>
       <span class="empty-sub">Pilih produk di sebelah kiri untuk ditambahkan</span>
     </div>
@@ -35,12 +37,18 @@
 
         <div class="item-controls">
           <div class="qty-group">
-            <button class="qty-btn" @click="$emit('update-qty', { index, delta: -1 })">-</button>
+            <button class="qty-btn" @click="$emit('update-qty', { index, delta: -1 })">
+              <MinusIcon class="w-3.5 h-3.5" />
+            </button>
             <span class="qty-val">{{ item.quantity }}</span>
-            <button class="qty-btn" @click="$emit('update-qty', { index, delta: 1 })">+</button>
+            <button class="qty-btn" @click="$emit('update-qty', { index, delta: 1 })">
+              <PlusIcon class="w-3.5 h-3.5" />
+            </button>
           </div>
           <span class="item-subtotal">Rp {{ formatPrice(item.product.price * item.quantity) }}</span>
-          <button class="btn-remove" @click="$emit('remove-item', index)">✕</button>
+          <button class="btn-remove" @click="$emit('remove-item', index)">
+            <TrashIcon class="w-4 h-4 text-slate-400 hover:text-red-500" />
+          </button>
         </div>
       </div>
     </div>
@@ -50,12 +58,12 @@
       <!-- Voucher Code Input Section -->
       <div class="voucher-container">
         <div class="voucher-input-wrapper">
-          <span class="voucher-icon">🏷️</span>
+          <TagIcon class="w-4 h-4 text-slate-400 voucher-icon" />
           <input 
             type="text" 
             class="voucher-input" 
             v-model="voucherInput" 
-            placeholder="Kode Voucher (cth: DISKON10, HEMAT10K...)"
+            placeholder="Kode Voucher (DISKON10...)"
             @keyup.enter="applyVoucher"
           />
           <button class="btn-voucher-apply" @click="applyVoucher">
@@ -66,15 +74,21 @@
         <!-- Applied Voucher Alert Badge -->
         <div v-if="appliedVoucher" class="voucher-badge success">
           <div class="voucher-info">
-            <span class="voucher-title">🎟️ {{ appliedVoucher.code }}</span>
+            <span class="voucher-title flex items-center gap-1">
+              <TicketIcon class="w-4 h-4 text-emerald-600" /> {{ appliedVoucher.code }}
+            </span>
             <span class="voucher-desc">Potongan Rp {{ formatPrice(appliedVoucher.discountAmount) }} ({{ appliedVoucher.description }})</span>
           </div>
-          <button class="btn-voucher-remove" title="Hapus Voucher" @click="removeVoucher">✕</button>
+          <button class="btn-voucher-remove" title="Hapus Voucher" @click="removeVoucher">
+            <XMarkIcon class="w-4 h-4" />
+          </button>
         </div>
 
         <!-- Error Message -->
         <div v-if="voucherError" class="voucher-badge error">
-          <span>⚠️ {{ voucherError }}</span>
+          <span class="flex items-center gap-1">
+            <ExclamationTriangleIcon class="w-4 h-4 text-red-600" /> {{ voucherError }}
+          </span>
         </div>
 
         <!-- Voucher Hints Pills -->
@@ -125,9 +139,9 @@
         <span class="grand-total-val">Rp {{ formatPrice(grandTotal) }}</span>
       </div>
 
-      <button class="btn btn-primary btn-checkout" @click="$emit('open-payment')">
+      <button class="btn btn-primary btn-checkout flex items-center justify-center gap-2" @click="$emit('open-payment')">
         <span>Bayar Sekarang</span>
-        <span>➡️</span>
+        <ArrowRightIcon class="w-4 h-4" />
       </button>
     </div>
   </aside>
@@ -136,6 +150,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import type { CartItem, Voucher } from '../types';
+import {
+  ShoppingCartIcon,
+  ShoppingBagIcon,
+  TagIcon,
+  TicketIcon,
+  ExclamationTriangleIcon,
+  ArrowRightIcon,
+  XMarkIcon,
+  PlusIcon,
+  MinusIcon,
+  TrashIcon
+} from '@heroicons/vue/24/outline';
 
 interface AppliedVoucher {
   code: string;
@@ -273,7 +299,7 @@ const handleClearCart = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(15, 23, 42, 0.4);
   z-index: 80;
 }
 
@@ -284,13 +310,15 @@ const handleClearCart = () => {
   width: 100%;
   background: var(--bg-card);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 767px) {
   .cart-container {
     position: fixed;
-    bottom: 64px;
+    bottom: 60px;
     left: 0;
     right: 0;
     height: 75vh;
@@ -310,7 +338,7 @@ const handleClearCart = () => {
   justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--bg-primary);
 }
 
 .header-title {
@@ -320,17 +348,19 @@ const handleClearCart = () => {
 }
 
 .header-title h2 {
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .item-count {
-  background: rgba(99, 102, 241, 0.2);
-  color: #818cf8;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-primary);
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .btn-clear {
@@ -352,10 +382,8 @@ const handleClearCart = () => {
   text-align: center;
 }
 
-.empty-icon {
-  font-size: 3rem;
+.empty-icon-box {
   margin-bottom: 0.75rem;
-  opacity: 0.6;
 }
 
 .empty-text {
@@ -379,9 +407,9 @@ const handleClearCart = () => {
 }
 
 .cart-item {
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -402,7 +430,7 @@ const handleClearCart = () => {
 
 .item-price {
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .item-controls {
@@ -415,7 +443,7 @@ const handleClearCart = () => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--bg-primary);
   border-radius: 8px;
   padding: 0.15rem;
   border: 1px solid var(--border-color);
@@ -425,11 +453,17 @@ const handleClearCart = () => {
   width: 26px;
   height: 26px;
   border-radius: 6px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
   font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qty-btn:hover {
+  background: var(--bg-card-hover);
 }
 
 .qty-val {
@@ -437,6 +471,7 @@ const handleClearCart = () => {
   font-weight: 800;
   min-width: 20px;
   text-align: center;
+  color: var(--text-primary);
 }
 
 .item-subtotal {
@@ -448,19 +483,17 @@ const handleClearCart = () => {
 .btn-remove {
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  font-size: 0.9rem;
   cursor: pointer;
   padding: 0.2rem;
-}
-.btn-remove:hover {
-  color: var(--accent-danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cart-footer {
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -477,14 +510,10 @@ const handleClearCart = () => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   padding: 0.25rem 0.5rem;
-}
-
-.voucher-icon {
-  font-size: 0.9rem;
 }
 
 .voucher-input {
@@ -500,7 +529,7 @@ const handleClearCart = () => {
 
 .btn-voucher-apply {
   padding: 0.35rem 0.75rem;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  background: var(--accent-primary);
   border: none;
   border-radius: 6px;
   color: #ffffff;
@@ -519,7 +548,7 @@ const handleClearCart = () => {
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -554,7 +583,6 @@ const handleClearCart = () => {
   background: transparent;
   border: none;
   color: inherit;
-  font-size: 0.9rem;
   cursor: pointer;
   padding: 0.2rem;
 }
@@ -573,10 +601,10 @@ const handleClearCart = () => {
 
 .hint-pill {
   padding: 0.15rem 0.45rem;
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--bg-secondary);
   border: 1px dashed var(--border-color);
   border-radius: 999px;
-  color: #a5b4fc;
+  color: var(--accent-primary);
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
@@ -584,9 +612,8 @@ const handleClearCart = () => {
 }
 
 .hint-pill:hover {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(99, 102, 241, 0.15);
   border-color: var(--accent-primary);
-  color: #ffffff;
 }
 
 .summary-row {
@@ -600,7 +627,7 @@ const handleClearCart = () => {
 .discount-input-wrapper {
   display: flex;
   align-items: center;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 0.15rem 0.4rem;
@@ -616,7 +643,7 @@ const handleClearCart = () => {
   width: 75px;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   font-family: var(--font-family);
   font-size: 0.85rem;
   text-align: right;

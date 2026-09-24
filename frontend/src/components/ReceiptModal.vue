@@ -3,7 +3,9 @@
     <div class="modal-content glass-panel receipt-modal-wrapper">
       <div class="modal-header no-print">
         <h3>Struk Belanja</h3>
-        <button class="btn-close" @click="$emit('close')">✕</button>
+        <button class="btn-close" @click="$emit('close')">
+          <XMarkIcon class="w-5 h-5 text-slate-500" />
+        </button>
       </div>
 
       <!-- Thermal Receipt Preview -->
@@ -88,8 +90,9 @@
 
       <div class="modal-footer no-print">
         <button class="btn btn-secondary" @click="$emit('close')">Tutup</button>
-        <button class="btn btn-primary" @click="printReceipt">
-          <span>🖨️ Cetak Struk</span>
+        <button class="btn btn-primary flex items-center gap-1.5" @click="printReceipt">
+          <PrinterIcon class="w-4 h-4" />
+          <span>Cetak Struk</span>
         </button>
       </div>
     </div>
@@ -100,6 +103,7 @@
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import type { Order } from '../types';
+import { PrinterIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 defineProps({
   order: { type: Object as () => Order, required: true }
@@ -125,6 +129,7 @@ const printReceipt = () => {
 <style scoped>
 .receipt-modal-wrapper {
   max-width: 420px;
+  background: #ffffff;
 }
 
 .modal-header {
@@ -132,19 +137,18 @@ const printReceipt = () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .modal-header h3 {
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .btn-close {
   background: transparent;
   border: none;
-  color: var(--text-muted);
-  font-size: 1.1rem;
   cursor: pointer;
 }
 
@@ -156,9 +160,10 @@ const printReceipt = () => {
   padding: 1.5rem 1.25rem;
   font-size: 0.82rem;
   line-height: 1.4;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   margin: 1rem 1.25rem;
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
 }
 
 .receipt-header {
@@ -256,7 +261,7 @@ const printReceipt = () => {
 
 .modal-footer {
   padding: 1rem 1.25rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -276,6 +281,7 @@ const printReceipt = () => {
     width: 100%;
     margin: 0;
     box-shadow: none;
+    border: none;
   }
   .no-print {
     display: none !important;

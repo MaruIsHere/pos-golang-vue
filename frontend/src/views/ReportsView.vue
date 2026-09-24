@@ -2,19 +2,22 @@
   <div class="reports-page">
     <div class="page-header glass-panel">
       <div class="header-title">
-        <h2>📊 Laporan Penjualan & Dashboard</h2>
+        <h2>Laporan Penjualan & Dashboard</h2>
         <p>Ringkasan performa penjualan dan statistik produk terlaris</p>
       </div>
 
-      <button class="btn btn-secondary" @click="fetchStats">
-        <span>🔄 Refresh</span>
+      <button class="btn btn-secondary flex items-center gap-1" @click="fetchStats">
+        <ArrowPathIcon class="w-4 h-4" />
+        <span>Refresh</span>
       </button>
     </div>
 
     <!-- Stat Cards Grid -->
     <div class="stats-grid">
       <div class="stat-card glass-panel">
-        <div class="stat-icon icon-revenue">💰</div>
+        <div class="stat-icon icon-revenue">
+          <BanknotesIcon class="w-6 h-6 text-emerald-600" />
+        </div>
         <div class="stat-info">
           <span class="stat-label">Total Omset Penjualan</span>
           <h3 class="stat-value">Rp {{ formatPrice(stats.total_revenue) }}</h3>
@@ -22,7 +25,9 @@
       </div>
 
       <div class="stat-card glass-panel">
-        <div class="stat-icon icon-orders">🧾</div>
+        <div class="stat-icon icon-orders">
+          <DocumentTextIcon class="w-6 h-6 text-indigo-600" />
+        </div>
         <div class="stat-info">
           <span class="stat-label">Total Transaksi</span>
           <h3 class="stat-value">{{ stats.total_orders }} Transaksi</h3>
@@ -30,7 +35,9 @@
       </div>
 
       <div class="stat-card glass-panel">
-        <div class="stat-icon icon-items">📦</div>
+        <div class="stat-icon icon-items">
+          <ShoppingBagIcon class="w-6 h-6 text-amber-600" />
+        </div>
         <div class="stat-info">
           <span class="stat-label">Item Terjual</span>
           <h3 class="stat-value">{{ stats.total_items_sold }} Pcs</h3>
@@ -43,7 +50,9 @@
       <!-- Top Products Card -->
       <div class="dash-card glass-panel">
         <div class="dash-card-header">
-          <h3>🔥 5 Produk Terlaris</h3>
+          <h3 class="flex items-center gap-1.5">
+            <FireIcon class="w-5 h-5 text-amber-500" /> 5 Produk Terlaris
+          </h3>
         </div>
         <div class="dash-card-body">
           <div v-if="!stats.top_products || stats.top_products.length === 0" class="empty-text">
@@ -65,7 +74,9 @@
       <!-- Recent Orders Card -->
       <div class="dash-card glass-panel">
         <div class="dash-card-header">
-          <h3>⏱️ Transaksi Terakhir</h3>
+          <h3 class="flex items-center gap-1.5">
+            <ClockIcon class="w-5 h-5 text-indigo-500" /> Transaksi Terakhir
+          </h3>
         </div>
         <div class="dash-card-body">
           <div v-if="!stats.recent_orders || stats.recent_orders.length === 0" class="empty-text">
@@ -91,6 +102,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { DashboardStats } from '../types';
+import { BanknotesIcon, DocumentTextIcon, ShoppingBagIcon, FireIcon, ClockIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 
 const stats = ref<DashboardStats>({
   total_revenue: 0,
@@ -126,11 +138,20 @@ onMounted(fetchStats);
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .header-title h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .stats-grid {
@@ -144,41 +165,43 @@ onMounted(fetchStats);
   align-items: center;
   gap: 1.25rem;
   padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .stat-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: var(--radius-md);
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
 }
 
 .icon-revenue {
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .icon-orders {
-  background: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .icon-items {
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .stat-label {
   font-size: 0.8rem;
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .stat-value {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--text-primary);
   margin-top: 0.15rem;
@@ -200,6 +223,9 @@ onMounted(fetchStats);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .dash-card-header {
@@ -209,8 +235,9 @@ onMounted(fetchStats);
 }
 
 .dash-card-header h3 {
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .top-list, .recent-list {
@@ -224,26 +251,27 @@ onMounted(fetchStats);
   align-items: center;
   gap: 0.85rem;
   padding: 0.75rem;
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
 }
 
 .rank-badge {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
   font-size: 0.85rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
 }
 
-.rank-1 { background: rgba(245, 158, 11, 0.3); color: #fbbf24; border: 1px solid #f59e0b; }
-.rank-2 { background: rgba(148, 163, 184, 0.3); color: #cbd5e1; }
-.rank-3 { background: rgba(180, 83, 9, 0.3); color: #f59e0b; }
+.rank-1 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.rank-2 { background: var(--bg-primary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+.rank-3 { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
 
 .item-name-box {
   flex: 1;
@@ -253,17 +281,18 @@ onMounted(fetchStats);
 
 .top-name {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
 }
 
 .top-qty {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .top-sales {
   font-weight: 800;
-  color: var(--accent-secondary);
+  color: #059669;
 }
 
 .recent-item {
@@ -271,9 +300,9 @@ onMounted(fetchStats);
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem;
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
 }
 
 .recent-left {
@@ -283,18 +312,19 @@ onMounted(fetchStats);
 }
 
 .inv-code {
-  font-weight: 800;
-  color: #818cf8;
+  font-weight: 700;
+  color: var(--accent-primary);
+  font-size: 0.8rem;
 }
 
 .recent-cust {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .recent-total {
   font-weight: 800;
-  color: var(--accent-secondary);
+  color: #059669;
 }
 
 .empty-text {

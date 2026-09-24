@@ -2,12 +2,13 @@
   <div class="orders-page">
     <div class="page-header glass-panel">
       <div class="header-title">
-        <h2>📜 Riwayat Transaksi & Retur Penjualan</h2>
+        <h2>Riwayat Transaksi & Retur Penjualan</h2>
         <p>Daftar transaksi penjualan, cetak ulang struk, dan proses retur/refund barang</p>
       </div>
 
-      <button class="btn btn-secondary" @click="fetchOrders">
-        <span>🔄 Refresh</span>
+      <button class="btn btn-secondary flex items-center gap-1" @click="fetchOrders">
+        <ArrowPathIcon class="w-4 h-4" />
+        <span>Refresh</span>
       </button>
     </div>
 
@@ -46,22 +47,24 @@
             <td class="font-bold price-text">Rp {{ formatPrice(order.grand_total) }}</td>
             <td>
               <span class="badge" :class="order.status === 'refunded' ? 'badge-refunded' : 'badge-success'">
-                {{ order.status === 'refunded' ? '🔄 Diretur' : '✓ Selesai' }}
+                {{ order.status === 'refunded' ? 'Diretur' : 'Selesai' }}
               </span>
             </td>
             <td class="text-right">
               <div class="action-flex">
-                <button class="btn btn-secondary btn-sm" @click="openReceipt(order)">
-                  <span>🖨️ Struk</span>
+                <button class="btn btn-secondary btn-sm flex items-center gap-1" @click="openReceipt(order)">
+                  <PrinterIcon class="w-3.5 h-3.5" />
+                  <span>Struk</span>
                 </button>
 
                 <button 
                   v-if="order.status !== 'refunded'" 
-                  class="btn btn-danger-outline btn-sm" 
+                  class="btn btn-danger-outline btn-sm flex items-center gap-1" 
                   @click="refundOrder(order)"
                   title="Retur Transaksi & Pulihkan Stok"
                 >
-                  <span>🔄 Retur</span>
+                  <ArrowUturnLeftIcon class="w-3.5 h-3.5" />
+                  <span>Retur</span>
                 </button>
               </div>
             </td>
@@ -83,6 +86,7 @@
 import { ref, onMounted } from 'vue';
 import ReceiptModal from '../components/ReceiptModal.vue';
 import type { Order } from '../types';
+import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from '@heroicons/vue/24/outline';
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
@@ -149,64 +153,81 @@ const refundOrder = async (order: Order): Promise<void> => {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .header-title h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .table-container {
   overflow-x: auto;
   padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.88rem;
+  font-size: 0.875rem;
 }
 
 .data-table th {
   padding: 0.85rem 1rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--bg-primary);
 }
 
 .data-table td {
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
+  color: var(--text-primary);
 }
 
 .invoice-code {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-primary);
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   font-weight: 700;
+  font-size: 0.8rem;
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 .pay-method-badge {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-primary);
   padding: 0.15rem 0.5rem;
   border-radius: 6px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .price-text {
-  color: var(--accent-secondary);
+  color: #059669;
 }
 
 .badge {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .badge-success {
@@ -228,13 +249,13 @@ const refundOrder = async (order: Order): Promise<void> => {
 }
 
 .btn-danger-outline {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   color: #f87171;
 }
 
 .btn-danger-outline:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.25);
 }
 
 .btn-sm {

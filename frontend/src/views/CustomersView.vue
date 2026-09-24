@@ -1,178 +1,29 @@
-<style scoped>
-.customers-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.page-header {
-  padding: 1.25rem 1.5rem;
-}
-
-.header-title h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-
-.customers-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 1024px) {
-  .customers-grid {
-    grid-template-columns: 360px 1fr;
-  }
-}
-
-.customers-card {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.85rem;
-}
-
-.card-header h3 {
-  font-size: 1.1rem;
-  font-weight: 800;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 0.25rem 0.6rem;
-}
-
-.search-input {
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-size: 0.8rem;
-  outline: none;
-  width: 130px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-}
-
-.cust-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.cust-table th,
-.cust-table td {
-  padding: 0.75rem 0.85rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.cust-table th {
-  background: rgba(15, 23, 42, 0.8);
-  color: var(--text-secondary);
-  font-weight: 700;
-}
-
-.cust-name {
-  color: #ffffff;
-}
-
-.points-badge {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
-.addr-col {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.action-btns {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.btn-edit,
-.btn-delete {
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  padding: 0.25rem 0.4rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.btn-delete:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.4);
-}
-
-.loading-box,
-.empty-box {
-  padding: 3rem;
-  text-align: center;
-  color: var(--text-muted);
-}
-</style>
 <template>
-  <div class="flex flex-col gap-2">
-    <div class="py-5 px-6 glass-panel">
-      <h2 class="text-xl font-extrabold">👥 Master Data Pelanggan & Member</h2>
-      <p>
-        Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member
-        toko
-      </p>
+  <div class="customers-page">
+    <div class="page-header glass-panel">
+      <div class="header-title">
+        <h2>Master Data Pelanggan & Member</h2>
+        <p>Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member toko</p>
+      </div>
     </div>
 
-    <div class="grid gap-2 grid-col-1 lg:grid-col-[360px, 1fr]">
+    <div class="customers-grid">
       <!-- Add / Edit Customer Form -->
-      <div class="p-1 flex flex-col gap-1 glass-panel">
-        <div
-          class="flex justify-between item-center border-b border-gray-200 pb-[0.85rem]"
-        >
+      <div class="customers-card glass-panel">
+        <div class="card-header">
           <h3>
             <template v-if="editingId">
-              <PencilIcon />
-              <span>Edit Data Pelanggan</span>
+              <span class="flex items-center gap-1.5"><PencilSquareIcon class="w-4 h-4 text-indigo-600" /> Edit Data Pelanggan</span>
             </template>
             <template v-else>
-              <UserPlusIcon />
-              <span>Tambah Pelanggan Baru</span>
+              <span class="flex items-center gap-1.5"><UserPlusIcon class="w-4 h-4 text-indigo-600" /> Tambah Pelanggan Baru</span>
             </template>
           </h3>
         </div>
 
         <form @submit.prevent="saveCustomer" class="card-body">
           <div class="form-group">
-            <label class="form-label">Nama Pelanggan</label>
+            <label class="form-label">Nama Pelanggan *</label>
             <input
               type="text"
               class="form-control"
@@ -238,7 +89,7 @@
                   ? "Memproses..."
                   : editingId
                     ? "Simpan Perubahan"
-                    : "+ Tambah Pelanggan"
+                    : "Tambah Pelanggan"
               }}
             </button>
           </div>
@@ -248,10 +99,10 @@
       <!-- Customers Table List -->
       <div class="customers-card glass-panel main-list-card">
         <div class="card-header">
-          <h3>📋 Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
+          <h3>Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
 
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
             <input
               type="text"
               class="search-input"
@@ -268,7 +119,6 @@
           </div>
 
           <div v-else-if="filteredCustomers.length === 0" class="empty-box">
-            <span class="empty-icon">👥</span>
             <p>Belum ada data pelanggan yang tersimpan.</p>
           </div>
 
@@ -281,35 +131,35 @@
                   <th>Email</th>
                   <th>Alamat</th>
                   <th>Poin</th>
-                  <th>Aksi</th>
+                  <th class="text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="c in filteredCustomers" :key="c.id">
                   <td>
-                    <strong class="cust-name">👤 {{ c.name }}</strong>
+                    <strong class="cust-name">{{ c.name }}</strong>
                   </td>
                   <td>{{ c.phone || "-" }}</td>
                   <td>{{ c.email || "-" }}</td>
                   <td class="addr-col">{{ c.address || "-" }}</td>
                   <td>
-                    <span class="points-badge">⭐ {{ c.points }} Poin</span>
+                    <span class="points-badge">{{ c.points }} Poin</span>
                   </td>
-                  <td>
+                  <td class="text-right">
                     <div class="action-btns">
                       <button
-                        class="btn-edit"
+                        class="btn-icon btn-edit"
                         title="Edit"
                         @click="editCustomer(c)"
                       >
-                        ✏️
+                        <PencilSquareIcon class="w-4 h-4 text-indigo-600" />
                       </button>
                       <button
-                        class="btn-delete"
+                        class="btn-icon btn-delete"
                         title="Hapus"
                         @click="deleteCustomer(c.id, c.name)"
                       >
-                        🗑️
+                        <TrashIcon class="w-4 h-4 text-red-600" />
                       </button>
                     </div>
                   </td>
@@ -326,7 +176,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import type { Customer } from "../types";
-import { PencilIcon, UserPlusIcon } from "@heroicons/vue/24/solid";
+import { PencilSquareIcon, TrashIcon, UserPlusIcon, MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
 
 const customers = ref<Customer[]>([]);
 const isLoading = ref(true);
@@ -397,9 +247,6 @@ const saveCustomer = async () => {
     });
 
     if (res.ok) {
-      alert(
-        `Data pelanggan berhasil ${editingId.value ? "diperbarui" : "ditambahkan"}!`,
-      );
       resetForm();
       loadCustomers();
     } else {
@@ -429,3 +276,180 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
   }
 };
 </script>
+
+<style scoped>
+.customers-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.header-title h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.customers-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .customers-grid {
+    grid-template-columns: 360px 1fr;
+  }
+}
+
+.customers-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.85rem;
+}
+
+.card-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.25rem 0.6rem;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  outline: none;
+  width: 130px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.cust-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.cust-table th,
+.cust-table td {
+  padding: 0.75rem 0.85rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.cust-table th {
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.cust-name {
+  color: var(--text-primary);
+}
+
+.points-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.addr-col {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.action-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.btn-icon {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon:hover {
+  background: var(--bg-card-hover);
+}
+
+.loading-box,
+.empty-box {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 0.5rem auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.text-right { text-align: right; }
+</style>

@@ -17,10 +17,13 @@ import { onMounted } from 'vue';
 import Navbar from './components/Navbar.vue';
 import PwaInstallBanner from './components/PwaInstallBanner.vue';
 import { useSettingsStore } from './stores/settings';
+import { useTheme } from './composables/useTheme';
 
 const settingsStore = useSettingsStore();
+const { initTheme } = useTheme();
 
 onMounted(() => {
+  initTheme();
   settingsStore.fetchSettings();
 });
 </script>

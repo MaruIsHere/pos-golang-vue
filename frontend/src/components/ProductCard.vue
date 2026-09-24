@@ -30,7 +30,7 @@
           :disabled="product.stock <= 0"
           @click.stop="addToCart"
         >
-          <span>+</span>
+          <PlusIcon class="w-4 h-4 text-white" />
         </button>
       </div>
     </div>
@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Product } from '../types';
+import { PlusIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
   product: { type: Object as () => Product, required: true }
@@ -74,28 +75,31 @@ const addToCart = () => {
   flex-direction: column;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   position: relative;
   height: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-primary);
 }
 
 .product-card.out-of-stock {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
 }
 
 .card-image-wrapper {
   position: relative;
   width: 100%;
-  height: 120px;
+  height: 130px;
   overflow: hidden;
-  background: #1e293b;
+  background: var(--bg-primary);
 }
 
 .card-image {
@@ -106,7 +110,7 @@ const addToCart = () => {
 }
 
 .product-card:hover .card-image {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .stock-badge {
@@ -117,19 +121,19 @@ const addToCart = () => {
   padding: 0.2rem 0.5rem;
   border-radius: 999px;
   font-weight: 700;
-  backdrop-filter: blur(4px);
 }
 
 .category-badge {
   position: absolute;
   bottom: 8px;
   left: 8px;
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--bg-glass);
   color: var(--text-secondary);
   font-size: 0.65rem;
+  font-weight: 600;
   padding: 0.15rem 0.45rem;
   border-radius: 6px;
-  backdrop-filter: blur(4px);
+  border: 1px solid var(--border-color);
 }
 
 .card-body {
@@ -141,7 +145,7 @@ const addToCart = () => {
 }
 
 .product-title {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.3;
@@ -184,29 +188,28 @@ const addToCart = () => {
 }
 
 .btn-add {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   border: none;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  background: var(--accent-primary);
   color: #ffffff;
-  font-size: 1.1rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
 }
 
 .btn-add:hover:not(:disabled) {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.6);
+  background: var(--accent-primary-hover);
+  transform: scale(1.05);
 }
 
 .btn-add:disabled {
-  background: #475569;
+  background: var(--border-color);
+  color: var(--text-muted);
   cursor: not-allowed;
   box-shadow: none;
 }

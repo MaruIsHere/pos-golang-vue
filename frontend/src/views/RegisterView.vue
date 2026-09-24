@@ -5,7 +5,7 @@
       <!-- Search Bar & Barcode Scanner Simulation -->
       <div class="search-bar-container glass-panel">
         <div class="search-input-wrapper">
-          <span class="search-icon">🔍</span>
+          <MagnifyingGlassIcon class="w-5 h-5 text-slate-400 search-icon" />
           <input 
             type="text" 
             class="search-input" 
@@ -13,11 +13,14 @@
             placeholder="Cari nama produk atau ketik / scan barcode SKU..." 
             @keyup.enter="onBarcodeSubmit"
           />
-          <button v-if="searchQuery" class="btn-clear-search" @click="searchQuery = ''">✕</button>
+          <button v-if="searchQuery" class="btn-clear-search" @click="searchQuery = ''">
+            <XMarkIcon class="w-4 h-4 text-slate-400" />
+          </button>
         </div>
 
-        <button class="btn-scan" title="Simulasi Scan Barcode" @click="simulateScan">
-          <span>📷 Scan</span>
+        <button class="btn-scan" title="Buka Scanner Barcode" @click="isScannerModalOpen = true">
+          <CameraIcon class="w-4 h-4" />
+          <span>Scan</span>
         </button>
       </div>
 
@@ -28,7 +31,7 @@
           :class="{ active: selectedCategoryId === null }"
           @click="selectedCategoryId = null"
         >
-          ✨ Semua Produk
+          Semua Produk
         </button>
         <button 
           v-for="cat in categories" 
@@ -48,7 +51,7 @@
       </div>
 
       <div v-else-if="filteredProducts.length === 0" class="empty-products glass-panel">
-        <span class="empty-icon">🔍</span>
+        <MagnifyingGlassIcon class="w-10 h-10 text-slate-400" />
         <h3>Produk tidak ditemukan</h3>
         <p>Coba gunakan kata kunci pencarian atau kategori lain</p>
       </div>
@@ -82,16 +85,23 @@
     <!-- Floating Mobile Cart Trigger -->
     <div v-if="cart.length > 0" class="mobile-cart-float" @click="isMobileCartOpen = true">
       <div class="float-left">
-        <span class="float-cart-icon">🛒</span>
+        <ShoppingCartIcon class="w-5 h-5" />
         <span class="float-count">{{ totalCartItems }} Item</span>
       </div>
       <div class="float-right">
         <span class="float-total">Rp {{ formatPrice(grandTotal) }}</span>
-        <span class="float-arrow">⬆️</span>
+        <ArrowUpIcon class="w-4 h-4" />
       </div>
     </div>
 
     <!-- Modals -->
+    <BarcodeScannerModal
+      v-if="isScannerModalOpen"
+      :products="products"
+      @close="isScannerModalOpen = false"
+      @scan-success="addToCart"
+    />
+
     <PaymentModal 
       v-if="isPaymentModalOpen"
       :grand-total="grandTotal"
@@ -115,8 +125,10 @@ import ProductCard from '../components/ProductCard.vue';
 import CartDrawer from '../components/CartDrawer.vue';
 import PaymentModal from '../components/PaymentModal.vue';
 import ReceiptModal from '../components/ReceiptModal.vue';
+import BarcodeScannerModal from '../components/BarcodeScannerModal.vue';
 import { useSettingsStore } from '../stores/settings';
 import type { Category, Product, CartItem, Order, CreateOrderPayload } from '../types';
+import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon } from '@heroicons/vue/24/outline';
 
 defineEmits(['refresh-products']);
 
@@ -136,6 +148,7 @@ const discount = ref(0);
 const isMobileCartOpen = ref(false);
 
 // Modal States
+const isScannerModalOpen = ref(false);
 const isPaymentModalOpen = ref(false);
 const isReceiptModalOpen = ref(false);
 const lastCompletedOrder = ref<Order | null>(null);
@@ -328,6 +341,10 @@ const onReceiptClose = () => {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 .search-input-wrapper {
@@ -335,15 +352,10 @@ const onReceiptClose = () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   padding: 0.5rem 0.85rem;
-}
-
-.search-icon {
-  font-size: 1rem;
-  color: var(--text-muted);
 }
 
 .search-input {
@@ -359,7 +371,6 @@ const onReceiptClose = () => {
 .btn-clear-search {
   background: transparent;
   border: none;
-  color: var(--text-muted);
   cursor: pointer;
 }
 
@@ -368,14 +379,18 @@ const onReceiptClose = () => {
   align-items: center;
   gap: 0.35rem;
   padding: 0.65rem 1rem;
-  background: rgba(99, 102, 241, 0.2);
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  color: #818cf8;
-  border-radius: var(--radius-md);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--accent-primary);
+  border-radius: 8px;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.btn-scan:hover {
+  background: rgba(99, 102, 241, 0.2);
 }
 
 /* Categories Pills */
@@ -383,7 +398,10 @@ const onReceiptClose = () => {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding-bottom: 0.35rem;
+  padding: 0.25rem 0.25rem 0.5rem 0.25rem;
+  flex-shrink: 0;
+  min-height: 48px;
+  align-items: center;
 }
 
 .categories-container::-webkit-scrollbar {
@@ -391,17 +409,23 @@ const onReceiptClose = () => {
 }
 
 .cat-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.5rem 1rem;
+  min-height: 36px;
   border-radius: 999px;
-  background: rgba(30, 41, 59, 0.7);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-family: var(--font-family);
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .cat-pill:hover {
@@ -410,10 +434,10 @@ const onReceiptClose = () => {
 }
 
 .cat-pill.active {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  background: var(--accent-primary);
   color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
 }
 
 .loading-state, .empty-products {
@@ -424,12 +448,16 @@ const onReceiptClose = () => {
   padding: 3rem;
   text-align: center;
   gap: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-secondary);
 }
 
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(99, 102, 241, 0.2);
+  border: 3px solid var(--border-color);
   border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -445,14 +473,14 @@ const onReceiptClose = () => {
   bottom: 74px;
   left: 1rem;
   right: 1rem;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  background: var(--accent-primary);
   color: #ffffff;
   padding: 0.85rem 1.25rem;
-  border-radius: var(--radius-xl);
+  border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
   z-index: 70;
   cursor: pointer;
 }

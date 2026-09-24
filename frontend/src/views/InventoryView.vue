@@ -2,7 +2,7 @@
   <div class="inventory-page">
     <div class="page-header glass-panel">
       <div class="header-title">
-        <h2>📦 Manajemen Inventoris & Mutasi Stok</h2>
+        <h2>Manajemen Inventoris & Mutasi Stok</h2>
         <p>Kelola Penerimaan Barang (Restock) dan Pengeluaran Barang (Barang Rusak / Hilang / Expired)</p>
       </div>
     </div>
@@ -14,7 +14,8 @@
         :class="{ active: activeTab === 'receive' }"
         @click="activeTab = 'receive'"
       >
-        <span>📥 Transaksi Penerimaan (Stock In)</span>
+        <ArrowDownTrayIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Transaksi Penerimaan (Stock In)</span>
       </button>
 
       <button 
@@ -22,7 +23,8 @@
         :class="{ active: activeTab === 'issue' }"
         @click="activeTab = 'issue'"
       >
-        <span>📤 Transaksi Pengeluaran (Stock Out)</span>
+        <ArrowUpTrayIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Transaksi Pengeluaran (Stock Out)</span>
       </button>
 
       <button 
@@ -30,14 +32,15 @@
         :class="{ active: activeTab === 'history' }"
         @click="activeTab = 'history'"
       >
-        <span>📋 Riwayat Mutasi Stok</span>
+        <ClockIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Riwayat Mutasi Stok</span>
       </button>
     </div>
 
     <!-- Tab 1: Penerimaan Barang (Stock In / Receive) -->
     <div v-if="activeTab === 'receive'" class="inventory-card glass-panel">
       <div class="card-header">
-        <h3>📥 Penerimaan Barang dari Supplier / Pabrik</h3>
+        <h3>Penerimaan Barang dari Supplier / Pabrik</h3>
       </div>
 
       <form @submit.prevent="submitStockMovement('in')" class="card-body">
@@ -85,7 +88,7 @@
         </div>
 
         <button type="submit" class="btn btn-success btn-submit" :disabled="isSubmitting">
-          {{ isSubmitting ? 'Memproses...' : '📥 Simpan Penerimaan Barang & Tambah Stok' }}
+          {{ isSubmitting ? 'Memproses...' : 'Simpan Penerimaan Barang & Tambah Stok' }}
         </button>
       </form>
     </div>
@@ -93,7 +96,7 @@
     <!-- Tab 2: Pengeluaran Barang (Stock Out / Issue) -->
     <div v-else-if="activeTab === 'issue'" class="inventory-card glass-panel">
       <div class="card-header">
-        <h3>📤 Pengeluaran Barang Non-Penjualan (Rusak / Hilang / Promosi)</h3>
+        <h3>Pengeluaran Barang Non-Penjualan (Rusak / Hilang / Promosi)</h3>
       </div>
 
       <form @submit.prevent="submitStockMovement('out')" class="card-body">
@@ -143,7 +146,7 @@
         </div>
 
         <button type="submit" class="btn btn-danger btn-submit" :disabled="isSubmitting">
-          {{ isSubmitting ? 'Memproses...' : '📤 Simpan Pengeluaran Barang & Potong Stok' }}
+          {{ isSubmitting ? 'Memproses...' : 'Simpan Pengeluaran Barang & Potong Stok' }}
         </button>
       </form>
     </div>
@@ -151,7 +154,7 @@
     <!-- Tab 3: Riwayat Mutasi Stok -->
     <div v-else class="inventory-card glass-panel">
       <div class="card-header">
-        <h3>📋 Log Riwayat Mutasi Masuk & Keluar Stok</h3>
+        <h3>Log Riwayat Mutasi Masuk & Keluar Stok</h3>
       </div>
 
       <div class="card-body">
@@ -161,7 +164,6 @@
         </div>
 
         <div v-else-if="movements.length === 0" class="empty-box">
-          <span class="empty-icon">📂</span>
           <p>Belum ada riwayat mutasi stok barang.</p>
         </div>
 
@@ -182,7 +184,7 @@
                 <td class="date-col">{{ formatDate(m.created_at) }}</td>
                 <td>
                   <span class="type-badge" :class="m.type">
-                    {{ m.type === 'in' ? '📥 Masuk (In)' : '📤 Keluar (Out)' }}
+                    {{ m.type === 'in' ? 'Masuk (In)' : 'Keluar (Out)' }}
                   </span>
                 </td>
                 <td>
@@ -209,6 +211,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Product, StockMovement } from '../types';
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, ClockIcon } from '@heroicons/vue/24/outline';
 
 const activeTab = ref('receive');
 const products = ref<Product[]>([]);
@@ -337,31 +340,44 @@ const submitStockMovement = async (type: string): Promise<void> => {
 
 .page-header {
   padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .header-title h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .inventory-tabs {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
+  flex-shrink: 0;
 }
 
 .tab-btn {
-  padding: 0.75rem 1.25rem;
-  background: rgba(30, 41, 59, 0.7);
+  flex-shrink: 0;
+  padding: 0.65rem 1.15rem;
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   color: var(--text-secondary);
   font-family: var(--font-family);
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.825rem;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
 }
 
 .tab-btn:hover {
@@ -370,10 +386,10 @@ const submitStockMovement = async (type: string): Promise<void> => {
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-purple));
+  background: var(--accent-primary);
   color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  border-color: var(--accent-primary);
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
 }
 
 .inventory-card {
@@ -381,6 +397,9 @@ const submitStockMovement = async (type: string): Promise<void> => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .card-header {
@@ -389,8 +408,9 @@ const submitStockMovement = async (type: string): Promise<void> => {
 }
 
 .card-header h3 {
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .form-grid {
@@ -410,15 +430,15 @@ const submitStockMovement = async (type: string): Promise<void> => {
 
 .btn-submit {
   width: 100%;
-  padding: 0.85rem;
-  font-size: 0.95rem;
+  padding: 0.75rem;
+  font-size: 0.9rem;
   margin-top: 0.75rem;
 }
 
 .table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 8px;
 }
 
 .movement-table {
@@ -431,51 +451,53 @@ const submitStockMovement = async (type: string): Promise<void> => {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .movement-table th {
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--bg-primary);
   color: var(--text-secondary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .type-badge {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .type-badge.in {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.15);
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .type-badge.out {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.15);
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .product-name {
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .qty-badge {
-  font-weight: 800;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.85rem;
 }
 
-.qty-badge.in { color: #34d399; }
-.qty-badge.out { color: #f87171; }
+.qty-badge.in { color: #10b981; }
+.qty-badge.out { color: #ef4444; }
 
 .reason-tag {
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--bg-primary);
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
   font-size: 0.78rem;
-  color: #a5b4fc;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .date-col, .notes-col {
@@ -487,5 +509,19 @@ const submitStockMovement = async (type: string): Promise<void> => {
   padding: 3rem;
   text-align: center;
   color: var(--text-muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 0.5rem auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>

@@ -3,16 +3,18 @@
     <!-- Top Header Controls -->
     <div class="page-header glass-panel">
       <div class="header-title">
-        <h2>📦 Kelola Produk & Kategori</h2>
+        <h2>Kelola Produk & Kategori</h2>
         <p>Tambah, edit, dan atur stok barang kasir</p>
       </div>
 
       <div class="header-actions">
-        <button class="btn btn-secondary" @click="isCategoryModalOpen = true">
-          <span>+ Kategori Baru</span>
+        <button class="btn btn-secondary flex items-center gap-1" @click="isCategoryModalOpen = true">
+          <PlusIcon class="w-4 h-4" />
+          <span>Kategori Baru</span>
         </button>
-        <button class="btn btn-primary" @click="openAddModal">
-          <span>+ Produk Baru</span>
+        <button class="btn btn-primary flex items-center gap-1" @click="openAddModal">
+          <PlusIcon class="w-4 h-4" />
+          <span>Produk Baru</span>
         </button>
       </div>
     </div>
@@ -81,8 +83,12 @@
             <td><code>{{ prod.barcode || '-' }}</code></td>
             <td class="text-right">
               <div class="action-buttons">
-                <button class="btn-icon btn-edit" @click="openEditModal(prod)">✏️</button>
-                <button class="btn-icon btn-delete" @click="deleteProduct(prod)">🗑️</button>
+                <button class="btn-icon btn-edit" title="Edit" @click="openEditModal(prod)">
+                  <PencilSquareIcon class="w-4 h-4 text-indigo-600" />
+                </button>
+                <button class="btn-icon btn-delete" title="Hapus" @click="deleteProduct(prod)">
+                  <TrashIcon class="w-4 h-4 text-red-600" />
+                </button>
               </div>
             </td>
           </tr>
@@ -95,7 +101,9 @@
       <div class="modal-content glass-panel">
         <div class="modal-header">
           <h3>{{ editingId ? 'Edit Produk' : 'Tambah Produk Baru' }}</h3>
-          <button class="btn-close" @click="isProductModalOpen = false">✕</button>
+          <button class="btn-close" @click="isProductModalOpen = false">
+            <XMarkIcon class="w-5 h-5 text-slate-500" />
+          </button>
         </div>
 
         <form @submit.prevent="saveProduct" class="modal-body">
@@ -154,7 +162,9 @@
       <div class="modal-content glass-panel">
         <div class="modal-header">
           <h3>Tambah Kategori Baru</h3>
-          <button class="btn-close" @click="isCategoryModalOpen = false">✕</button>
+          <button class="btn-close" @click="isCategoryModalOpen = false">
+            <XMarkIcon class="w-5 h-5 text-slate-500" />
+          </button>
         </div>
         <form @submit.prevent="saveCategory" class="modal-body">
           <div class="form-group">
@@ -174,6 +184,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import type { Category, Product } from '../types';
+import { PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
@@ -325,11 +336,20 @@ const saveCategory = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .header-title h2 {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.header-title p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }
 
 .header-actions {
@@ -341,6 +361,9 @@ const saveCategory = async () => {
   display: flex;
   gap: 1rem;
   padding: 0.85rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .search-input {
@@ -354,50 +377,57 @@ const saveCategory = async () => {
 .table-container {
   overflow-x: auto;
   padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.88rem;
+  font-size: 0.875rem;
 }
 
 .data-table th {
   padding: 0.85rem 1rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--bg-primary);
 }
 
 .data-table td {
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
+  color: var(--text-primary);
 }
 
 .prod-thumb {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   object-fit: cover;
+  border: 1px solid var(--border-color);
 }
 
 .prod-name {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .cat-tag {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-primary);
   padding: 0.15rem 0.5rem;
   border-radius: 6px;
   font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .price-text {
-  color: var(--accent-secondary);
+  color: #059669;
 }
 
 .action-buttons {
@@ -407,21 +437,31 @@ const saveCategory = async () => {
 }
 
 .btn-icon {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
+  color: var(--text-primary);
   padding: 0.35rem 0.5rem;
   border-radius: 6px;
   cursor: pointer;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 .btn-icon:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card-hover);
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .text-right { text-align: right; }

@@ -39,6 +39,7 @@ func UpdateSettings(c *gin.Context) {
 	setting.Phone = input.Phone
 	setting.ReceiptFooter = input.ReceiptFooter
 	setting.TaxPercentage = input.TaxPercentage
+	setting.MemberDiscountPercentage = input.MemberDiscountPercentage
 	setting.QrisImageUrl = input.QrisImageUrl
 
 	database.DB.Save(&setting)
