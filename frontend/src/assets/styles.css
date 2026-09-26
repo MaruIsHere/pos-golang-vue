@@ -1,36 +1,40 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
+/* @mport "tailwind-material-3"; */
+@theme {
+  /* Font Family -> utility: font-sans */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 
-:root {
-  --font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  /* Colors (Semua background, text, accent, dan border masuk ke namespace --color-*) */
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f1f5f9;
+  --color-bg-glass: rgba(255, 255, 255, 0.95);
 
-  /* Clean Minimalist Light Theme (Default) */
-  --bg-primary: #f8fafc;        /* Slate 50 */
-  --bg-secondary: #ffffff;      /* Pure White */
-  --bg-card: #ffffff;           /* White Card */
-  --bg-card-hover: #f1f5f9;     /* Slate 100 */
-  --bg-glass: rgba(255, 255, 255, 0.95);
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
 
-  --text-primary: #0f172a;      /* Slate 900 */
-  --text-secondary: #475569;    /* Slate 600 */
-  --text-muted: #94a3b8;        /* Slate 400 */
+  --color-accent-primary: #4f46e5;
+  --color-accent-primary-hover: #4338ca;
+  --color-accent-secondary: #059669;
+  --color-accent-secondary-hover: #047857;
+  --color-accent-warning: #d97706;
+  --color-accent-danger: #dc2626;
+  --color-accent-purple: #7c3aed;
 
-  --accent-primary: #4f46e5;    /* Indigo 600 */
-  --accent-primary-hover: #4338ca; /* Indigo 700 */
-  --accent-secondary: #059669;  /* Emerald 600 */
-  --accent-secondary-hover: #047857;
-  --accent-warning: #d97706;    /* Amber 600 */
-  --accent-danger: #dc2626;     /* Red 600 */
-  --accent-purple: #7c3aed;     /* Violet 600 */
+  --color-border-color: #e2e8f0;
+  --color-border-focus: #818cf8;
 
-  --border-color: #e2e8f0;      /* Slate 200 */
-  --border-focus: #818cf8;      /* Indigo 400 */
-
+  /* Shadows -> utility: shadow-sm, shadow-md, shadow-glow, dll. */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
   --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.12);
 
+  /* Radius -> utility: rounded-sm, rounded-md, rounded-lg, rounded-xl */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -39,24 +43,24 @@
 
 /* Dark Mode Theme Variables */
 html.dark {
-  --bg-primary: #0f172a;        /* Slate 900 */
-  --bg-secondary: #1e293b;      /* Slate 800 */
-  --bg-card: #1e293b;           /* Slate 800 Card */
-  --bg-card-hover: #334155;     /* Slate 700 */
+  --bg-primary: #0f172a; /* Slate 900 */
+  --bg-secondary: #1e293b; /* Slate 800 */
+  --bg-card: #1e293b; /* Slate 800 Card */
+  --bg-card-hover: #334155; /* Slate 700 */
   --bg-glass: rgba(15, 23, 42, 0.9);
 
-  --text-primary: #f8fafc;      /* Slate 50 */
-  --text-secondary: #94a3b8;    /* Slate 400 */
-  --text-muted: #64748b;        /* Slate 500 */
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+  --text-muted: #64748b; /* Slate 500 */
 
-  --accent-primary: #6366f1;    /* Indigo 500 */
+  --accent-primary: #6366f1; /* Indigo 500 */
   --accent-primary-hover: #4f46e5;
-  --accent-secondary: #10b981;  /* Emerald 500 */
+  --accent-secondary: #10b981; /* Emerald 500 */
   --accent-secondary-hover: #059669;
-  --accent-warning: #f59e0b;    /* Amber 500 */
-  --accent-danger: #ef4444;     /* Red 500 */
+  --accent-warning: #f59e0b; /* Amber 500 */
+  --accent-danger: #ef4444; /* Red 500 */
 
-  --border-color: #334155;      /* Slate 700 */
+  --border-color: #334155; /* Slate 700 */
   --border-focus: #818cf8;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -65,11 +69,11 @@ html.dark {
   --shadow-glow: 0 0 15px rgba(99, 102, 241, 0.25);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* * { */
+/*   margin: 0; */
+/*   padding: 0; */
+/*   box-sizing: border-box; */
+/* } */
 
 body {
   font-family: var(--font-family);
@@ -78,7 +82,9 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 /* Custom Scrollbar */
@@ -108,7 +114,9 @@ html.dark ::-webkit-scrollbar-thumb {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .glass-nav {
@@ -117,7 +125,9 @@ html.dark ::-webkit-scrollbar-thumb {
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 /* Base Layout Container */
@@ -245,7 +255,9 @@ html.dark ::-webkit-scrollbar-thumb {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .form-control:focus {
@@ -336,11 +348,21 @@ html.dark .badge-danger {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleUp {
-  from { transform: scale(0.96); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

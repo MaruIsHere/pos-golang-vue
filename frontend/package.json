@@ -12,9 +12,12 @@
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
     "@tailwindcss/vite": "^4.3.3",
+    "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
     "pinia": "^4.0.3",
     "pos-golang-vue": "file:..",
+    "tailwind-material-3": "^4.0.0",
+    "tailwind-merge": "^3.7.0",
     "vue": "^3.4.0",
     "vue-router": "^4.6.4"
   },

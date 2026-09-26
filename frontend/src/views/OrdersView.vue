@@ -1,15 +1,23 @@
 <template>
-  <div class="orders-page">
-    <div class="page-header glass-panel">
-      <div class="header-title">
-        <h2>Riwayat Transaksi & Retur Penjualan</h2>
-        <p>Daftar transaksi penjualan, cetak ulang struk, dan proses retur/refund barang</p>
+  <div class="flex flex-col gap-5 p-1">
+    <div
+      class="flex justify-between items-center py-5 px-6 bg-bg-card border-border-color rounded-xl"
+    >
+      <!-- <div class="header-title"> -->
+      <div class="">
+        <h2 class="text-xl font-bold text-text-primary">
+          Riwayat Transaksi & Retur Penjualan
+        </h2>
+        <p class="text-base text-text-secondary">
+          Daftar transaksi penjualan, cetak ulang struk, dan proses retur/refund
+          barang
+        </p>
       </div>
 
-      <button class="btn btn-secondary flex items-center gap-1" @click="fetchOrders">
+      <appButton variant="primary" @click="fetchOrders">
         <ArrowPathIcon class="w-4 h-4" />
         <span>Refresh</span>
-      </button>
+      </appButton>
     </div>
 
     <!-- Orders Table -->
@@ -31,41 +39,56 @@
             <td colspan="7" class="text-center">Memuat riwayat transaksi...</td>
           </tr>
           <tr v-else-if="orders.length === 0">
-            <td colspan="7" class="text-center">Belum ada transaksi recorded</td>
+            <td colspan="7" class="text-center">
+              Belum ada transaksi recorded
+            </td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
             <td>
               <code class="invoice-code">{{ order.invoice_no }}</code>
             </td>
             <td>{{ formatDate(order.created_at) }}</td>
-            <td>{{ order.customer_name || 'Umum' }}</td>
+            <td>{{ order.customer_name || "Umum" }}</td>
             <td>
               <span class="pay-method-badge">
-                {{ (order.payment_method || 'cash').toUpperCase() }}
+                {{ (order.payment_method || "cash").toUpperCase() }}
               </span>
             </td>
-            <td class="font-bold price-text">Rp {{ formatPrice(order.grand_total) }}</td>
+            <td class="font-bold price-text">
+              Rp {{ formatPrice(order.grand_total) }}
+            </td>
             <td>
-              <span class="badge" :class="order.status === 'refunded' ? 'badge-refunded' : 'badge-success'">
-                {{ order.status === 'refunded' ? 'Diretur' : 'Selesai' }}
+              <span
+                class="badge"
+                :class="
+                  order.status === 'refunded'
+                    ? 'badge-refunded'
+                    : 'badge-success'
+                "
+              >
+                {{ order.status === "refunded" ? "Diretur" : "Selesai" }}
               </span>
             </td>
             <td class="text-right">
               <div class="action-flex">
-                <button class="btn btn-secondary btn-sm flex items-center gap-1" @click="openReceipt(order)">
+                <appButton
+                  @click="openReceipt(order)"
+                  variant="secondary"
+                  size="sm"
+                >
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>
-                </button>
-
-                <button 
-                  v-if="order.status !== 'refunded'" 
-                  class="btn btn-danger-outline btn-sm flex items-center gap-1" 
+                </appButton>
+                <appButton
+                  v-if="order.status !== 'refunded'"
                   @click="refundOrder(order)"
                   title="Retur Transaksi & Pulihkan Stok"
+                  variant="danger"
+                  size="sm"
                 >
                   <ArrowUturnLeftIcon class="w-3.5 h-3.5" />
                   <span>Retur</span>
-                </button>
+                </appButton>
               </div>
             </td>
           </tr>
@@ -74,7 +97,7 @@
     </div>
 
     <!-- Receipt Modal -->
-    <ReceiptModal 
+    <ReceiptModal
       v-if="selectedOrder"
       :order="selectedOrder"
       @close="selectedOrder = null"
@@ -83,29 +106,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import ReceiptModal from '../components/ReceiptModal.vue';
-import type { Order } from '../types';
-import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from '@heroicons/vue/24/outline';
+import { ref, onMounted } from "vue";
+import ReceiptModal from "../components/ReceiptModal.vue";
+import type { Order } from "../types";
+import appButton from "../components/ui/Appbutton.vue";
+import {
+  ArrowPathIcon,
+  PrinterIcon,
+  ArrowUturnLeftIcon,
+} from "@heroicons/vue/24/outline";
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
 const selectedOrder = ref<Order | null>(null);
 
-const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatPrice = (val: number): string =>
+  new Intl.NumberFormat("id-ID").format(val || 0);
 
 const formatDate = (dateStr?: string): string => {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleString('id-ID', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+  if (!dateStr) return "-";
+  return new Date(dateStr).toLocaleString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
 const fetchOrders = async () => {
   isLoading.value = true;
   try {
-    const res = await fetch('/api/orders?limit=50');
+    const res = await fetch("/api/orders?limit=50");
     if (res.ok) orders.value = await res.json();
   } finally {
     isLoading.value = false;
@@ -119,24 +151,32 @@ const openReceipt = (order: Order): void => {
 };
 
 const refundOrder = async (order: Order): Promise<void> => {
-  if (!confirm(`Apakah Anda yakin ingin melakukan RETUR pada Invoice #${order.invoice_no}?\n\nStok barang akan dipulihkan secara otomatis.`)) {
+  if (
+    !confirm(
+      `Apakah Anda yakin ingin melakukan RETUR pada Invoice #${order.invoice_no}?\n\nStok barang akan dipulihkan secara otomatis.`,
+    )
+  ) {
     return;
   }
 
   try {
     const res = await fetch(`/api/orders/${order.id}/refund`, {
-      method: 'POST'
+      method: "POST",
     });
 
     if (res.ok) {
-      alert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`);
+      alert(
+        `Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`,
+      );
       fetchOrders();
     } else {
       const errData = await res.json();
-      alert('Gagal merefur transaksi: ' + (errData.error || 'Terjadi kesalahan'));
+      alert(
+        "Gagal merefur transaksi: " + (errData.error || "Terjadi kesalahan"),
+      );
     }
   } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
+    alert("Koneksi error: " + (err as Error).message);
   }
 };
 </script>
@@ -263,6 +303,10 @@ const refundOrder = async (order: Order): Promise<void> => {
   font-size: 0.78rem;
 }
 
-.text-right { text-align: right; }
-.text-center { text-align: center; }
+.text-right {
+  text-align: right;
+}
+.text-center {
+  text-align: center;
+}
 </style>
