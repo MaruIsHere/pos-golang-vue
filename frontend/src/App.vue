@@ -1,6 +1,6 @@
 <template>
   <div class="h-screen w-screen flex flex-col bg-bg-primary overflow-hidde">
-    <Navbar />
+    <Navbar v-if="authStore.isAuthenticated" />
 
     <PwaInstallBanner />
 
@@ -17,9 +17,11 @@ import { onMounted } from "vue";
 import Navbar from "./components/Navbar.vue";
 import PwaInstallBanner from "./components/PwaInstallBanner.vue";
 import { useSettingsStore } from "./stores/settings";
+import { useAuthStore } from "./stores/auth";
 import { useTheme } from "./composables/useTheme";
 
 const settingsStore = useSettingsStore();
+const authStore = useAuthStore();
 const { initTheme } = useTheme();
 
 onMounted(() => {

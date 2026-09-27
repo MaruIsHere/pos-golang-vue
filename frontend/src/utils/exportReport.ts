@@ -51,7 +51,7 @@ export const exportToExcel = (stats: DashboardStats, dateTitle: string = 'Keselu
     'Total Omset (Rp)': p.total_sales,
     'Sisa Stok Tersisa': p.stock ?? 0
   }));
-  const wsLeast = XLSX.utils.json_to_sheet(wsLeastRows(leastRows));
+  const wsLeast = XLSX.utils.json_to_sheet(leastRows);
   XLSX.utils.book_append_sheet(wb, wsLeast, 'Barang Kurang Laku');
 
   // 4. Sheet List Seluruh Barang Laku
@@ -89,9 +89,6 @@ export const exportToExcel = (stats: DashboardStats, dateTitle: string = 'Keselu
   XLSX.writeFile(wb, filename);
 };
 
-function wsLeastRows(rows: any[]) {
-  return rows;
-}
 
 export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluruhan'): void => {
   const doc = new jsPDF('p', 'mm', 'a4');

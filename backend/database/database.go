@@ -59,6 +59,7 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 
 	// Auto Migration
 	err = db.AutoMigrate(
+		&models.User{},
 		&models.Category{},
 		&models.Product{},
 		&models.Order{},

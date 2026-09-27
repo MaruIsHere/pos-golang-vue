@@ -43,6 +43,13 @@
         <ClockIcon class="w-4 h-4 inline-block mr-1 text-slate-400" />
         <span class="time-text">{{ currentTime }}</span>
       </div>
+
+      <button
+        @click="logout"
+        class="ml-2 px-3 py-1.5 text-sm font-medium text-accent-danger bg-bg-secondary hover:bg-bg-card-hover rounded-md transition-colors"
+      >
+        Logout
+      </button>
     </div>
   </header>
 
@@ -66,6 +73,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
+import { useAuthStore } from '../stores/auth';
 import { useTheme } from '../composables/useTheme';
 import {
   ShoppingCartIcon,
@@ -87,7 +95,12 @@ defineProps({
 
 const settingsStore = useSettingsStore();
 const { settings: storeSetting } = storeToRefs(settingsStore);
+const authStore = useAuthStore();
 const { isDarkMode, toggleTheme } = useTheme();
+
+const logout = () => {
+  authStore.logout();
+};
 
 const navItems = [
   { id: 'register', to: '/', label: 'Kasir', iconComp: BuildingStorefrontIcon },

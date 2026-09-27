@@ -4,6 +4,15 @@ import (
 	"time"
 )
 
+type User struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Username  string    `gorm:"size:100;not null;unique" json:"username"`
+	Password  string    `gorm:"size:255;not null" json:"-"`
+	Role      string    `gorm:"size:20;default:'kasir'" json:"role"` // "admin" or "kasir"
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Category struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Name      string    `gorm:"size:100;not null;unique" json:"name"`
