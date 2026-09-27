@@ -11,6 +11,7 @@ import (
 
 func RegisterAPIRoutes(router *gin.Engine) {
 	api := router.Group("/api")
+	api.GET("/settings", handlers.GetSettings)
 	{
 		// Status endpoint
 		api.GET("/health", func(c *gin.Context) {

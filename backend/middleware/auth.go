@@ -68,7 +68,7 @@ func RoleMiddleware(roles ...string) gin.HandlerFunc {
 
 		hasRole := false
 		for _, role := range roles {
-			if userRole == role {
+			if strings.EqualFold(fmt.Sprintf("%v", userRole), role) {
 				hasRole = true
 				break
 			}
