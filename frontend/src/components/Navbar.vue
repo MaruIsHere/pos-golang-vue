@@ -29,6 +29,17 @@
     </nav>
 
     <div class="header-right">
+      <!-- User Profile & Role Badge -->
+      <div v-if="authStore.user" class="hidden sm:flex items-center gap-2 px-3 py-1 bg-bg-primary border border-border-color rounded-lg">
+        <UserIcon class="w-4 h-4 text-accent-primary" />
+        <div class="flex flex-col text-left leading-tight">
+          <span class="text-xs font-semibold text-text-primary leading-tight">{{ authStore.user.username }}</span>
+          <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded text-center mt-0.5" :class="roleBadgeClass">
+            {{ roleLabel }}
+          </span>
+        </div>
+      </div>
+
       <!-- Theme Toggle Button -->
       <button 
         class="theme-toggle-btn" 
@@ -46,7 +57,7 @@
 
       <button
         @click="logout"
-        class="ml-2 px-3 py-1.5 text-sm font-medium text-accent-danger bg-bg-secondary hover:bg-bg-card-hover rounded-md transition-colors"
+        class="ml-1 px-3 py-1.5 text-xs font-semibold text-accent-danger bg-bg-secondary hover:bg-red-500/10 rounded-lg transition-colors border border-border-color"
       >
         Logout
       </button>
@@ -70,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import { useAuthStore } from '../stores/auth';
@@ -86,7 +97,8 @@ import {
   Cog6ToothIcon,
   ClockIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  UserIcon
 } from '@heroicons/vue/24/outline';
 
 defineProps({
@@ -102,15 +114,39 @@ const logout = () => {
   authStore.logout();
 };
 
-const navItems = [
-  { id: 'register', to: '/', label: 'Kasir', iconComp: BuildingStorefrontIcon },
-  { id: 'products', to: '/products', label: 'Produk', iconComp: CubeIcon },
-  { id: 'inventory', to: '/inventory', label: 'Inventoris', iconComp: ArchiveBoxIcon },
-  { id: 'customers', to: '/customers', label: 'Pelanggan', iconComp: UsersIcon },
-  { id: 'orders', to: '/orders', label: 'Riwayat', iconComp: DocumentTextIcon },
-  { id: 'reports', to: '/reports', label: 'Laporan', iconComp: ChartBarIcon },
-  { id: 'settings', to: '/settings', label: 'Pengaturan', iconComp: Cog6ToothIcon }
+const allNavItems = [
+  { id: 'register', to: '/', label: 'Kasir', iconComp: BuildingStorefrontIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
+  { id: 'products', to: '/products', label: 'Produk', iconComp: CubeIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
+  { id: 'inventory', to: '/inventory', label: 'Inventoris', iconComp: ArchiveBoxIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
+  { id: 'customers', to: '/customers', label: 'Pelanggan', iconComp: UsersIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
+  { id: 'orders', to: '/orders', label: 'Riwayat', iconComp: DocumentTextIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
+  { id: 'reports', to: '/reports', label: 'Laporan', iconComp: ChartBarIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
+  { id: 'settings', to: '/settings', label: 'Pengaturan', iconComp: Cog6ToothIcon, roles: ['owner', 'admin'] }
 ];
+
+const navItems = computed(() => {
+  const currentRole = authStore.userRole || 'kasir';
+  return allNavItems.filter(item => item.roles.includes(currentRole));
+});
+
+const roleLabel = computed(() => {
+  const role = authStore.userRole;
+  if (role === 'owner') return 'Owner';
+  if (role === 'admin') return 'Admin';
+  if (role === 'kepala_kasir') return 'Kepala Kasir';
+  return 'Kasir';
+});
+
+const roleBadgeClass = computed(() => {
+  const role = authStore.userRole;
+  if (role === 'owner' || role === 'admin') {
+    return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300/50';
+  }
+  if (role === 'kepala_kasir') {
+    return 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-300/50';
+  }
+  return 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-300/50';
+});
 
 const currentTime = ref('');
 

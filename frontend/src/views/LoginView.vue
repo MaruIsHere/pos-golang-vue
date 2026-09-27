@@ -19,25 +19,20 @@ const handleLogin = async () => {
   error.value = ''
   isLoading.value = true
   try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: username.value,
-        password: password.value
-      })
+    const res = await api.post('/auth/login', {
+      username: username.value,
+      password: password.value
     })
 
-    const data = await res.json()
-
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to login')
-    }
-
+    const data = res.data
     authStore.setAuth(data.token, data.user)
-    router.push('/')
+    
+    const userRole = data.user?.role
+    if (userRole === 'owner' || userRole === 'admin') {
+      router.push('/reports')
+    } else {
+      router.push('/')
+    }
   } catch (err: any) {
     error.value = err.response?.data?.error || err.message || 'Gagal login'
   } finally {
@@ -47,8 +42,8 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-bg-primary">
-    <AppCard class="w-full max-w-md p-8">
+  <div class="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4">
+    <AppCard class="w-full max-w-md p-6 sm:p-8 shadow-xl">
       <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-text-primary">Login</h1>
         <p class="text-text-secondary mt-2">Welcome to POS System</p>

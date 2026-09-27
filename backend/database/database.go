@@ -8,8 +8,9 @@ import (
 
 	"pos-backend/models"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/glebarez/sqlite"
+	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -79,6 +80,31 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 }
 
 func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
+	// Seed Default Accounts if missing
+	defaultUsers := []struct {
+		username string
+		password string
+		role     string
+	}{
+		{"owner", "owner123", "owner"},
+		{"kepalakasir", "kepala123", "kepala_kasir"},
+		{"kasir", "kasir123", "kasir"},
+		{"admin", "admin123", "owner"},
+	}
+
+	for _, u := range defaultUsers {
+		var count int64
+		db.Model(&models.User{}).Where("LOWER(username) = LOWER(?)", u.username).Count(&count)
+		if count == 0 {
+			hashed, _ := bcrypt.GenerateFromPassword([]byte(u.password), bcrypt.DefaultCost)
+			db.Create(&models.User{
+				Username: u.username,
+				Password: string(hashed),
+				Role:     u.role,
+			})
+		}
+	}
+
 	// Seed Customers if empty
 	var custCount int64
 	db.Model(&models.Customer{}).Count(&custCount)

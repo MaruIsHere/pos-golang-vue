@@ -6,14 +6,22 @@
 
   /* Colors (Semua background, text, accent, dan border masuk ke namespace --color-*) */
   --color-primary: var(--bg-primary);
+  --color-bg-primary: var(--bg-primary);
   --color-secondary: var(--bg-secondary);
+  --color-bg-secondary: var(--bg-secondary);
   --color-card: var(--bg-card);
+  --color-bg-card: var(--bg-card);
   --color-card-hover: var(--bg-card-hover);
+  --color-bg-card-hover: var(--bg-card-hover);
   --color-glass: var(--bg-glass);
+  --color-bg-glass: var(--bg-glass);
 
   --color-tx-primary: var(--text-primary);
+  --color-text-primary: var(--text-primary);
   --color-tx-secondary: var(--text-secondary);
+  --color-text-secondary: var(--text-secondary);
   --color-tx-muted: var(--text-muted);
+  --color-text-muted: var(--text-muted);
 
   --color-accent-primary: var(--accent-primary);
   --color-accent-primary-hover: var(--accent-primary-hover);

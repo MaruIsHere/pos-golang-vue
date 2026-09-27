@@ -34,44 +34,44 @@ func RegisterAPIRoutes(router *gin.Engine) {
 		{
 			// Categories
 			protected.GET("/categories", handlers.GetCategories)
-			protected.POST("/categories", handlers.CreateCategory)
-			protected.DELETE("/categories/:id", handlers.DeleteCategory)
+			protected.POST("/categories", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.CreateCategory)
+			protected.DELETE("/categories/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.DeleteCategory)
 
 			// Products
 			protected.GET("/products", handlers.GetProducts)
 			protected.GET("/products/filters", handlers.GetProductFilters)
-			protected.POST("/products", handlers.CreateProduct)
-			protected.PUT("/products/:id", handlers.UpdateProduct)
-			protected.DELETE("/products/:id", handlers.DeleteProduct)
+			protected.POST("/products", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.CreateProduct)
+			protected.PUT("/products/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.UpdateProduct)
+			protected.DELETE("/products/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.DeleteProduct)
 
 			// Orders / Transactions
 			protected.POST("/orders", handlers.CreateOrder)
 			protected.GET("/orders", handlers.GetOrders)
 			protected.GET("/orders/:id", handlers.GetOrderById)
-			protected.POST("/orders/:id/refund", middleware.RoleMiddleware("admin"), handlers.RefundOrder)
+			protected.POST("/orders/:id/refund", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.RefundOrder)
 
 			// Customers
 			protected.GET("/customers", handlers.GetCustomers)
 			protected.POST("/customers", handlers.CreateCustomer)
-			protected.PUT("/customers/:id", handlers.UpdateCustomer)
-			protected.DELETE("/customers/:id", handlers.DeleteCustomer)
+			protected.PUT("/customers/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.UpdateCustomer)
+			protected.DELETE("/customers/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.DeleteCustomer)
 
 			// Stock Movements (Inventory - Receive & Issue)
 			protected.GET("/stock-movements", handlers.GetStockMovements)
-			protected.POST("/stock-movements", handlers.CreateStockMovement)
+			protected.POST("/stock-movements", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.CreateStockMovement)
 
 			// Reports & Dashboard
-			protected.GET("/reports/dashboard", handlers.GetDashboardStats)
+			protected.GET("/reports/dashboard", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.GetDashboardStats)
 
 			// Store & DB Settings
-			protected.GET("/settings", handlers.GetSettings)
-			protected.PUT("/settings", middleware.RoleMiddleware("admin"), handlers.UpdateSettings)
-			protected.POST("/settings/switch-db", middleware.RoleMiddleware("admin"), handlers.SwitchDatabase)
+			protected.GET("/settings", middleware.RoleMiddleware("admin", "owner"), handlers.GetSettings)
+			protected.PUT("/settings", middleware.RoleMiddleware("admin", "owner"), handlers.UpdateSettings)
+			protected.POST("/settings/switch-db", middleware.RoleMiddleware("admin", "owner"), handlers.SwitchDatabase)
 
 			// Vouchers
 			protected.GET("/vouchers", handlers.GetVouchers)
-			protected.POST("/vouchers", middleware.RoleMiddleware("admin"), handlers.CreateVoucher)
-			protected.DELETE("/vouchers/:id", middleware.RoleMiddleware("admin"), handlers.DeleteVoucher)
+			protected.POST("/vouchers", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.CreateVoucher)
+			protected.DELETE("/vouchers/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.DeleteVoucher)
 		}
 	}
 }

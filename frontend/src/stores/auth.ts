@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import router from '../router'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const user = ref<any>(JSON.parse(localStorage.getItem('user') || 'null'))
-  const router = useRouter()
 
   const isAuthenticated = computed(() => !!token.value)
   const userRole = computed(() => user.value?.role || null)
@@ -22,7 +21,9 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    router.push('/login')
+    if (router.currentRoute.value.path !== '/login') {
+      router.push('/login')
+    }
   }
 
   return {

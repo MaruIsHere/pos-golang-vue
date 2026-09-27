@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-screen flex flex-col bg-bg-primary overflow-hidde">
+  <div class="h-screen w-screen flex flex-col bg-[var(--bg-primary)] overflow-hidden">
     <Navbar v-if="authStore.isAuthenticated" />
 
     <PwaInstallBanner />

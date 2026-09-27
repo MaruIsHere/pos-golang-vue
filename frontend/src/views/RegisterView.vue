@@ -60,8 +60,9 @@ const handleRegister = async () => {
         <div>
           <label class="block text-sm font-medium text-text-primary mb-1">Role</label>
           <select v-model="role" class="w-full bg-bg-secondary border border-border-color text-text-primary rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-accent-primary">
-            <option value="kasir">Kasir</option>
-            <option value="admin">Admin</option>
+            <option value="kasir">Kasir (Fitur Kasir & Riwayat)</option>
+            <option value="kepala_kasir">Kepala Kasir (Kasir, Pelanggan, Barang & Laporan)</option>
+            <option value="owner">Owner (Full Akses)</option>
           </select>
         </div>
 
