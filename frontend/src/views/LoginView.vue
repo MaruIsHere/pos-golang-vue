@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/utils/api'
 import { useAuthStore } from '../stores/auth'
 import AppCard from '../components/ui/AppCard.vue'
 import AppInput from '../components/ui/AppInput.vue'
@@ -38,7 +39,7 @@ const handleLogin = async () => {
     authStore.setAuth(data.token, data.user)
     router.push('/')
   } catch (err: any) {
-    error.value = err.message
+    error.value = err.response?.data?.error || err.message || 'Gagal login'
   } finally {
     isLoading.value = false
   }

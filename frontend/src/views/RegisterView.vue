@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/utils/api'
 import AppCard from '../components/ui/AppCard.vue'
 import AppInput from '../components/ui/AppInput.vue'
 import AppButton from '../components/ui/AppButton.vue'
@@ -19,30 +20,18 @@ const handleRegister = async () => {
   success.value = ''
   isLoading.value = true
   try {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: username.value,
-        password: password.value,
-        role: role.value
-      })
+    const res = await api.post('/auth/register', {
+      username: username.value,
+      password: password.value,
+      role: role.value
     })
-
-    const data = await res.json()
-
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to register')
-    }
 
     success.value = 'Registration successful. You can now login.'
     setTimeout(() => {
       router.push('/login')
     }, 2000)
   } catch (err: any) {
-    error.value = err.message
+    error.value = err.response?.data?.error || err.message || 'Gagal mendaftar'
   } finally {
     isLoading.value = false
   }
