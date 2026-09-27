@@ -19,9 +19,18 @@ func GetProducts(c *gin.Context) {
 		query = query.Where("category_id = ?", catID)
 	}
 
+	if artist := c.Query("artist"); artist != "" {
+		query = query.Where("artist = ?", artist)
+	}
+
+	if productType := c.Query("product_type"); productType != "" {
+		query = query.Where("product_type = ?", productType)
+	}
+
 	search := c.Query("search")
 	if search != "" {
-		query = query.Where("name LIKE ? OR barcode LIKE ?", "%"+search+"%", "%"+search+"%")
+		s := "%" + search + "%"
+		query = query.Where("name LIKE ? OR barcode LIKE ? OR artist LIKE ? OR product_type LIKE ?", s, s, s, s)
 	}
 
 	if err := query.Find(&products).Error; err != nil {
@@ -29,6 +38,19 @@ func GetProducts(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, products)
+}
+
+func GetProductFilters(c *gin.Context) {
+	var artists []string
+	var productTypes []string
+
+	database.DB.Model(&models.Product{}).Where("artist IS NOT NULL AND artist != ''").Distinct("artist").Pluck("artist", &artists)
+	database.DB.Model(&models.Product{}).Where("product_type IS NOT NULL AND product_type != ''").Distinct("product_type").Pluck("product_type", &productTypes)
+
+	c.JSON(http.StatusOK, gin.H{
+		"artists":       artists,
+		"product_types": productTypes,
+	})
 }
 
 func CreateProduct(c *gin.Context) {

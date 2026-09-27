@@ -50,7 +50,7 @@
             <select class="form-control" v-model.number="receiveForm.product_id" required>
               <option value="" disabled>-- Pilih Produk --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }} (Stok Saat Ini: {{ p.stock }})
+                {{ p.name }}{{ p.artist ? ' (' + p.artist + ')' : '' }} (Stok Saat Ini: {{ p.stock }})
               </option>
             </select>
           </div>
@@ -106,7 +106,7 @@
             <select class="form-control" v-model.number="issueForm.product_id" required>
               <option value="" disabled>-- Pilih Produk --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }} (Stok Tersedia: {{ p.stock }})
+                {{ p.name }}{{ p.artist ? ' (' + p.artist + ')' : '' }} (Stok Tersedia: {{ p.stock }})
               </option>
             </select>
           </div>

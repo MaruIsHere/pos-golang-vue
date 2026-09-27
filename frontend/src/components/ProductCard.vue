@@ -17,6 +17,12 @@
 
     <div class="card-body">
       <h3 class="product-title">{{ product.name }}</h3>
+      
+      <div class="sub-tags-wrapper" v-if="product.artist || product.product_type">
+        <span class="sub-pill pill-artist" v-if="product.artist">{{ product.artist }}</span>
+        <span class="sub-pill pill-type" v-if="product.product_type">{{ product.product_type }}</span>
+      </div>
+
       <p class="product-barcode" v-if="product.barcode">SKU: {{ product.barcode }}</p>
       
       <div class="card-footer">
@@ -160,6 +166,38 @@ const addToCart = () => {
   font-size: 0.7rem;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
+}
+
+.sub-tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.sub-pill {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.pill-variant {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.pill-artist {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.pill-type {
+  background: rgba(236, 72, 153, 0.12);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.2);
 }
 
 .card-footer {

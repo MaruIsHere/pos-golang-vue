@@ -16,6 +16,8 @@ type Product struct {
 	CategoryID  uint      `gorm:"index;not null" json:"category_id"`
 	Category    Category  `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 	Name        string    `gorm:"size:150;not null" json:"name"`
+	Artist      string    `gorm:"size:100;index" json:"artist"`
+	ProductType string    `gorm:"size:100;index" json:"product_type"`
 	Price       float64   `gorm:"type:decimal(12,2);not null" json:"price"`
 	CostPrice   float64   `gorm:"type:decimal(12,2);default:0" json:"cost_price"`
 	Stock       int       `gorm:"default:0" json:"stock"`
@@ -48,6 +50,8 @@ type OrderItem struct {
 	OrderID      uint    `gorm:"index;not null" json:"order_id"`
 	ProductID    uint    `gorm:"index;not null" json:"product_id"`
 	ProductName  string  `gorm:"size:150;not null" json:"product_name"`
+	Artist       string  `gorm:"size:100" json:"artist"`
+	ProductType  string  `gorm:"size:100" json:"product_type"`
 	ProductPrice float64 `gorm:"type:decimal(12,2);not null" json:"product_price"`
 	Quantity     int     `gorm:"not null" json:"quantity"`
 	Subtotal     float64 `gorm:"type:decimal(12,2);not null" json:"subtotal"`

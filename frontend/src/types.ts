@@ -25,6 +25,8 @@ export interface Product {
   category_id: number;
   category?: Category;
   name: string;
+  artist?: string;
+  product_type?: string;
   price: number;
   cost_price?: number;
   stock: number;
@@ -33,6 +35,11 @@ export interface Product {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ProductFilters {
+  artists: string[];
+  product_types: string[];
 }
 
 export interface CartItem {
@@ -61,6 +68,8 @@ export interface OrderItem {
   order_id: number;
   product_id: number;
   product_name: string;
+  artist?: string;
+  product_type?: string;
   product_price: number;
   quantity: number;
   subtotal: number;
@@ -115,10 +124,32 @@ export interface StockMovement {
   created_at?: string;
 }
 
+export interface SubGroupStat {
+  name: string;
+  total_qty: number;
+  total_sales: number;
+}
+
+export interface ProductSalesStat {
+  product_id: number;
+  product_name: string;
+  artist?: string;
+  product_type?: string;
+  total_qty: number;
+  total_sales: number;
+  stock?: number;
+  price?: number;
+}
+
 export interface DashboardStats {
   total_orders: number;
   total_revenue: number;
   total_items_sold: number;
-  top_products: Array<{ product_name: string; total_qty: number; total_sales: number }>;
+  top_products: ProductSalesStat[];
+  least_products?: ProductSalesStat[];
+  all_sold_products?: ProductSalesStat[];
+  sales_by_artist?: SubGroupStat[];
+  sales_by_type?: SubGroupStat[];
   recent_orders: Order[];
+  store_setting?: StoreSetting;
 }

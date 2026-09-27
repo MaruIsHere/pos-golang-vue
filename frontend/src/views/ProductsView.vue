@@ -3,8 +3,8 @@
     <!-- Top Header Controls -->
     <div class="page-header glass-panel">
       <div class="header-title">
-        <h2>Kelola Produk & Kategori</h2>
-        <p>Tambah, edit, dan atur stok barang kasir</p>
+        <h2>Kelola Produk & Sub-Kategori</h2>
+        <p>Atur produk, artist, dan tipe produk untuk analisa laporan kasir</p>
       </div>
 
       <div class="header-actions">
@@ -25,15 +25,37 @@
         type="text" 
         class="form-control search-input" 
         v-model="searchQuery" 
-        placeholder="Cari produk berdasarkan nama atau SKU..."
+        placeholder="Cari produk, SKU, artist, atau tipe..."
       />
 
-      <select class="form-control cat-select" v-model="selectedCatId">
+      <select class="form-control filter-select" v-model="selectedCatId">
         <option :value="null">Semua Kategori</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">
           {{ cat.name }}
         </option>
       </select>
+
+      <select class="form-control filter-select" v-model="selectedArtist">
+        <option value="">Artist</option>
+        <option v-for="a in availableArtists" :key="a" :value="a">
+          {{ a }}
+        </option>
+      </select>
+
+      <select class="form-control filter-select" v-model="selectedProductType">
+        <option value="">Tipe Produk</option>
+        <option v-for="t in availableProductTypes" :key="t" :value="t">
+          {{ t }}
+        </option>
+      </select>
+
+      <button 
+        v-if="selectedCatId !== null || selectedArtist || selectedProductType || searchQuery" 
+        class="btn btn-secondary text-xs" 
+        @click="resetFilters"
+      >
+        Reset Filter
+      </button>
     </div>
 
     <!-- Products Table / Grid -->
@@ -44,6 +66,8 @@
             <th>Gambar</th>
             <th>Nama Produk</th>
             <th>Kategori</th>
+            <th>Artist</th>
+            <th>Tipe Produk</th>
             <th>Harga Jual</th>
             <th>Harga Modal</th>
             <th>Stok</th>
@@ -53,10 +77,10 @@
         </thead>
         <tbody>
           <tr v-if="isLoading">
-            <td colspan="8" class="text-center">Memuat data produk...</td>
+            <td colspan="10" class="text-center">Memuat data produk...</td>
           </tr>
           <tr v-else-if="filteredProducts.length === 0">
-            <td colspan="8" class="text-center">Tidak ada produk ditemukan</td>
+            <td colspan="10" class="text-center">Tidak ada produk ditemukan</td>
           </tr>
           <tr v-else v-for="prod in filteredProducts" :key="prod.id">
             <td>
@@ -73,6 +97,12 @@
             <td>
               <span class="cat-tag">{{ prod.category ? prod.category.name : '-' }}</span>
             </td>
+            <td>
+              <span class="sub-tag artist-tag">{{ prod.artist || '-' }}</span>
+            </td>
+            <td>
+              <span class="sub-tag type-tag">{{ prod.product_type || '-' }}</span>
+            </td>
             <td class="font-bold price-text">Rp {{ formatPrice(prod.price) }}</td>
             <td class="text-muted">Rp {{ formatPrice(prod.cost_price ?? 0) }}</td>
             <td>
@@ -83,10 +113,10 @@
             <td><code>{{ prod.barcode || '-' }}</code></td>
             <td class="text-right">
               <div class="action-buttons">
-                <button class="btn-icon btn-edit" title="Edit" @click="openEditModal(prod)">
+                <button class="btn-icon btn-edit" title="Edit Produk" @click="openEditModal(prod)">
                   <PencilSquareIcon class="w-4 h-4 text-indigo-600" />
                 </button>
-                <button class="btn-icon btn-delete" title="Hapus" @click="deleteProduct(prod)">
+                <button class="btn-icon btn-delete" title="Hapus Produk" @click="deleteProduct(prod)">
                   <TrashIcon class="w-4 h-4 text-red-600" />
                 </button>
               </div>
@@ -98,9 +128,9 @@
 
     <!-- Product Form Modal (Add / Edit) -->
     <div v-if="isProductModalOpen" class="modal-overlay" @click.self="isProductModalOpen = false">
-      <div class="modal-content glass-panel">
+      <div class="modal-content glass-panel modal-lg">
         <div class="modal-header">
-          <h3>{{ editingId ? 'Edit Produk' : 'Tambah Produk Baru' }}</h3>
+          <h3>{{ editingId ? 'Edit Produk & Sub-Kategori' : 'Tambah Produk Baru' }}</h3>
           <button class="btn-close" @click="isProductModalOpen = false">
             <XMarkIcon class="w-5 h-5 text-slate-500" />
           </button>
@@ -109,15 +139,32 @@
         <form @submit.prevent="saveProduct" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Produk *</label>
-            <input type="text" class="form-control" v-model="form.name" required placeholder="Contoh: Kopi Susu Aren" />
+            <input type="text" class="form-control" v-model="form.name" required placeholder="Contoh: Keyring Chibi Character" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">Kategori *</label>
+            <label class="form-label">Kategori Utama *</label>
             <select class="form-control" v-model="form.category_id" required>
               <option value="" disabled>Pilih Kategori</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Artist</label>
+              <input type="text" list="artist-list" class="form-control" v-model="form.artist" placeholder="Contoh: Nama Artist / Kreator" />
+              <datalist id="artist-list">
+                <option v-for="a in availableArtists" :key="a" :value="a" />
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipe Produk</label>
+              <input type="text" list="type-list" class="form-control" v-model="form.product_type" placeholder="Contoh: Art Print, Merchandise, Apparel" />
+              <datalist id="type-list">
+                <option v-for="t in availableProductTypes" :key="t" :value="t" />
+              </datalist>
+            </div>
           </div>
 
           <div class="form-row">
@@ -161,7 +208,7 @@
     <div v-if="isCategoryModalOpen" class="modal-overlay" @click.self="isCategoryModalOpen = false">
       <div class="modal-content glass-panel">
         <div class="modal-header">
-          <h3>Tambah Kategori Baru</h3>
+          <h3>Tambah Kategori Utama</h3>
           <button class="btn-close" @click="isCategoryModalOpen = false">
             <XMarkIcon class="w-5 h-5 text-slate-500" />
           </button>
@@ -169,7 +216,7 @@
         <form @submit.prevent="saveCategory" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Kategori</label>
-            <input type="text" class="form-control" v-model="catForm.name" required placeholder="Contoh: Snack" />
+            <input type="text" class="form-control" v-model="catForm.name" required placeholder="Contoh: Merchandise" />
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="isCategoryModalOpen = false">Batal</button>
@@ -192,6 +239,8 @@ const isLoading = ref(true);
 
 const searchQuery = ref('');
 const selectedCatId = ref<number | null>(null);
+const selectedArtist = ref<string>('');
+const selectedProductType = ref<string>('');
 
 const isProductModalOpen = ref(false);
 const isCategoryModalOpen = ref(false);
@@ -201,6 +250,8 @@ const editingId = ref<number | null>(null);
 const form = ref({
   name: '',
   category_id: '' as string | number,
+  artist: '',
+  product_type: '',
   price: 0,
   cost_price: 0,
   stock: 0,
@@ -211,6 +262,18 @@ const form = ref({
 const catForm = ref({ name: '' });
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+
+const availableArtists = computed(() => {
+  const set = new Set<string>();
+  products.value.forEach(p => { if (p.artist) set.add(p.artist); });
+  return Array.from(set).sort();
+});
+
+const availableProductTypes = computed(() => {
+  const set = new Set<string>();
+  products.value.forEach(p => { if (p.product_type) set.add(p.product_type); });
+  return Array.from(set).sort();
+});
 
 const fetchProducts = async () => {
   isLoading.value = true;
@@ -236,12 +299,27 @@ onMounted(() => {
   fetchCategories();
 });
 
+const resetFilters = () => {
+  searchQuery.value = '';
+  selectedCatId.value = null;
+  selectedArtist.value = '';
+  selectedProductType.value = '';
+};
+
 const filteredProducts = computed(() => {
   return products.value.filter(p => {
     const matchCat = selectedCatId.value === null || p.category_id === selectedCatId.value;
+    const matchArt = !selectedArtist.value || p.artist === selectedArtist.value;
+    const matchType = !selectedProductType.value || p.product_type === selectedProductType.value;
+
     const q = searchQuery.value.toLowerCase();
-    const matchQ = !q || p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.toLowerCase().includes(q));
-    return matchCat && matchQ;
+    const matchQ = !q || 
+      p.name.toLowerCase().includes(q) || 
+      (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+      (p.artist && p.artist.toLowerCase().includes(q)) ||
+      (p.product_type && p.product_type.toLowerCase().includes(q));
+
+    return matchCat && matchArt && matchType && matchQ;
   });
 });
 
@@ -256,6 +334,8 @@ const openAddModal = () => {
   form.value = {
     name: '',
     category_id: categories.value.length > 0 ? categories.value[0].id : '',
+    artist: '',
+    product_type: '',
     price: 10000,
     cost_price: 5000,
     stock: 20,
@@ -270,6 +350,8 @@ const openEditModal = (prod: Product): void => {
   form.value = {
     name: prod.name,
     category_id: prod.category_id,
+    artist: prod.artist ?? '',
+    product_type: prod.product_type ?? '',
     price: prod.price,
     cost_price: prod.cost_price ?? 0,
     stock: prod.stock,
@@ -359,19 +441,26 @@ const saveCategory = async () => {
 
 .filter-bar {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   padding: 0.85rem 1.25rem;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
+  align-items: center;
 }
 
 .search-input {
-  flex: 1;
+  flex: 1 1 240px;
+  min-width: 200px;
 }
 
-.cat-select {
-  width: 220px;
+.filter-select {
+  flex: 0 1 180px;
+  min-width: 140px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .table-container {
@@ -390,15 +479,16 @@ const saveCategory = async () => {
 }
 
 .data-table th {
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-primary);
+  white-space: nowrap;
 }
 
 .data-table td {
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 0.85rem;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
   color: var(--text-primary);
@@ -418,12 +508,35 @@ const saveCategory = async () => {
 }
 
 .cat-tag {
-  background: var(--bg-primary);
-  padding: 0.15rem 0.5rem;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-primary);
+  padding: 0.2rem 0.55rem;
   border-radius: 6px;
   font-size: 0.75rem;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
+  font-weight: 600;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  white-space: nowrap;
+}
+
+.sub-tag {
+  display: inline-block;
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.artist-tag {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.type-tag {
+  background: rgba(236, 72, 153, 0.12);
+  color: #db2777;
+  border: 1px solid rgba(236, 72, 153, 0.25);
 }
 
 .price-text {
@@ -456,6 +569,10 @@ const saveCategory = async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+}
+
+.modal-lg {
+  max-width: 650px;
 }
 
 .btn-close {

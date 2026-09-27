@@ -27,6 +27,7 @@ func RegisterAPIRoutes(router *gin.Engine) {
 
 		// Products
 		api.GET("/products", handlers.GetProducts)
+		api.GET("/products/filters", handlers.GetProductFilters)
 		api.POST("/products", handlers.CreateProduct)
 		api.PUT("/products/:id", handlers.UpdateProduct)
 		api.DELETE("/products/:id", handlers.DeleteProduct)

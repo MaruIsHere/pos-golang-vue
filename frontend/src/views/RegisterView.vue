@@ -44,6 +44,32 @@
         </button>
       </div>
 
+      <!-- Sub-categories Dropdown Bar (Artist & Tipe Produk) -->
+      <div class="subcategories-bar">
+        <div class="sub-filter-item">
+          <select class="sub-filter-select" v-model="selectedArtist">
+            <option value="">Artist</option>
+            <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
+          </select>
+        </div>
+
+        <div class="sub-filter-item">
+          <select class="sub-filter-select" v-model="selectedProductType">
+            <option value="">Tipe Produk</option>
+            <option v-for="t in availableProductTypes" :key="t" :value="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <button 
+          v-if="selectedArtist || selectedProductType" 
+          class="btn-reset-sub" 
+          @click="resetSubFilters"
+          title="Reset Sub-Filter"
+        >
+          Reset
+        </button>
+      </div>
+
       <!-- Products Grid -->
       <div v-if="isLoading" class="loading-state">
         <div class="spinner"></div>
@@ -141,6 +167,25 @@ const isLoading = ref(true);
 
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
+const selectedArtist = ref<string>('');
+const selectedProductType = ref<string>('');
+
+const availableArtists = computed(() => {
+  const set = new Set<string>();
+  products.value.forEach(p => { if (p.artist) set.add(p.artist); });
+  return Array.from(set).sort();
+});
+
+const availableProductTypes = computed(() => {
+  const set = new Set<string>();
+  products.value.forEach(p => { if (p.product_type) set.add(p.product_type); });
+  return Array.from(set).sort();
+});
+
+const resetSubFilters = () => {
+  selectedArtist.value = '';
+  selectedProductType.value = '';
+};
 
 // Cart State
 const cart = ref<CartItem[]>([]);
@@ -189,9 +234,17 @@ onMounted(() => {
 const filteredProducts = computed(() => {
   return products.value.filter(p => {
     const matchesCat = selectedCategoryId.value === null || p.category_id === selectedCategoryId.value;
+    const matchesArt = !selectedArtist.value || p.artist === selectedArtist.value;
+    const matchesType = !selectedProductType.value || p.product_type === selectedProductType.value;
+
     const q = searchQuery.value.toLowerCase();
-    const matchesQuery = !q || p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.toLowerCase().includes(q));
-    return matchesCat && matchesQuery;
+    const matchesQuery = !q || 
+      p.name.toLowerCase().includes(q) || 
+      (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+      (p.artist && p.artist.toLowerCase().includes(q)) ||
+      (p.product_type && p.product_type.toLowerCase().includes(q));
+
+    return matchesCat && matchesArt && matchesType && matchesQuery;
   });
 });
 
@@ -438,6 +491,73 @@ const onReceiptClose = () => {
   color: #ffffff;
   border-color: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+}
+
+/* Sub-categories Dropdown Bar (Matching Photo Design) */
+.subcategories-bar {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  overflow-x: auto;
+  padding: 0.55rem 0.85rem;
+  background: #345c4f;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.subcategories-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sub-filter-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sub-filter-select {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 1.1em;
+  transition: all 0.15s ease;
+}
+
+.sub-filter-select option {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+.sub-filter-select:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-reset-sub {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.btn-reset-sub:hover {
+  background: rgba(239, 68, 68, 0.4);
 }
 
 .loading-state, .empty-products {
