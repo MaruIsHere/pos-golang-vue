@@ -48,6 +48,26 @@ pos-golang-vue/
 └── README.md
 ```
 
+
+## 🚀 Pembaruan Sistem (Update September 2026)
+
+Aplikasi ini baru saja mendapatkan perombakan arsitektur besar-besaran dengan standar **Enterprise 2026**:
+
+### 🛡️ Keamanan & Autentikasi (Fullstack)
+*   **Backend JWT Auth:** Dilengkapi dengan model `User` (berbasis *Role*), enkripsi sandi menggunakan `bcrypt`, dan rute API yang digembok ketat oleh *Middleware* JWT (`golang-jwt/v5`).
+*   **Frontend Auth Guard:** Manajemen *state* pengguna menggunakan **Pinia** (`stores/auth.ts`), pencegat (*interceptor*) otomatis di `main.ts` untuk menempelkan token ke *header* `Authorization`, dan proteksi rute di Vue Router.
+*   **Halaman Login & Register:** Dibangun ulang menggunakan sistem komponen yang baru.
+
+### 🎨 UI Kit & Design System (Tailwind v4)
+*   **Migrasi Total ke Tailwind CSS v4:** Sepenuhnya memanfaatkan fitur `@theme` dan variabel CSS bunglon murni (meninggalkan `tailwind.config.js`).
+*   **Komponen UI Mandiri:** Seluruh antarmuka kini dikendalikan oleh komponen UI terpusat (`AppButton`, `AppInput`, `AppCard`, `AppTable`, `AppBadge`).
+*   **Sistem Ala Shadcn UI:** Menggunakan fungsi `cn()` (gabungan `clsx` & `tailwind-merge`) untuk mencegah konflik *class* saat komponen dipanggil. Mendukung *Dark Mode* otomatis, *loading spinner*, tipe antarmuka *TypeScript*, dan fitur kebal-kedip (*anti-tap-highlight*) untuk perangkat sentuh.
+
+### 📊 Laporan & Analitik Tingkat Lanjut
+*   **Visualisasi Data:** Dasbor laporan kini dihidupkan dengan **Chart.js** untuk melihat tren barang paling laris vs lambat terjual secara interaktif.
+*   **Export Excel & PDF:** Pengguna kini bisa mencetak laporan performa toko menjadi *file* Excel berlapis (*multi-sheet*) menggunakan pustaka `xlsx`.
+
+---
 ## Tech stack (versi aktual)
 
 | Layer | Stack |
