@@ -100,7 +100,7 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 			db.Create(&models.User{
 				Username: u.username,
 				Password: string(hashed),
-				Role:     u.role,
+				Role: models.UserRole(u.role),
 			})
 		}
 	}

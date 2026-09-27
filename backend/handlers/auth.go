@@ -53,7 +53,7 @@ func Register(c *gin.Context) {
 	user := models.User{
 		Username: username,
 		Password: string(hashedPassword),
-		Role:     role,
+		Role: role,
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
