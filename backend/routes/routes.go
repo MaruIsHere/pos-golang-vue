@@ -65,7 +65,6 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.GET("/reports/dashboard", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.GetDashboardStats)
 
 			// Store & DB Settings
-			protected.GET("/settings", middleware.RoleMiddleware("admin", "owner"), handlers.GetSettings)
 			protected.PUT("/settings", middleware.RoleMiddleware("admin", "owner"), handlers.UpdateSettings)
 			protected.POST("/settings/switch-db", middleware.RoleMiddleware("admin", "owner"), handlers.SwitchDatabase)
 
