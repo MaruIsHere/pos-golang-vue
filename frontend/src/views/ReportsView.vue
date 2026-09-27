@@ -245,6 +245,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import api from '@/utils/api';
 import type { DashboardStats } from '../types';
 import { exportToExcel, exportToPDF } from '../utils/exportReport';
 import { 
@@ -291,10 +292,10 @@ const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').form
 const fetchStats = async () => {
   isLoading.value = true;
   try {
-    const res = await fetch('/api/reports/dashboard');
-    if (res.ok) stats.value = await res.json();
-  } catch (err) {
-    console.error('Fetch stats error:', err);
+    const res = await api.get('/reports/dashboard');
+    stats.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch stats error:', err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoading.value = false;
   }

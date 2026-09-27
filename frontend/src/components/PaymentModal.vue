@@ -301,6 +301,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import api from '@/utils/api';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import type { Customer } from '../types';
@@ -336,10 +337,10 @@ const customersList = ref<Customer[]>([]);
 
 const fetchCustomers = async () => {
   try {
-    const res = await fetch('/api/customers');
-    if (res.ok) customersList.value = await res.json();
-  } catch (err) {
-    console.error('Fetch customers error:', err);
+    const res = await api.get('/customers');
+    customersList.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch customers error:', err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 
@@ -347,15 +348,13 @@ const fetchedQrisUrl = ref('');
 
 const fetchLatestSettings = async () => {
   try {
-    const res = await fetch('/api/settings');
-    if (res.ok) {
-      const data = await res.json();
-      if (data.qris_image_url) {
-        fetchedQrisUrl.value = data.qris_image_url;
-      }
+    const res = await api.get('/settings');
+    const data = res.data;
+    if (data.qris_image_url) {
+      fetchedQrisUrl.value = data.qris_image_url;
     }
-  } catch (err) {
-    console.error('Fetch settings error in PaymentModal:', err);
+  } catch (err: any) {
+    console.error('Fetch settings error in PaymentModal:', err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 

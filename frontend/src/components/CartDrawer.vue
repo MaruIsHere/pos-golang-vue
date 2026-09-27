@@ -149,6 +149,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import api from '@/utils/api';
 import type { CartItem, Voucher } from '../types';
 import {
   ShoppingCartIcon,
@@ -212,15 +213,13 @@ const availableVouchers = ref<Voucher[]>([
 
 const fetchVouchers = async () => {
   try {
-    const res = await fetch('/api/vouchers');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        availableVouchers.value = data;
-      }
+    const res = await api.get('/vouchers');
+    const data = res.data;
+    if (Array.isArray(data) && data.length > 0) {
+      availableVouchers.value = data;
     }
-  } catch (err) {
-    console.error('Fetch vouchers error:', err);
+  } catch (err: any) {
+    console.error('Fetch vouchers error:', err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 

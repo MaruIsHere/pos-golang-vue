@@ -230,6 +230,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import api from '@/utils/api';
 import type { Category, Product } from '../types';
 import { PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
@@ -278,8 +279,10 @@ const availableProductTypes = computed(() => {
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
-    const res = await fetch('/api/products');
-    if (res.ok) products.value = await res.json();
+    const res = await api.get('/products');
+    products.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch products error:', err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoading.value = false;
   }
@@ -287,10 +290,10 @@ const fetchProducts = async () => {
 
 const fetchCategories = async () => {
   try {
-    const res = await fetch('/api/categories');
-    if (res.ok) categories.value = await res.json();
-  } catch (err) {
-    console.error(err);
+    const res = await api.get('/categories');
+    categories.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch categories error:', err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 
@@ -364,21 +367,19 @@ const openEditModal = (prod: Product): void => {
 const saveProduct = async () => {
   isSaving.value = true;
   try {
-    const url = editingId.value ? `/api/products/${editingId.value}` : '/api/products';
-    const method = editingId.value ? 'PUT' : 'POST';
-
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form.value)
-    });
-
-    if (res.ok) {
-      isProductModalOpen.value = false;
-      fetchProducts();
+    const url = editingId.value ? `/products/${editingId.value}` : '/products';
+    
+    if (editingId.value) {
+      await api.put(url, form.value);
     } else {
-      alert('Gagal menyimpan produk');
+      await api.post(url, form.value);
     }
+    
+    isProductModalOpen.value = false;
+    fetchProducts();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Gagal menyimpan produk: ' + errMsg);
   } finally {
     isSaving.value = false;
   }
@@ -386,22 +387,26 @@ const saveProduct = async () => {
 
 const deleteProduct = async (prod: Product): Promise<void> => {
   if (confirm(`Hapus produk "${prod.name}"?`)) {
-    const res = await fetch(`/api/products/${prod.id}`, { method: 'DELETE' });
-    if (res.ok) fetchProducts();
+    try {
+      await api.delete(`/products/${prod.id}`);
+      fetchProducts();
+    } catch (err: any) {
+      const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+      alert('Gagal menghapus produk: ' + errMsg);
+    }
   }
 };
 
 const saveCategory = async () => {
   if (!catForm.value.name) return;
-  const res = await fetch('/api/categories', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(catForm.value)
-  });
-  if (res.ok) {
+  try {
+    await api.post('/categories', catForm.value);
     catForm.value.name = '';
     isCategoryModalOpen.value = false;
     fetchCategories();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Gagal menyimpan kategori: ' + errMsg);
   }
 };
 </script>

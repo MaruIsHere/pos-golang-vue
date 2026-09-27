@@ -175,6 +175,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import api from '@/utils/api';
 import type { Customer } from "../types";
 import { PencilSquareIcon, TrashIcon, UserPlusIcon, MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
 
@@ -195,10 +196,10 @@ const custForm = ref({
 const loadCustomers = async () => {
   isLoading.value = true;
   try {
-    const res = await fetch("/api/customers");
-    if (res.ok) customers.value = await res.json();
-  } catch (err) {
-    console.error(err);
+    const res = await api.get("/customers");
+    customers.value = res.data;
+  } catch (err: any) {
+    console.error(err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoading.value = false;
   }
@@ -236,25 +237,20 @@ const saveCustomer = async () => {
   isSaving.value = true;
   try {
     const url = editingId.value
-      ? `/api/customers/${editingId.value}`
-      : "/api/customers";
-    const method = editingId.value ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(custForm.value),
-    });
-
-    if (res.ok) {
-      resetForm();
-      loadCustomers();
+      ? `/customers/${editingId.value}`
+      : "/customers";
+    
+    if (editingId.value) {
+      await api.put(url, custForm.value);
     } else {
-      const errData = await res.json();
-      alert("Gagal: " + (errData.error || "Terjadi kesalahan"));
+      await api.post(url, custForm.value);
     }
-  } catch (err) {
-    alert("Koneksi error: " + (err as Error).message);
+
+    resetForm();
+    loadCustomers();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert("Koneksi error: " + errMsg);
   } finally {
     isSaving.value = false;
   }
@@ -265,14 +261,11 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
     return;
 
   try {
-    const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      loadCustomers();
-    } else {
-      alert("Gagal menghapus pelanggan");
-    }
-  } catch (err) {
-    alert("Koneksi error: " + (err as Error).message);
+    await api.delete(`/customers/${id}`);
+    loadCustomers();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert("Koneksi error: " + errMsg);
   }
 };
 </script>

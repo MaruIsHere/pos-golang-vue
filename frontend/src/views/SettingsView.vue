@@ -329,6 +329,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import api from '@/utils/api';
 import type { Voucher } from '../types';
 import { useTheme } from '../composables/useTheme';
 import { 
@@ -382,37 +383,33 @@ const newVoucher = ref({
 
 const loadSettings = async () => {
   try {
-    const res = await fetch('/api/settings');
-    if (res.ok) {
-      const data = await res.json();
-      dbEngine.value = data.db_engine || 'sqlite';
-      selectedEngine.value = dbEngine.value;
-      if (data.mysql_dsn) mysqlDsn.value = data.mysql_dsn;
+    const res = await api.get('/settings');
+    const data = res.data;
+    dbEngine.value = data.db_engine || 'sqlite';
+    selectedEngine.value = dbEngine.value;
+    if (data.mysql_dsn) mysqlDsn.value = data.mysql_dsn;
 
-      storeForm.value = {
-        store_name: data.store_name,
-        address: data.address,
-        phone: data.phone,
-        tax_percentage: data.tax_percentage,
-        member_discount_percentage: data.member_discount_percentage ?? 5,
-        receipt_footer: data.receipt_footer,
-        qris_image_url: data.qris_image_url || ''
-      };
-    }
-  } catch (err) {
-    console.error(err);
+    storeForm.value = {
+      store_name: data.store_name,
+      address: data.address,
+      phone: data.phone,
+      tax_percentage: data.tax_percentage,
+      member_discount_percentage: data.member_discount_percentage ?? 5,
+      receipt_footer: data.receipt_footer,
+      qris_image_url: data.qris_image_url || ''
+    };
+  } catch (err: any) {
+    console.error(err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 
 const loadVouchers = async () => {
   isLoadingVouchers.value = true;
   try {
-    const res = await fetch('/api/vouchers');
-    if (res.ok) {
-      vouchers.value = await res.json();
-    }
-  } catch (err) {
-    console.error('Fetch vouchers error:', err);
+    const res = await api.get('/vouchers');
+    vouchers.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch vouchers error:', err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoadingVouchers.value = false;
   }
@@ -443,20 +440,12 @@ const onQrisFileSelected = (event: Event): void => {
 const saveStoreSettings = async () => {
   isSavingStore.value = true;
   try {
-    const res = await fetch('/api/settings', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(storeForm.value)
-    });
-
-    if (res.ok) {
-      alert('Pengaturan profil toko & foto QRIS berhasil disimpan!');
-      emit('refresh-settings');
-    } else {
-      alert('Gagal menyimpan pengaturan toko');
-    }
-  } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
+    await api.put('/settings', storeForm.value);
+    alert('Pengaturan profil toko & foto QRIS berhasil disimpan!');
+    emit('refresh-settings');
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Koneksi error: ' + errMsg);
   } finally {
     isSavingStore.value = false;
   }
@@ -474,22 +463,13 @@ const createVoucher = async () => {
       description: newVoucher.value.description
     };
 
-    const res = await fetch('/api/vouchers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      alert(`Kode voucher '${payload.code}' berhasil ditambahkan!`);
-      newVoucher.value = { code: '', type: 'percent', value: 10, description: '' };
-      loadVouchers();
-    } else {
-      const errData = await res.json();
-      alert('Gagal menambahkan voucher: ' + (errData.error || 'Terjadi kesalahan'));
-    }
-  } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
+    await api.post('/vouchers', payload);
+    alert(`Kode voucher '${payload.code}' berhasil ditambahkan!`);
+    newVoucher.value = { code: '', type: 'percent', value: 10, description: '' };
+    loadVouchers();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Koneksi error: ' + errMsg);
   } finally {
     isCreatingVoucher.value = false;
   }
@@ -499,17 +479,11 @@ const deleteVoucher = async (id: number, code: string): Promise<void> => {
   if (!confirm(`Apakah Anda yakin ingin menghapus voucher '${code}'?`)) return;
 
   try {
-    const res = await fetch(`/api/vouchers/${id}`, {
-      method: 'DELETE'
-    });
-
-    if (res.ok) {
-      loadVouchers();
-    } else {
-      alert('Gagal menghapus voucher');
-    }
-  } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
+    await api.delete(`/vouchers/${id}`);
+    loadVouchers();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Koneksi error: ' + errMsg);
   }
 };
 
@@ -517,27 +491,18 @@ const switchDatabaseEngine = async () => {
   isSwitchingDb.value = true;
   dbMessage.value = '';
   try {
-    const res = await fetch('/api/settings/switch-db', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        engine: selectedEngine.value,
-        mysql_dsn: mysqlDsn.value
-      })
+    const res = await api.post('/settings/switch-db', {
+      engine: selectedEngine.value,
+      mysql_dsn: mysqlDsn.value
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      dbEngine.value = data.db_engine;
-      dbMessage.value = data.message || 'Engine database berhasil diperbarui!';
-      dbMessageType.value = 'success';
-      emit('refresh-settings');
-    } else {
-      dbMessage.value = data.error || 'Gagal mengubah database';
-      dbMessageType.value = 'error';
-    }
-  } catch (err) {
-    dbMessage.value = 'Terjadi kesalahan koneksi server: ' + (err as Error).message;
+    const data = res.data;
+    dbEngine.value = data.db_engine;
+    dbMessage.value = data.message || 'Engine database berhasil diperbarui!';
+    dbMessageType.value = 'success';
+    emit('refresh-settings');
+  } catch (err: any) {
+    dbMessage.value = 'Terjadi kesalahan koneksi server: ' + (err.response?.data?.error || err.message || 'Error occurred');
     dbMessageType.value = 'error';
   } finally {
     isSwitchingDb.value = false;

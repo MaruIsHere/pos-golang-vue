@@ -88,6 +88,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import api from '@/utils/api';
 import ReceiptModal from "../components/ReceiptModal.vue";
 import type { Order } from "../types";
 import appButton from "../components/ui/AppButton.vue";
@@ -114,8 +115,10 @@ const formatDate = (dateStr?: string): string => {
 const fetchOrders = async () => {
   isLoading.value = true;
   try {
-    const res = await fetch("/api/orders?limit=50");
-    if (res.ok) orders.value = await res.json();
+    const res = await api.get("/orders?limit=50");
+    orders.value = res.data;
+  } catch (err: any) {
+    console.error(err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoading.value = false;
   }
@@ -137,19 +140,12 @@ const refundOrder = async (order: Order): Promise<void> => {
   }
 
   try {
-    const res = await fetch(`/api/orders/${order.id}/refund`, {
-      method: "POST",
-    });
-
-    if (res.ok) {
-      alert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`);
-      fetchOrders();
-    } else {
-      const errData = await res.json();
-      alert("Gagal merefur transaksi: " + (errData.error || "Terjadi kesalahan"));
-    }
-  } catch (err) {
-    alert("Koneksi error: " + (err as Error).message);
+    await api.post(`/orders/${order.id}/refund`);
+    alert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`);
+    fetchOrders();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert("Koneksi error: " + errMsg);
   }
 };
 </script>

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import api from '@/utils/api';
 import type { StoreSetting } from '../types';
 
 // Pengganti prop-drilling :store-setting ke 6 file.
@@ -17,13 +18,11 @@ export const useSettingsStore = defineStore('settings', () => {
 
   async function fetchSettings(): Promise<void> {
     try {
-      const res = await fetch('/api/settings');
-      if (res.ok) {
-        settings.value = (await res.json()) as StoreSetting;
-        loaded.value = true;
-      }
-    } catch (err) {
-      console.error('Fetch store settings error:', err);
+      const res = await api.get('/settings');
+      settings.value = res.data as StoreSetting;
+      loaded.value = true;
+    } catch (err: any) {
+      console.error('Fetch store settings error:', err.response?.data?.error || err.message || 'Error occurred');
     }
   }
 

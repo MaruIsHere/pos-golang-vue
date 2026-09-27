@@ -146,6 +146,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import api from '@/utils/api';
 import { storeToRefs } from 'pinia';
 import ProductCard from '../components/ProductCard.vue';
 import CartDrawer from '../components/CartDrawer.vue';
@@ -206,20 +207,20 @@ const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').form
 // API Data Fetching
 const fetchCategories = async () => {
   try {
-    const res = await fetch('/api/categories');
-    if (res.ok) categories.value = await res.json();
-  } catch (err) {
-    console.error('Fetch categories error:', err);
+    const res = await api.get('/categories');
+    categories.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch categories error:', err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
-    const res = await fetch('/api/products');
-    if (res.ok) products.value = await res.json();
-  } catch (err) {
-    console.error('Fetch products error:', err);
+    const res = await api.get('/products');
+    products.value = res.data;
+  } catch (err: any) {
+    console.error('Fetch products error:', err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoading.value = false;
   }
@@ -322,25 +323,16 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { 
       }))
     };
 
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      const completedOrder = (await res.json()) as Order;
-      lastCompletedOrder.value = completedOrder;
-      isPaymentModalOpen.value = false;
-      isReceiptModalOpen.value = true;
-      clearCart();
-      fetchProducts(); // refresh stock counts
-    } else {
-      const errData = await res.json();
-      alert('Gagal memproses transaksi: ' + (errData.error || 'Terjadi kesalahan'));
-    }
-  } catch (err) {
-    alert('Koneksi ke server gagal: ' + (err as Error).message);
+    const res = await api.post('/orders', payload);
+    const completedOrder = res.data as Order;
+    lastCompletedOrder.value = completedOrder;
+    isPaymentModalOpen.value = false;
+    isReceiptModalOpen.value = true;
+    clearCart();
+    fetchProducts(); // refresh stock counts
+  } catch (err: any) {
+    const errorMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Gagal memproses transaksi: ' + errorMsg);
   } finally {
     isSubmittingOrder.value = false;
   }

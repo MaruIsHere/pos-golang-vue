@@ -210,6 +210,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import api from '@/utils/api';
 import type { Product, StockMovement } from '../types';
 import { ArrowDownTrayIcon, ArrowUpTrayIcon, ClockIcon } from '@heroicons/vue/24/outline';
 
@@ -265,20 +266,20 @@ const formatReason = (reason: string): string => {
 
 const fetchProducts = async () => {
   try {
-    const res = await fetch('/api/products');
-    if (res.ok) products.value = await res.json();
-  } catch (err) {
-    console.error(err);
+    const res = await api.get('/products');
+    products.value = res.data;
+  } catch (err: any) {
+    console.error(err.response?.data?.error || err.message || 'Error occurred');
   }
 };
 
 const fetchMovements = async () => {
   isLoadingMovements.value = true;
   try {
-    const res = await fetch('/api/stock-movements');
-    if (res.ok) movements.value = await res.json();
-  } catch (err) {
-    console.error(err);
+    const res = await api.get('/stock-movements');
+    movements.value = res.data;
+  } catch (err: any) {
+    console.error(err.response?.data?.error || err.message || 'Error occurred');
   } finally {
     isLoadingMovements.value = false;
   }
@@ -303,28 +304,19 @@ const submitStockMovement = async (type: string): Promise<void> => {
       notes: form.notes
     };
 
-    const res = await fetch('/api/stock-movements', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      alert(`Berhasil menyimpan transaksi ${type === 'in' ? 'penerimaan' : 'pengeluaran'} barang!`);
-      if (type === 'in') {
-        receiveForm.value = { product_id: '', quantity: 1, reason: 'pembelian_supplier', notes: '' };
-      } else {
-        issueForm.value = { product_id: '', quantity: 1, reason: 'barang_rusak', notes: '' };
-      }
-      fetchProducts();
-      fetchMovements();
-      activeTab.value = 'history';
+    await api.post('/stock-movements', payload);
+    alert(`Berhasil menyimpan transaksi ${type === 'in' ? 'penerimaan' : 'pengeluaran'} barang!`);
+    if (type === 'in') {
+      receiveForm.value = { product_id: '', quantity: 1, reason: 'pembelian_supplier', notes: '' };
     } else {
-      const errData = await res.json();
-      alert('Gagal: ' + (errData.error || 'Terjadi kesalahan'));
+      issueForm.value = { product_id: '', quantity: 1, reason: 'barang_rusak', notes: '' };
     }
-  } catch (err) {
-    alert('Koneksi error: ' + (err as Error).message);
+    fetchProducts();
+    fetchMovements();
+    activeTab.value = 'history';
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    alert('Koneksi error: ' + errMsg);
   } finally {
     isSubmitting.value = false;
   }
