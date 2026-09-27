@@ -5,12 +5,9 @@
     >
       <!-- <div class="header-title"> -->
       <div class="">
-        <h2 class="text-xl font-bold text-text-primary">
-          Riwayat Transaksi & Retur Penjualan
-        </h2>
+        <h2 class="text-xl font-bold text-text-primary">Riwayat Transaksi & Retur Penjualan</h2>
         <p class="text-base text-text-secondary">
-          Daftar transaksi penjualan, cetak ulang struk, dan proses retur/refund
-          barang
+          Daftar transaksi penjualan, cetak ulang struk, dan proses retur/refund barang
         </p>
       </div>
 
@@ -39,9 +36,7 @@
             <td colspan="7" class="text-center">Memuat riwayat transaksi...</td>
           </tr>
           <tr v-else-if="orders.length === 0">
-            <td colspan="7" class="text-center">
-              Belum ada transaksi recorded
-            </td>
+            <td colspan="7" class="text-center">Belum ada transaksi recorded</td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
             <td>
@@ -50,32 +45,22 @@
             <td>{{ formatDate(order.created_at) }}</td>
             <td>{{ order.customer_name || "Umum" }}</td>
             <td>
-              <span class="pay-method-badge">
+              <AppBadge variant="neutral">
                 {{ (order.payment_method || "cash").toUpperCase() }}
-              </span>
+              </AppBadge>
             </td>
-            <td class="font-bold price-text">
-              Rp {{ formatPrice(order.grand_total) }}
-            </td>
+            <td class="font-bold price-text">Rp {{ formatPrice(order.grand_total) }}</td>
             <td>
               <span
                 class="badge"
-                :class="
-                  order.status === 'refunded'
-                    ? 'badge-refunded'
-                    : 'badge-success'
-                "
+                :class="order.status === 'refunded' ? 'badge-refunded' : 'badge-success'"
               >
                 {{ order.status === "refunded" ? "Diretur" : "Selesai" }}
               </span>
             </td>
             <td class="text-right">
               <div class="action-flex">
-                <appButton
-                  @click="openReceipt(order)"
-                  variant="secondary"
-                  size="sm"
-                >
+                <appButton @click="openReceipt(order)" variant="secondary" size="sm">
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>
                 </appButton>
@@ -97,11 +82,7 @@
     </div>
 
     <!-- Receipt Modal -->
-    <ReceiptModal
-      v-if="selectedOrder"
-      :order="selectedOrder"
-      @close="selectedOrder = null"
-    />
+    <ReceiptModal v-if="selectedOrder" :order="selectedOrder" @close="selectedOrder = null" />
   </div>
 </template>
 
@@ -109,19 +90,15 @@
 import { ref, onMounted } from "vue";
 import ReceiptModal from "../components/ReceiptModal.vue";
 import type { Order } from "../types";
-import appButton from "../components/ui/Appbutton.vue";
-import {
-  ArrowPathIcon,
-  PrinterIcon,
-  ArrowUturnLeftIcon,
-} from "@heroicons/vue/24/outline";
+import appButton from "../components/ui/AppButton.vue";
+import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from "@heroicons/vue/24/outline";
+import AppBadge from "@/components/ui/appBadge.vue";
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
 const selectedOrder = ref<Order | null>(null);
 
-const formatPrice = (val: number): string =>
-  new Intl.NumberFormat("id-ID").format(val || 0);
+const formatPrice = (val: number): string => new Intl.NumberFormat("id-ID").format(val || 0);
 
 const formatDate = (dateStr?: string): string => {
   if (!dateStr) return "-";
@@ -165,15 +142,11 @@ const refundOrder = async (order: Order): Promise<void> => {
     });
 
     if (res.ok) {
-      alert(
-        `Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`,
-      );
+      alert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`);
       fetchOrders();
     } else {
       const errData = await res.json();
-      alert(
-        "Gagal merefur transaksi: " + (errData.error || "Terjadi kesalahan"),
-      );
+      alert("Gagal merefur transaksi: " + (errData.error || "Terjadi kesalahan"));
     }
   } catch (err) {
     alert("Koneksi error: " + (err as Error).message);

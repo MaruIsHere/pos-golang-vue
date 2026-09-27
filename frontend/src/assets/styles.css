@@ -5,40 +5,67 @@
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 
   /* Colors (Semua background, text, accent, dan border masuk ke namespace --color-*) */
-  --color-bg-primary: #f8fafc;
-  --color-bg-secondary: #ffffff;
-  --color-bg-card: #ffffff;
-  --color-bg-card-hover: #f1f5f9;
-  --color-bg-glass: rgba(255, 255, 255, 0.95);
+  --color-primary: var(--bg-primary);
+  --color-secondary: var(--bg-secondary);
+  --color-card: var(--bg-card);
+  --color-card-hover: var(--bg-card-hover);
+  --color-glass: var(--bg-glass);
 
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
+  --color-tx-primary: var(--text-primary);
+  --color-tx-secondary: var(--text-secondary);
+  --color-tx-muted: var(--text-muted);
 
-  --color-accent-primary: #4f46e5;
-  --color-accent-primary-hover: #4338ca;
-  --color-accent-secondary: #059669;
-  --color-accent-secondary-hover: #047857;
-  --color-accent-warning: #d97706;
-  --color-accent-danger: #dc2626;
-  --color-accent-purple: #7c3aed;
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-secondary-hover: var(--accent-secondary-hover);
+  --color-accent-warning: var(--accent-warning);
+  --color-accent-danger: var(--accent-danger);
+  --color-accent-purple: var(--accent-purple);
 
-  --color-border-color: #e2e8f0;
-  --color-border-focus: #818cf8;
+  --color-border-color: var(--border-color);
+  --color-border-focus: var(--border-focus);
 
   /* Shadows -> utility: shadow-sm, shadow-md, shadow-glow, dll. */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.12);
+  --shadow-sm: var(--my-shadow-sm);
+  --shadow-md: var(--my-shadow-md);
+  --shadow-lg: var(--my-shadow-lg);
+  --shadow-glow: var(--my-shadow-glow);
 
   /* Radius -> utility: rounded-sm, rounded-md, rounded-lg, rounded-xl */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
+}
+
+:root {
+
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-glass: rgba(255, 255, 255, 0.95);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --accent-primary: #4f46e5;
+  --accent-primary-hover: #4338ca;
+  --accent-secondary: #059669;
+  --accent-secondary-hover: #047857;
+  --accent-warning: #d97706;
+  --accent-danger: #dc2626;
+  --accent-purple: #7c3aed;
+
+  --border-color: #e2e8f0;
+  --border-focus: #818cf8;
+
+  --my-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --my-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --my-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --my-shadow-glow: 0 0 15px rgba(79, 70, 229, 0.12);
 }
 
 /* Dark Mode Theme Variables */
@@ -63,10 +90,10 @@ html.dark {
   --border-color: #334155; /* Slate 700 */
   --border-focus: #818cf8;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 15px rgba(99, 102, 241, 0.25);
+  --my-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --my-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --my-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --my-shadow-glow: 0 0 15px rgba(99, 102, 241, 0.25);
 }
 
 /* * { */
@@ -75,17 +102,17 @@ html.dark {
 /*   box-sizing: border-box; */
 /* } */
 
-body {
-  font-family: var(--font-family);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  min-height: 100vh;
-  overflow-x: hidden;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
+/* body { */
+/*   font-family: var(--font-family); */
+/*   background-color: var(--bg-primary); */
+/*   color: var(--text-primary); */
+/*   min-height: 100vh; */
+/*   overflow-x: hidden; */
+/*   -webkit-tap-highlight-color: transparent; */
+/*   transition: */
+/*     background-color 0.2s ease, */
+/*     color 0.2s ease; */
+/* } */
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
