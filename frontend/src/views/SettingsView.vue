@@ -248,7 +248,193 @@
         </div>
       </div>
 
-      <!-- 3. Database Engine Switcher Panel -->
+      <!-- 3. User Management & Registration (Owner & Admin Only) -->
+      <div class="settings-card glass-panel full-width-card">
+        <div class="card-header">
+          <h3 class="flex items-center gap-1.5">
+            <UserGroupIcon class="w-5 h-5 text-indigo-600" />
+            <span>Manajemen Pengguna & Registrasi Akun Staf</span>
+          </h3>
+          <span class="active-db-badge sqlite">
+            Khusus Owner & Admin
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="section-desc">
+            Tambah akun pengguna baru (Kasir, Kepala Kasir, Admin, atau Owner) dan kelola daftar staf kasir yang memiliki akses ke sistem POS.
+          </p>
+
+          <!-- Register User Form -->
+          <form @submit.prevent="createUser" class="voucher-form-box mb-6">
+            <h4>Tambah Pengguna / Registrasi Staf Baru</h4>
+
+            <div class="voucher-form-grid">
+              <div class="form-group">
+                <label class="form-label">Username *</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="newUser.username" 
+                  placeholder="Masukkan username" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Password *</label>
+                <input 
+                  type="password" 
+                  class="form-control" 
+                  v-model="newUser.password" 
+                  placeholder="Minimal 6 karakter" 
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Role / Peran Akses *</label>
+                <select class="form-control" v-model="newUser.role">
+                  <option value="kasir">Kasir (Transaksi & Struk)</option>
+                  <option value="kepala_kasir">Kepala Kasir (Kelola Produk, Stok, Pelanggan, Diskon & Laporan)</option>
+                  <option value="admin">Admin (Full Akses Sistem)</option>
+                  <option value="owner">Owner (Full Akses & Pengaturan Toko)</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="userSuccessMsg" class="text-xs text-emerald-600 font-bold mb-3">
+              {{ userSuccessMsg }}
+            </div>
+            <div v-if="userErrorMsg" class="text-xs text-rose-600 font-bold mb-3">
+              {{ userErrorMsg }}
+            </div>
+
+            <button type="submit" class="btn btn-primary" :disabled="isCreatingUser">
+              {{ isCreatingUser ? 'Menambahkan...' : 'Tambah Pengguna Baru' }}
+            </button>
+          </form>
+
+          <!-- Users List Table -->
+          <div class="vouchers-list-container">
+            <h4>
+              Daftar Pengguna Terdaftar
+              <span v-if="!isLoadingUsers && !usersLoadError">({{ users.length }})</span>
+            </h4>
+
+            <div v-if="isLoadingUsers" class="vouchers-loading">
+              <span>Memuat data pengguna...</span>
+            </div>
+
+            <div v-else-if="usersLoadError" class="empty-vouchers">
+              <p>{{ usersLoadError }}</p>
+              <button type="button" class="btn btn-secondary" @click="loadUsers">Coba Lagi</button>
+            </div>
+
+            <div v-else-if="users.length === 0" class="empty-vouchers">
+              <p>Belum ada pengguna terdaftar.</p>
+            </div>
+
+            <div v-else class="vouchers-table-wrapper">
+              <table class="vouchers-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role / Akses</th>
+                    <th>Tanggal Dibuat</th>
+                    <th class="text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template v-for="u in users" :key="u.id">
+                    <tr>
+                    <td>#{{ u.id }}</td>
+                    <td>
+                      <strong class="text-slate-800 dark:text-slate-100 font-bold">{{ u.username }}</strong>
+                    </td>
+                    <td>
+                      <span class="badge" :class="getUserRoleBadgeClass(u.role)">
+                        {{ formatUserRoleLabel(u.role) }}
+                      </span>
+                    </td>
+                    <td class="text-xs text-slate-500">{{ formatDate(u.created_at) }}</td>
+                    <td class="text-right">
+                      <div class="user-actions">
+                        <button
+                          type="button"
+                          class="btn-icon btn-change-password"
+                          :disabled="isChangingStaffPassword"
+                          @click="openStaffPasswordForm(u)"
+                        >
+                          Ganti Sandi
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-icon btn-delete-voucher"
+                          title="Hapus Pengguna"
+                          @click="deleteUserAccount(u.id, u.username)"
+                        >
+                          <TrashIcon class="w-3.5 h-3.5 text-red-600 inline-block mr-1" /> Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                    <tr v-if="staffPasswordTarget?.id === u.id">
+                      <td colspan="5">
+                        <form class="staff-password-form" @submit.prevent="changeStaffPassword">
+                          <div class="staff-password-heading">
+                            <strong>Ganti sandi untuk {{ staffPasswordTarget.username }}</strong>
+                            <span class="text-xs text-slate-500">Minimal 6 karakter</span>
+                          </div>
+                          <div class="staff-password-fields">
+                            <div class="form-group">
+                              <label class="form-label" :for="`new-password-${u.id}`">Sandi baru</label>
+                              <input
+                                :id="`new-password-${u.id}`"
+                                v-model="newStaffPassword"
+                                class="form-control"
+                                type="password"
+                                autocomplete="new-password"
+                                minlength="6"
+                                required
+                              />
+                            </div>
+                            <div class="form-group">
+                              <label class="form-label" :for="`confirm-password-${u.id}`">Konfirmasi sandi baru</label>
+                              <input
+                                :id="`confirm-password-${u.id}`"
+                                v-model="confirmStaffPassword"
+                                class="form-control"
+                                type="password"
+                                autocomplete="new-password"
+                                minlength="6"
+                                required
+                              />
+                            </div>
+                          </div>
+                          <p v-if="staffPasswordSuccessMsg" class="staff-password-success">{{ staffPasswordSuccessMsg }}</p>
+                          <p v-if="staffPasswordErrorMsg" class="staff-password-error">{{ staffPasswordErrorMsg }}</p>
+                          <div class="user-actions">
+                            <button type="button" class="btn btn-secondary" :disabled="isChangingStaffPassword" @click="cancelStaffPasswordChange">
+                              Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary" :disabled="isChangingStaffPassword">
+                              {{ isChangingStaffPassword ? 'Menyimpan...' : 'Simpan Sandi Baru' }}
+                            </button>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Database Engine Switcher Panel -->
       <div class="settings-card glass-panel highlight-card full-width-card">
         <div class="card-header">
           <h3 class="flex items-center gap-1.5">
@@ -341,7 +527,8 @@ import {
   TrashIcon, 
   ArrowUpTrayIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  UserGroupIcon
 } from '@heroicons/vue/24/outline';
 
 const emit = defineEmits(['refresh-settings']);
@@ -381,6 +568,25 @@ const newVoucher = ref({
   description: ''
 });
 
+// Users State
+const users = ref<any[]>([]);
+const isLoadingUsers = ref(false);
+const usersLoadError = ref('');
+const isCreatingUser = ref(false);
+const userSuccessMsg = ref('');
+const userErrorMsg = ref('');
+const newUser = ref({
+  username: '',
+  password: '',
+  role: 'kasir'
+});
+const staffPasswordTarget = ref<{ id: number; username: string } | null>(null);
+const newStaffPassword = ref('');
+const confirmStaffPassword = ref('');
+const isChangingStaffPassword = ref(false);
+const staffPasswordSuccessMsg = ref('');
+const staffPasswordErrorMsg = ref('');
+
 const loadSettings = async () => {
   try {
     const res = await api.get('/settings');
@@ -415,9 +621,127 @@ const loadVouchers = async () => {
   }
 };
 
+const loadUsers = async () => {
+  isLoadingUsers.value = true;
+  usersLoadError.value = '';
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+  try {
+    const res = await api.get('/users', { signal: controller.signal });
+    users.value = res.data || [];
+  } catch (err: any) {
+    usersLoadError.value = err.name === 'AbortError'
+      ? 'Permintaan daftar pengguna terlalu lama. Periksa koneksi backend, lalu coba lagi.'
+      : err.response?.data?.error || err.message || 'Gagal memuat daftar pengguna.';
+  } finally {
+    window.clearTimeout(timeoutId);
+    isLoadingUsers.value = false;
+  }
+};
+
+const createUser = async () => {
+  userSuccessMsg.value = '';
+  userErrorMsg.value = '';
+  isCreatingUser.value = true;
+  try {
+    const res = await api.post('/users', newUser.value);
+    userSuccessMsg.value = res.data.message || 'Pengguna baru berhasil ditambahkan!';
+    newUser.value = { username: '', password: '', role: 'kasir' };
+    await loadUsers();
+  } catch (err: any) {
+    userErrorMsg.value = err.response?.data?.error || err.message || 'Gagal menambahkan pengguna';
+  } finally {
+    isCreatingUser.value = false;
+  }
+};
+
+const openStaffPasswordForm = (user: { id: number; username: string }) => {
+  staffPasswordTarget.value = user;
+  newStaffPassword.value = '';
+  confirmStaffPassword.value = '';
+  staffPasswordSuccessMsg.value = '';
+  staffPasswordErrorMsg.value = '';
+};
+
+const cancelStaffPasswordChange = () => {
+  staffPasswordTarget.value = null;
+  newStaffPassword.value = '';
+  confirmStaffPassword.value = '';
+  staffPasswordSuccessMsg.value = '';
+  staffPasswordErrorMsg.value = '';
+};
+
+const changeStaffPassword = async () => {
+  const target = staffPasswordTarget.value;
+  if (!target) return;
+
+  staffPasswordSuccessMsg.value = '';
+  staffPasswordErrorMsg.value = '';
+  if (newStaffPassword.value.length < 6) {
+    staffPasswordErrorMsg.value = 'Sandi minimal 6 karakter.';
+    return;
+  }
+  if (newStaffPassword.value !== confirmStaffPassword.value) {
+    staffPasswordErrorMsg.value = 'Konfirmasi sandi tidak cocok.';
+    return;
+  }
+
+  isChangingStaffPassword.value = true;
+  try {
+    const res = await api.put(`/users/${target.id}/password`, { password: newStaffPassword.value });
+    staffPasswordSuccessMsg.value = res.data.message || 'Sandi staff berhasil diperbarui.';
+    newStaffPassword.value = '';
+    confirmStaffPassword.value = '';
+  } catch (err: any) {
+    staffPasswordErrorMsg.value = err.response?.data?.error || err.message || 'Gagal mengganti sandi staff.';
+  } finally {
+    isChangingStaffPassword.value = false;
+  }
+};
+
+const deleteUserAccount = async (id: number, username: string) => {
+  if (!confirm(`Apakah Anda yakin ingin menghapus akun pengguna "${username}"?`)) return;
+  try {
+    await api.delete(`/users/${id}`);
+    alert('User berhasil dihapus!');
+    await loadUsers();
+  } catch (err: any) {
+    alert('Gagal menghapus user: ' + (err.response?.data?.error || err.message));
+  }
+};
+
+const formatUserRoleLabel = (role: string): string => {
+  const r = (role || '').toLowerCase();
+  if (r === 'owner') return 'Owner (Pemilik)';
+  if (r === 'admin') return 'Admin (Full Akses)';
+  if (r === 'kepala_kasir') return 'Kepala Kasir';
+  return 'Kasir';
+};
+
+const getUserRoleBadgeClass = (role: string): string => {
+  const r = (role || '').toLowerCase();
+  if (r === 'owner' || r === 'admin') return 'badge-warning';
+  if (r === 'kepala_kasir') return 'badge-success';
+  return 'badge-info';
+};
+
+const formatDate = (dateStr: string): string => {
+  if (!dateStr) return '-';
+  try {
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
 onMounted(() => {
   loadSettings();
   loadVouchers();
+  loadUsers();
 });
 
 const onQrisFileSelected = (event: Event): void => {
@@ -734,6 +1058,79 @@ const switchDatabaseEngine = async () => {
 }
 .btn-delete-voucher:hover {
   background: rgba(239, 68, 68, 0.1);
+}
+
+.user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.btn-change-password {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-change-password:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.btn-change-password:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.staff-password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.staff-password-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--text-primary);
+}
+
+.staff-password-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.staff-password-success,
+.staff-password-error {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.staff-password-success {
+  color: #059669;
+}
+
+.staff-password-error {
+  color: #e11d48;
+}
+
+@media (min-width: 640px) {
+  .staff-password-fields {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .empty-vouchers, .vouchers-loading {

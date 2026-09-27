@@ -68,10 +68,6 @@ const handleLogin = async () => {
           Login
         </AppButton>
       </form>
-      
-      <div class="mt-4 text-center text-sm text-text-secondary">
-        Don't have an account? <router-link to="/register" class="text-accent-primary hover:underline">Register</router-link>
-      </div>
     </AppCard>
   </div>
 </template>

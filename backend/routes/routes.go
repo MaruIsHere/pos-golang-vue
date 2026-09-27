@@ -25,7 +25,6 @@ func RegisterAPIRoutes(router *gin.Engine) {
 		// Auth
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", handlers.Register)
 			auth.POST("/login", handlers.Login)
 		}
 
@@ -72,6 +71,12 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.GET("/vouchers", handlers.GetVouchers)
 			protected.POST("/vouchers", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.CreateVoucher)
 			protected.DELETE("/vouchers/:id", middleware.RoleMiddleware("admin", "owner", "kepala_kasir"), handlers.DeleteVoucher)
+
+			// User Management (Khusus Owner & Admin)
+			protected.GET("/users", middleware.RoleMiddleware("admin", "owner"), handlers.GetUsers)
+			protected.POST("/users", middleware.RoleMiddleware("admin", "owner"), handlers.Register)
+			protected.PUT("/users/:id/password", middleware.RoleMiddleware("admin", "owner"), handlers.ChangeUserPassword)
+			protected.DELETE("/users/:id", middleware.RoleMiddleware("admin", "owner"), handlers.DeleteUser)
 		}
 	}
 }

@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/auth';
 
 const routes: RouteRecordRaw[] = [
   { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
-  { path: '/register', name: 'user-register', component: () => import('../views/RegisterView.vue') },
+  { path: '/register', redirect: '/settings' },
   { 
     path: '/', 
     name: 'pos', 
@@ -78,9 +78,9 @@ router.beforeEach((to, from, next) => {
     return;
   }
 
-  // 3. Authenticated user trying to access guest routes (/login or /register)
-  if ((to.path === '/login' || to.path === '/register') && authStore.isAuthenticated) {
-    const role = authStore.userRole;
+  // 3. Authenticated user trying to access guest routes (/login)
+  if (to.path === '/login' && authStore.isAuthenticated) {
+    const role = (authStore.userRole || '').toLowerCase();
     const targetPath = (role === 'owner' || role === 'admin') ? '/reports' : '/';
     next(targetPath);
     return;
@@ -88,8 +88,8 @@ router.beforeEach((to, from, next) => {
 
   // 4. Role checking for protected routes
   if (to.meta.requiresAuth && to.meta.roles) {
-    const allowedRoles = to.meta.roles as string[];
-    const currentRole = authStore.userRole || '';
+    const allowedRoles = (to.meta.roles as string[]).map(r => r.toLowerCase());
+    const currentRole = (authStore.userRole || '').toLowerCase();
 
     if (!allowedRoles.includes(currentRole)) {
       let fallbackPath = '/';

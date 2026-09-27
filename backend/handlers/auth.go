@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"pos-backend/database"
 	"pos-backend/models"
@@ -18,6 +19,15 @@ type RegisterInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Role     string `json:"role"`
+}
+
+func GetUsers(c *gin.Context) {
+	var users []models.User
+	if err := database.DB.Order("created_at desc").Find(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pengguna"})
+		return
+	}
+	c.JSON(http.StatusOK, users)
 }
 
 func Register(c *gin.Context) {
@@ -53,7 +63,7 @@ func Register(c *gin.Context) {
 	user := models.User{
 		Username: username,
 		Password: string(hashedPassword),
-		Role: models.UserRole(role),
+		Role:     models.UserRole(role),
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
@@ -61,7 +71,66 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Registrasi berhasil"})
+	c.JSON(http.StatusOK, gin.H{"message": "Pengguna baru berhasil ditambahkan"})
+}
+
+func DeleteUser(c *gin.Context) {
+	id := c.Param("id")
+
+	currentUserId, exists := c.Get("user_id")
+	if exists && strings.TrimSpace(id) == strings.TrimSpace(fmt.Sprintf("%v", currentUserId)) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Tidak dapat menghapus akun Anda sendiri yang sedang digunakan"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User tidak ditemukan"})
+		return
+	}
+
+	if err := database.DB.Delete(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User berhasil dihapus"})
+}
+
+type ChangeUserPasswordInput struct {
+	Password string `json:"password" binding:"required"`
+}
+
+func ChangeUserPassword(c *gin.Context) {
+	var input ChangeUserPasswordInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password wajib diisi"})
+		return
+	}
+
+	if len(input.Password) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password minimal 6 karakter"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User tidak ditemukan"})
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memproses enkripsi password"})
+		return
+	}
+
+	if err := database.DB.Model(&user).Update("password", string(hashedPassword)).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui password pengguna"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password pengguna berhasil diperbarui"})
 }
 
 type LoginInput struct {

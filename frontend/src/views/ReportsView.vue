@@ -60,7 +60,7 @@
 
     <!-- Section 1: Visual Charts (Grafik Penjualan) -->
     <div class="section-title">
-      <h3>📈 Grafik Penjualan & Distribusi Produk</h3>
+      <h3>Grafik Penjualan & Distribusi Produk</h3>
       <p class="text-xs text-secondary">Visualisasi visual tren produk terlaris, kurang laku, dan tipe barang</p>
     </div>
 
@@ -68,7 +68,7 @@
       <!-- Chart 1: Top vs Slow Moving Products -->
       <div class="chart-card glass-panel">
         <div class="chart-header">
-          <h4>🔥 5 Barang Paling Laku vs ⚠️ 5 Barang Kurang Laku</h4>
+          <h4>5 Barang Paling Laku vs 5 Barang Kurang Laku</h4>
         </div>
         <div class="chart-body">
           <Bar v-if="topVsSlowChartData.labels.length > 0" :data="topVsSlowChartData" :options="chartOptions" />
@@ -79,7 +79,7 @@
       <!-- Chart 2: Sales Distribution per Product Type -->
       <div class="chart-card glass-panel">
         <div class="chart-header">
-          <h4>🏷️ Distribusi Omset Per Tipe Produk</h4>
+          <h4>Distribusi Omset Per Tipe Produk</h4>
         </div>
         <div class="chart-body chart-body-doughnut">
           <Doughnut v-if="typeChartData.labels.length > 0" :data="typeChartData" :options="doughnutOptions" />
@@ -309,8 +309,8 @@ const topVsSlowChartData = computed(() => {
   const slow5 = (stats.value.least_products || []).slice(0, 5);
 
   const labels = [
-    ...top5.map(p => `🔥 ${p.product_name}`),
-    ...slow5.map(p => `⚠️ ${p.product_name}`)
+    ...top5.map(p => p.product_name),
+    ...slow5.map(p => p.product_name)
   ];
 
   const dataValues = [
@@ -365,8 +365,8 @@ const doughnutOptions = {
   }
 };
 
-const handleExportExcel = () => {
-  exportToExcel(stats.value, 'Keseluruhan Penjualan');
+const handleExportExcel = async () => {
+  await exportToExcel(stats.value, 'Keseluruhan Penjualan');
 };
 
 const handleExportPDF = () => {
