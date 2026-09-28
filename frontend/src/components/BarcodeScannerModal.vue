@@ -1,106 +1,105 @@
 <template>
-  <div class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content glass-panel scanner-modal">
-      <div class="modal-header">
-        <div class="header-title-box">
-          <CameraIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-          <h3>Scan Barcode Produk</h3>
-        </div>
-        <button class="btn-close" @click="closeModal">
-          <XMarkIcon class="w-5 h-5 text-slate-500" />
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-full max-w-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      
+      <!-- Header -->
+      <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700/50">
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <CameraIcon class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+          Scanner Barcode Produk
+        </h2>
+        <button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400" @click="closeModal">
+          <XMarkIcon class="w-5 h-5" />
         </button>
       </div>
 
-      <div class="scanner-body">
-        <!-- Tabs for Scan Method -->
-        <div class="scan-tabs">
-          <button 
-            class="scan-tab-btn" 
-            :class="{ active: activeTab === 'camera' }"
-            @click="switchTab('camera')"
-          >
-            <CameraIcon class="w-4 h-4" />
-            <span>Kamera HP / WebCam</span>
-          </button>
-          <button 
-            class="scan-tab-btn" 
-            :class="{ active: activeTab === 'manual' }"
-            @click="switchTab('manual')"
-          >
-            <QrCodeIcon class="w-4 h-4" />
-            <span>Barcode Gun / Manual</span>
-          </button>
+      <!-- Tabs -->
+      <div class="flex items-center gap-2 p-5 pb-0">
+        <AppButton 
+          :variant="activeTab === 'camera' ? 'primary' : 'secondary'"
+          class="flex-1 flex items-center justify-center gap-2"
+          @click="switchTab('camera')"
+        >
+          <CameraIcon class="w-4 h-4" />
+          <span>Kamera Scanner</span>
+        </AppButton>
+        <AppButton 
+          :variant="activeTab === 'manual' ? 'primary' : 'secondary'"
+          class="flex-1 flex items-center justify-center gap-2"
+          @click="switchTab('manual')"
+        >
+          <QrCodeIcon class="w-4 h-4" />
+          <span>Alat Tembak USB</span>
+        </AppButton>
+      </div>
+
+      <!-- Camera Scanner View -->
+      <div v-show="activeTab === 'camera'" class="flex flex-col gap-4 p-5">
+        <div id="barcode-reader-view" class="w-full min-h-[250px] bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700"></div>
+        
+        <div v-if="cameraError" class="flex flex-col items-center justify-center gap-3 p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-center">
+          <ExclamationTriangleIcon class="w-8 h-8 text-amber-500" />
+          <p class="text-sm font-semibold text-amber-800 dark:text-amber-400">{{ cameraError }}</p>
+          <AppButton variant="warning" size="sm" @click="initCameraScanner">
+            Coba Kamera Lagi
+          </AppButton>
         </div>
 
-        <!-- Camera Scanner View -->
-        <div v-show="activeTab === 'camera'" class="camera-container">
-          <div id="barcode-reader-view" class="reader-box"></div>
-          
-          <div v-if="cameraError" class="camera-error-box">
-            <ExclamationTriangleIcon class="w-8 h-8 text-amber-500" />
-            <p>{{ cameraError }}</p>
-            <button class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-md text-sm font-medium" @click="initCameraScanner">
-              Coba Kamera Lagi
-            </button>
-          </div>
-
-          <div class="scanner-hint">
-            Arahkan kamera ke kode barcode / QR code pada produk
-          </div>
-        </div>
-
-        <!-- Manual / Barcode Gun Input View -->
-        <div v-show="activeTab === 'manual'" class="manual-container">
-          <div class="form-group">
-            <label class="form-label">Ketik atau Scan dengan Barcode Gun (USB/Bluetooth):</label>
-            <div class="input-with-button">
-              <input 
-                ref="manualInputRef"
-                type="text" 
-                class="form-control barcode-input" 
-                v-model="manualCode"
-                placeholder="Contoh: 8991001"
-                @keyup.enter="handleManualSubmit"
-              />
-              <button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium" @click="handleManualSubmit">
-                Cari & Tambah
-              </button>
-            </div>
-          </div>
-
-          <!-- Quick Test Barcodes Grid -->
-          <div class="quick-test-section">
-            <span class="quick-test-label">Simulasi Scan Kode Barcode Produk Tersedia:</span>
-            <div class="barcode-pills">
-              <button 
-                v-for="prod in productsWithBarcodes" 
-                :key="prod.id"
-                class="barcode-pill-btn"
-                @click="simulateScanBarcode(prod.barcode!)"
-              >
-                <span class="pill-name">{{ prod.name }}</span>
-                <span class="pill-code">{{ prod.barcode }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Last Scanned Feedback Alert -->
-        <div v-if="lastScannedMessage" class="scan-alert" :class="lastScannedSuccess ? 'success' : 'error'">
-          <CheckCircleIcon v-if="lastScannedSuccess" class="w-5 h-5 text-emerald-500 shrink-0" />
-          <ExclamationCircleIcon v-else class="w-5 h-5 text-red-500 shrink-0" />
-          <span>{{ lastScannedMessage }}</span>
+        <div class="text-sm text-slate-500 text-center font-medium bg-slate-50 dark:bg-slate-900/50 py-2 rounded-lg">
+          Arahkan kamera ke kode barcode / QR code pada produk
         </div>
       </div>
 
-      <div class="modal-footer">
-        <div class="continuous-mode">
-          <label class="toggle-label flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" v-model="keepScanningMode" class="toggle-checkbox" />
-            <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Mode Scan Beruntun (Tetap buka scanner)</span>
-          </label>
+      <!-- Manual / Barcode Gun Input View -->
+      <div v-show="activeTab === 'manual'" class="flex flex-col gap-6 p-5">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Ketik atau Scan dengan Alat USB/Bluetooth:</label>
+          <div class="flex items-center gap-2">
+            <AppInput 
+              ref="manualInputRef"
+              type="text" 
+              class="flex-1"
+              v-model="manualCode"
+              placeholder="Contoh: 8991001"
+              @keyup.enter="handleManualSubmit"
+            />
+            <AppButton variant="primary" @click="handleManualSubmit">
+              Cari & Tambah
+            </AppButton>
+          </div>
         </div>
-        <button class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg font-medium" @click="closeModal">Selesai</button>
+
+        <!-- Quick Test Barcodes Grid -->
+        <div class="flex flex-col gap-3">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Simulasi Produk Tersedia (Klik untuk scan):</span>
+          <div class="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1">
+            <button 
+              v-for="prod in productsWithBarcodes" 
+              :key="prod.id"
+              class="px-3 py-2 bg-slate-50 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-start gap-1 transition-colors text-left"
+              @click="simulateScanBarcode(prod.barcode!)"
+            >
+              <span class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate w-full">{{ prod.name }}</span>
+              <span class="text-xs font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-1.5 rounded">{{ prod.barcode }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Last Scanned Feedback Alert -->
+      <div v-if="lastScannedMessage" class="mx-5 mb-5 p-3 rounded-xl border flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2" :class="lastScannedSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'">
+        <CheckCircleIcon v-if="lastScannedSuccess" class="w-6 h-6 shrink-0" />
+        <ExclamationCircleIcon v-else class="w-6 h-6 shrink-0" />
+        <span class="text-sm font-bold">{{ lastScannedMessage }}</span>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex justify-between items-center p-5 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/30">
+        <label class="flex items-center gap-2 cursor-pointer group">
+          <input type="checkbox" v-model="keepScanningMode" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 dark:border-slate-600 dark:bg-slate-800 dark:checked:bg-indigo-500" />
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Mode Beruntun (Tetap buka scanner)</span>
+        </label>
+        <AppButton variant="secondary" @click="closeModal">Selesai</AppButton>
       </div>
     </div>
   </div>
