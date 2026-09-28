@@ -41,9 +41,7 @@
       <!-- Items List -->
       <div class="flex flex-col gap-3">
         <div v-for="(item, index) in cart" :key="item.product.id" class="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-[20px] p-3 flex flex-col gap-3 relative group transition-all hover:border-indigo-300 dark:hover:border-indigo-700">
-          <button class="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" @click="$emit('remove-item', index)">
-            <TrashIcon class="w-4 h-4" />
-          </button>
+          
 
           <div class="flex flex-col pr-8">
             <h4 class="text-[0.9rem] font-bold text-slate-800 dark:text-slate-100 leading-snug line-clamp-2">{{ item.product.name }}</h4>
@@ -60,7 +58,12 @@
                 <PlusIcon class="w-4 h-4" />
               </button>
             </div>
+            <div class="flex items-center gap-3">
             <span class="text-[0.95rem] font-black text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(item.product.price * item.quantity) }}</span>
+            <button class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-[10px] transition-colors active:scale-95 shadow-sm border border-red-100 dark:border-red-800/30 shrink-0" @click="$emit('remove-item', index)">
+              <TrashIcon class="w-4 h-4" />
+            </button>
+          </div>
           </div>
         </div>
       </div>

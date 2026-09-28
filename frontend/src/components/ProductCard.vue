@@ -5,7 +5,7 @@
     @click="addToCart"
   >
     <!-- Kontainer Gambar dengan Rasio Paten 4:3 -->
-    <div class="relative w-full aspect-[4/3] p-2 shrink-0">
+    <div class="relative w-full h-[140px] sm:h-[150px] p-2 shrink-0">
       <div class="w-full h-full overflow-hidden rounded-[18px] bg-slate-100 dark:bg-slate-900 shadow-inner relative">
         <img 
           :src="product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" 
