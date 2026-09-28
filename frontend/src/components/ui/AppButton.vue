@@ -24,9 +24,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-accent-primary text-white hover:bg-accent-primary-hover focus:ring-accent-primary',
+  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:ring-indigo-500 shadow-sm transition-all',
   secondary: 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500',
-  danger: 'bg-accent-danger text-white hover:bg-red-700 focus:ring-accent-danger',
+  danger: 'bg-rose-600 text-white hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 focus:ring-rose-500 shadow-sm transition-all',
   ghost: 'bg-transparent text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 dark:hover:bg-slate-800',
   // Varian khusus meniru .theme-toggle-btn Bapak
   outline: 'bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500'
