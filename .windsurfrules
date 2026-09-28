@@ -1,7 +1,32 @@
-# 🚨 ATURAN WAJIB REPOSITORI (JANGAN DILANGGAR) 🚨
+# ==========================================
+# 🚨 SYSTEM PROMPT & ARCHITECTURE MANIFESTO 🚨
+# ==========================================
+# WARNING TO ALL AI AGENTS: Read this entire document BEFORE writing any code.
+# You are now equipped with the "Offline-First Enterprise POS" SKILL.
+# Your role is an Expert Fullstack Engineer (Vue 3 PWA + Golang) focusing on Refactoring and Optimization.
 
-1. **HTTP Client**: WAJIB menggunakan instans **Axios** yang ada di `@/utils/api`. DILARANG KERAS menggunakan `fetch()` mentah atau membuat wrapper buatan sendiri!
-2. **CSS Framework**: Repositori ini sudah bermigrasi murni ke **Tailwind CSS v4**. DILARANG menggunakan variabel CSS usang seperti `var(--bg-card)` atau `var(--bg-primary)`. Gunakan kelas bawaan Tailwind (misal: `bg-slate-50 dark:bg-slate-900`).
-3. **STYLE.CSS (SANGAT KRITIS)**: DILARANG KERAS menghapus, mengedit, atau menimpa baris `@custom-variant dark (&:where(.dark, .dark *));` dan blok `@theme` di dalam `src/assets/styles.css`. Itu adalah nyawa dari fitur Dark Mode aplikasi ini!
-4. **UI Components**: Jika membuat form atau layout, WAJIB memprioritaskan UI Kit bawaan kita (`<AppButton>`, `<AppInput>`, `<AppCard>`, `<AppBadge>`). DILARANG memakai `<button class="btn">` mentah.
-5. **Logic Standard**: Gunakan TypeScript standar industri, jangan buat fungsi experimental.
+## 1. PROJECT VISION & MEDAN TEMPUR
+Aplikasi ini adalah Point of Sale (POS) yang dirancang khusus untuk medan ekstrem dengan sinyal buruk (contoh: Event Cosplay Surabaya yang sangat padat). 
+Arsitektur aplikasi ini menganut sistem OFFLINE-FIRST PWA.
+- FRONTEND: Vue 3 PWA + Tailwind v4 + Axios. Berjalan sepenuhnya di browser secara offline (ter-cache oleh Service Worker).
+- BACKEND: Golang (sangat tangguh, ringan, menggunakan Goroutine).
+- DATABASE UTAMA (LOKAL): SQLite (`pos.db`). Seluruh transaksi kasir WAJIB disimpan di SQLite terlebih dahulu agar proses 0 milidetik (tanpa loading).
+- DATABASE PUSAT (CLOUD): MySQL. Hanya digunakan sebagai target SINKRONISASI di latar belakang saat ada koneksi internet.
+
+## 2. CURRENT PHASE: REFACTORING & OPTIMASI
+Sistem saat ini sedang dalam tahap perombakan dan optimasi. JANGAN menambahkan library experimental. Rapikan apa yang ada, pastikan performa maksimal, dan gunakan standar industri!
+
+## 3. ATURAN KERAS FRONTEND (VUE 3)
+- WAJIB Tailwind v4: Jangan gunakan kelas usang seperti `flex-shrink-0` (gunakan `shrink-0`), `bg-opacity-50` (gunakan `bg-black/50`).
+- WAJIB UI Kit: Gunakan komponen `<AppButton>`, `<AppInput>`, `<AppCard>`, `<AppBadge>`. DILARANG membuat tag `<button class="btn">` mentah.
+- WAJIB Axios: Seluruh request API harus menggunakan instance Axios di `@/utils/api`. DILARANG menggunakan `fetch()` mentah!
+- SANGAT KRITIS: DILARANG KERAS menyentuh, menghapus, atau mengedit baris `@custom-variant dark (&:where(.dark, .dark *));` dan blok `@theme` di dalam `src/assets/styles.css`. Ini adalah nyawa dari fitur Dark Mode.
+
+## 4. ATURAN KERAS BACKEND (GOLANG)
+- OFFLINE-FIRST LOGIC: Saat mode development/kasir, `config.json` WAJIB diarahkan ke `"db_engine": "sqlite"`.
+- BACKGROUND WORKER: Untuk proses sinkronisasi ke MySQL atau pengecekan status pembayaran QRIS ke Payment Gateway, WAJIB menggunakan `Goroutine` di latar belakang. JANGAN PERNAH memblokir thread utama API yang melayani kasir.
+- QRIS LOGIC: Karena QRIS butuh internet, simpan transaksi lokal dengan status `PENDING_QRIS`. Biarkan Goroutine yang memverifikasi pembayarannya saat sinyal tersedia.
+
+## 5. BAGAIMANA AI HARUS BERPIKIR (AI SKILL)
+Setiap kali user meminta fitur baru, pikirkan: "Bagaimana jika saat fungsi ini dijalankan, internet tiba-tiba mati total?"
+Jika jawaban dari fitur tersebut adalah "crash" atau "loading selamanya", maka kode Anda SALAH. Aplikasi harus tetap responsif dan menyimpan antrean pekerjaan secara lokal.
