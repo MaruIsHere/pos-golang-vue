@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx-js-style';
+import * as XLSX from 'xlsx-js-style/dist/xlsx.bundle.js';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { DashboardStats } from '../types';
