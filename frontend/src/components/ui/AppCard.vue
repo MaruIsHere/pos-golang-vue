@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const cardClasses = computed(() => cn(
-  'bg-card backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-[14px] shadow-sm transition-colors duration-200 ease-in-out dark:bg-slate-800/90 dark:border-slate-700',
+  'bg-white/90 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-[14px] shadow-sm transition-colors duration-200 ease-in-out dark:bg-slate-800/90 dark:border-slate-700',
   props.class
 ))
 
