@@ -28,20 +28,17 @@ const variantStyles: Record<ButtonVariant, string> = {
   secondary: 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500',
   danger: 'bg-rose-600 text-white hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600 focus:ring-rose-500 shadow-sm transition-all',
   ghost: 'bg-transparent text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 dark:hover:bg-slate-800',
-  // Varian khusus meniru .theme-toggle-btn Bapak
-  outline: 'bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500'
+  outline: 'bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500',
+  success: 'bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 focus:ring-emerald-500 shadow-sm transition-all'
 }
 
-const sizeStyles: Record<ButtonSize,
-  success: 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500 shadow-sm', string> = {
+const sizeStyles: Record<ButtonSize, string> = {
   sm: 'h-8 px-3 text-xs rounded',
   md: 'h-10 px-4 py-2 text-sm rounded-md',
   lg: 'h-12 px-8 text-base rounded-lg',
-  // Ukuran khusus icon 36x36 px (h-9 = 36px, w-9 = 36px)
   icon: 'h-9 w-9 p-0 flex items-center justify-center rounded-[10px]'
 }
 
-// Gabungkan base class, variant, size, dan class tambahan dari luar
 const buttonClasses = computed(() =>
   cn(
     // 1. Base style
