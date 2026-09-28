@@ -42,21 +42,21 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-4">
+  <div class="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
     <AppCard class="w-full max-w-md p-6 sm:p-8 shadow-xl">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-text-primary">Login</h1>
-        <p class="text-text-secondary mt-2">Welcome to POS System</p>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Login</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-2">Welcome to POS System</p>
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-text-primary mb-1">Username</label>
+          <label class="block text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">Username</label>
           <AppInput v-model="username" type="text" required placeholder="Enter username" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-primary mb-1">Password</label>
+          <label class="block text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">Password</label>
           <AppInput v-model="password" type="password" required placeholder="Enter password" />
         </div>
 

@@ -39,27 +39,27 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-bg-primary">
+  <div class="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
     <AppCard class="w-full max-w-md p-8">
       <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-text-primary">Register</h1>
-        <p class="text-text-secondary mt-2">Create new account</p>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Register</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-2">Create new account</p>
       </div>
 
       <form @submit.prevent="handleRegister" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-text-primary mb-1">Username</label>
+          <label class="block text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">Username</label>
           <AppInput v-model="username" type="text" required placeholder="Enter username" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-primary mb-1">Password</label>
+          <label class="block text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">Password</label>
           <AppInput v-model="password" type="password" required placeholder="Enter password (min 6 char)" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-text-primary mb-1">Role</label>
-          <select v-model="role" class="w-full bg-bg-secondary border border-border-color text-text-primary rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-accent-primary">
+          <label class="block text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">Role</label>
+          <select v-model="role" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-accent-primary">
             <option value="kasir">Kasir (Fitur Kasir & Riwayat)</option>
             <option value="kepala_kasir">Kepala Kasir (Kasir, Pelanggan, Barang & Laporan)</option>
             <option value="owner">Owner (Full Akses)</option>
@@ -79,7 +79,7 @@ const handleRegister = async () => {
         </AppButton>
       </form>
       
-      <div class="mt-4 text-center text-sm text-text-secondary">
+      <div class="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
         Already have an account? <router-link to="/login" class="text-accent-primary hover:underline">Login</router-link>
       </div>
     </AppCard>

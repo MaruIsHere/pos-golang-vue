@@ -25,11 +25,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: 'bg-accent-primary text-white hover:bg-accent-primary-hover focus:ring-accent-primary',
-  secondary: 'bg-bg-secondary text-text-primary border border-border-color hover:bg-bg-card-hover focus:ring-text-secondary',
+  secondary: 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500',
   danger: 'bg-accent-danger text-white hover:bg-red-700 focus:ring-accent-danger',
-  ghost: 'bg-transparent text-text-primary hover:bg-bg-card-hover dark:hover:bg-slate-800',
+  ghost: 'bg-transparent text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 dark:hover:bg-slate-800',
   // Varian khusus meniru .theme-toggle-btn Bapak
-  outline: 'bg-bg-primary text-text-primary border border-border-color hover:bg-bg-card-hover focus:ring-text-secondary'
+  outline: 'bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500'
 }
 
 const sizeStyles: Record<ButtonSize, string> = {

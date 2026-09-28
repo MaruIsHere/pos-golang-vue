@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const cardClasses = computed(() => cn(
-  'bg-card backdrop-blur-md border border-border-color rounded-[14px] shadow-sm transition-colors duration-200 ease-in-out dark:bg-slate-800/90 dark:border-slate-700',
+  'bg-card backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-[14px] shadow-sm transition-colors duration-200 ease-in-out dark:bg-slate-800/90 dark:border-slate-700',
   props.class
 ))
 
@@ -22,7 +22,7 @@ const bodyClasses = computed(() => cn('px-5 py-4', props.bodyClass))
 
 <template>
   <div :class="cardClasses">
-    <div v-if="$slots.header || title" class="px-5 py-4 border-b border-border-color dark:border-slate-700">
+    <div v-if="$slots.header || title" class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 dark:border-slate-700">
       <slot name="header">
         <h3 class="font-bold text-lg text-tx-primary dark:text-slate-100 flex items-center gap-2">
           {{ title }}
@@ -32,7 +32,7 @@ const bodyClasses = computed(() => cn('px-5 py-4', props.bodyClass))
     <div :class="bodyClasses">
       <slot />
     </div>
-    <div v-if="$slots.footer" class="px-5 py-4 border-t border-border-color bg-slate-50/50 rounded-b-[14px] dark:bg-slate-900/50 dark:border-slate-700">
+    <div v-if="$slots.footer" class="px-5 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 rounded-b-[14px] dark:bg-slate-900/50 dark:border-slate-700">
       <slot name="footer" />
     </div>
   </div>

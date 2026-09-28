@@ -17,7 +17,7 @@
       </div>
 
       <div class="pwa-actions">
-        <button v-if="!isIos && deferredPrompt" class="btn btn-primary btn-pwa-install flex items-center gap-1" @click="installPwa">
+        <button v-if="!isIos && deferredPrompt" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium flex items-center gap-1" @click="installPwa">
           <ArrowDownTrayIcon class="w-3.5 h-3.5" />
           <span>Install</span>
         </button>
@@ -96,92 +96,4 @@ const dismissBanner = (): void => {
 };
 </script>
 
-<style scoped>
-.pwa-banner-wrapper {
-  position: fixed;
-  top: 74px;
-  right: 1.5rem;
-  z-index: 999;
-  max-width: 440px;
-  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-@media (max-width: 640px) {
-  .pwa-banner-wrapper {
-    top: auto;
-    bottom: 74px;
-    left: 1rem;
-    right: 1rem;
-    max-width: none;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.pwa-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1.15rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-}
-
-.pwa-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.pwa-icon-badge {
-  padding: 0.4rem;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 8px;
-}
-
-.pwa-text h4 {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.pwa-text p {
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  line-height: 1.3;
-  margin-top: 0.15rem;
-}
-
-.pwa-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-}
-
-.btn-pwa-install {
-  padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.btn-pwa-dismiss {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.2rem;
-}
-</style>

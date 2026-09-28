@@ -39,7 +39,7 @@
           <div v-if="cameraError" class="camera-error-box">
             <ExclamationTriangleIcon class="w-8 h-8 text-amber-500" />
             <p>{{ cameraError }}</p>
-            <button class="btn btn-secondary btn-sm" @click="initCameraScanner">
+            <button class="px-3 py-1.5 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-md text-sm font-medium" @click="initCameraScanner">
               Coba Kamera Lagi
             </button>
           </div>
@@ -62,7 +62,7 @@
                 placeholder="Contoh: 8991001"
                 @keyup.enter="handleManualSubmit"
               />
-              <button class="btn btn-primary" @click="handleManualSubmit">
+              <button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium" @click="handleManualSubmit">
                 Cari & Tambah
               </button>
             </div>
@@ -100,7 +100,7 @@
             <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Mode Scan Beruntun (Tetap buka scanner)</span>
           </label>
         </div>
-        <button class="btn btn-secondary" @click="closeModal">Selesai</button>
+        <button class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg font-medium" @click="closeModal">Selesai</button>
       </div>
     </div>
   </div>
@@ -273,233 +273,4 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
-.scanner-modal {
-  max-width: 540px;
-  width: 95%;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
 
-.header-title-box {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.header-title-box h3 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-primary);
-}
-
-.btn-close {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.scanner-body {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* Tabs */
-.scan-tabs {
-  display: flex;
-  gap: 0.5rem;
-  background: var(--bg-primary);
-  padding: 0.25rem;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-}
-
-.scan-tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-family);
-  font-size: 0.825rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.scan-tab-btn.active {
-  background: var(--bg-card);
-  color: var(--accent-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Camera Reader Box */
-.camera-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.reader-box {
-  width: 100%;
-  max-width: 440px;
-  min-height: 220px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-  background: #000000;
-  position: relative;
-}
-
-.camera-error-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  text-align: center;
-  gap: 0.5rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.scanner-hint {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-/* Manual Section */
-.manual-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.input-with-button {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.barcode-input {
-  flex: 1;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.quick-test-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  background: var(--bg-primary);
-  padding: 0.85rem;
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
-}
-
-.quick-test-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.barcode-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.barcode-pill-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0.35rem 0.65rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.barcode-pill-btn:hover {
-  border-color: var(--accent-primary);
-  background: var(--bg-card-hover);
-}
-
-.pill-name {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.pill-code {
-  font-size: 0.68rem;
-  color: var(--accent-primary);
-  font-family: monospace;
-}
-
-/* Alert Notification */
-.scan-alert {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 8px;
-  font-size: 0.825rem;
-  font-weight: 600;
-  animation: fadeIn 0.15s ease;
-}
-
-.scan-alert.success {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
-}
-
-.scan-alert.error {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
-}
-
-.modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1.25rem;
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-primary);
-}
-
-.toggle-checkbox {
-  accent-color: var(--accent-primary);
-  width: 16px;
-  height: 16px;
-}
-</style>
