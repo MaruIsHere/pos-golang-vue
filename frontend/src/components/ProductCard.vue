@@ -4,7 +4,7 @@
     :class="{ 'opacity-50 grayscale-[50%] cursor-not-allowed hover:translate-y-0 hover:shadow-none hover:border-slate-200': product.stock <= 0 }"
     @click="addToCart"
   >
-    <div class="relative w-full aspect-square p-2">
+    <div class="relative w-full h-36 sm:h-40 p-2 shrink-0">
       <div class="w-full h-full overflow-hidden rounded-[18px] bg-slate-50 dark:bg-slate-900 shadow-inner">
         <img 
           :src="product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" 
