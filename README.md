@@ -150,6 +150,20 @@ Alasan cross-compile works: SQLite driver yang dipakai (`glebarez/sqlite` / `mod
 * MySQL: database dibuat otomatis (`CREATE DATABASE IF NOT EXISTS`, `database.go:20`).
 * Seed hanya jika tabel kosong: 4 kategori (`Makanan Utama`, `Minuman`, `Cemilan & Snack`, `Dessert`), 9 produk (contoh `Nasi Goreng Special Egg 28000`, `Kopi Susu Gula Aren 18000`), 3 customer (Budi/Siti/Dewi), 5 voucher (`DISKON10`, `DISKON20`, `HEMAT10K`, `HEMAT50K`, `POSHEMAT`), 1 setting (`KASIR COFFEE & BISTRO`).
 
+
+## 🛡️ Sistem Jabatan & Hak Akses (Role Permissions)
+
+Aplikasi ini menggunakan sistem hierarki jabatan (*Role-based Access Control*) yang ketat untuk menjaga keamanan operasional POS. 
+**PENTING**: *Hanya jabatan tingkat atas yang bisa mendaftarkan karyawan baru (memanggil rute `POST /users`).*
+
+| Jabatan (Role) | Wewenang & Batasan |
+|---|---|
+| **`OWNER`** | **Pemilik Toko**. Akses 100% ke seluruh sistem. Bisa membuat/menghapus akun staf, mengubah pengaturan toko, dan hapus/void transaksi. |
+| **`ADMINISTRATOR`** | **Superuser IT / Manajer**. Setara dengan Owner. Satu-satunya *role* selain Owner yang diizinkan untuk mendaftarkan akun karyawan baru di sistem. |
+| **`ADMIN`** | **Staf Back-Office (Gudang/Laporan)**. Dapat melihat laporan omset, mengelola stok inventaris, dan mengatur kategori/voucher. **TIDAK BISA** mendaftarkan karyawan baru. |
+| **`KEPALA_KASIR`** | **Supervisor Garis Depan**. Dapat mengelola transaksi, melakukan *refund* pesanan, dan mengatur stok barang dasar. **TIDAK BISA** mengubah pengaturan toko atau manajemen akun. |
+| **`KASIR`** | **Staf Kasir**. Akses terendah. Hanya bisa membuka halaman POS utama untuk memproses pesanan dan pembayaran dari pelanggan. |
+
 ## API reference (ringkas)
 
 Base URL dev: `http://localhost:8080/api`. Spec lengkap dan contoh payload: [`docs/openapi.yaml`](docs/openapi.yaml).
