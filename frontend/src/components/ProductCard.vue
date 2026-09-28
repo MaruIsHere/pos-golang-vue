@@ -1,43 +1,71 @@
 <template>
-  <div class="product-card glass-panel" :class="{ 'out-of-stock': product.stock <= 0 }" @click="addToCart">
-    <div class="card-image-wrapper">
+  <div 
+    class="group flex flex-col overflow-hidden cursor-pointer transition-all duration-200 relative h-full rounded-xl border border-slate-200 dark:border-slate-700 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500"
+    :class="{ 'opacity-65 cursor-not-allowed hover:translate-y-0 hover:shadow-none hover:border-slate-200 dark:hover:border-slate-700': product.stock <= 0 }"
+    @click="addToCart"
+  >
+    <div class="relative w-full h-[130px] overflow-hidden bg-slate-50 dark:bg-slate-900">
       <img 
         :src="product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" 
         :alt="product.name" 
-        class="card-image"
+        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         @error="onImageError"
       />
-      <span class="stock-badge" :class="stockBadgeClass">
+      <AppBadge 
+        class="absolute top-2 right-2 text-[0.65rem] px-2 py-0.5 font-bold"
+        :variant="stockBadgeVariant"
+      >
         {{ product.stock > 0 ? `Stok: ${product.stock}` : 'Habis' }}
-      </span>
-      <span v-if="product.category" class="category-badge">
+      </AppBadge>
+      <AppBadge 
+        v-if="product.category" 
+        variant="secondary"
+        class="absolute bottom-2 left-2 text-[0.65rem] font-semibold px-1.5 py-0.5 border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-600 dark:text-slate-400 rounded-md"
+      >
         {{ product.category.name }}
-      </span>
+      </AppBadge>
     </div>
 
-    <div class="card-body">
-      <h3 class="product-title">{{ product.name }}</h3>
+    <div class="p-3.5 flex flex-col flex-1 justify-between">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight mb-1 line-clamp-2">
+        {{ product.name }}
+      </h3>
       
-      <div class="sub-tags-wrapper" v-if="product.artist || product.product_type">
-        <span class="sub-pill pill-artist" v-if="product.artist">{{ product.artist }}</span>
-        <span class="sub-pill pill-type" v-if="product.product_type">{{ product.product_type }}</span>
+      <div class="flex flex-wrap gap-1 mb-1.5" v-if="product.artist || product.product_type">
+        <AppBadge 
+          v-if="product.artist" 
+          variant="outline"
+          class="text-[0.65rem] font-semibold px-1.5 py-0.5 rounded bg-amber-500/12 text-amber-600 border-amber-500/20"
+        >
+          {{ product.artist }}
+        </AppBadge>
+        <AppBadge 
+          v-if="product.product_type" 
+          variant="outline"
+          class="text-[0.65rem] font-semibold px-1.5 py-0.5 rounded bg-pink-500/12 text-pink-600 border-pink-500/20"
+        >
+          {{ product.product_type }}
+        </AppBadge>
       </div>
 
-      <p class="product-barcode" v-if="product.barcode">SKU: {{ product.barcode }}</p>
+      <p class="text-[0.7rem] text-slate-500 dark:text-slate-400 mb-2" v-if="product.barcode">
+        SKU: {{ product.barcode }}
+      </p>
       
-      <div class="card-footer">
-        <div class="price-container">
-          <span class="currency">Rp</span>
-          <span class="price-value">{{ formatPrice(product.price) }}</span>
+      <div class="flex items-center justify-between mt-2">
+        <div class="flex items-baseline gap-0.5">
+          <span class="text-[0.7rem] font-bold text-indigo-600 dark:text-indigo-400">Rp</span>
+          <span class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400">{{ formatPrice(product.price) }}</span>
         </div>
         
-        <button 
-          class="btn-add" 
+        <AppButton 
+          variant="primary"
           :disabled="product.stock <= 0"
           @click.stop="addToCart"
+          class="w-[30px] h-[30px] p-0 flex items-center justify-center rounded-lg shadow-sm hover:scale-105 transition-transform"
         >
           <PlusIcon class="w-4 h-4 text-white" />
-        </button>
+        </AppButton>
       </div>
     </div>
   </div>
@@ -47,6 +75,8 @@
 import { computed } from 'vue';
 import type { Product } from '../types';
 import { PlusIcon } from '@heroicons/vue/24/outline';
+import AppButton from './ui/AppButton.vue';
+import AppBadge from './ui/AppBadge.vue';
 
 const props = defineProps({
   product: { type: Object as () => Product, required: true }
@@ -58,10 +88,10 @@ const formatPrice = (val: number): string => {
   return new Intl.NumberFormat('id-ID').format(val || 0);
 };
 
-const stockBadgeClass = computed(() => {
-  if (props.product.stock <= 0) return 'badge-danger';
-  if (props.product.stock <= 10) return 'badge-warning';
-  return 'badge-success';
+const stockBadgeVariant = computed(() => {
+  if (props.product.stock <= 0) return 'danger';
+  if (props.product.stock <= 10) return 'warning';
+  return 'success';
 });
 
 const onImageError = (e: Event): void => {
@@ -74,181 +104,3 @@ const addToCart = () => {
   }
 };
 </script>
-
-<style scoped>
-.product-card {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  height: 100%;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-}
-
-.product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--accent-primary);
-}
-
-.product-card.out-of-stock {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.card-image-wrapper {
-  position: relative;
-  width: 100%;
-  height: 130px;
-  overflow: hidden;
-  background: var(--bg-primary);
-}
-
-.card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.product-card:hover .card-image {
-  transform: scale(1.04);
-}
-
-.stock-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 0.65rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-  font-weight: 700;
-}
-
-.category-badge {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: var(--bg-glass);
-  color: var(--text-secondary);
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.15rem 0.45rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-}
-
-.card-body {
-  padding: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  justify-content: space-between;
-}
-
-.product-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.3;
-  margin-bottom: 0.25rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.product-barcode {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.sub-tags-wrapper {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 0.35rem;
-}
-
-.sub-pill {
-  font-size: 0.65rem;
-  font-weight: 600;
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-}
-
-.pill-variant {
-  background: rgba(16, 185, 129, 0.12);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.pill-artist {
-  background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.pill-type {
-  background: rgba(236, 72, 153, 0.12);
-  color: #db2777;
-  border: 1px solid rgba(236, 72, 153, 0.2);
-}
-
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 0.5rem;
-}
-
-.price-container {
-  display: flex;
-  align-items: baseline;
-  gap: 0.15rem;
-}
-
-.currency {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--accent-secondary);
-}
-
-.price-value {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--accent-secondary);
-}
-
-.btn-add {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: none;
-  background: var(--accent-primary);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
-}
-
-.btn-add:hover:not(:disabled) {
-  background: var(--accent-primary-hover);
-  transform: scale(1.05);
-}
-
-.btn-add:disabled {
-  background: var(--border-color);
-  color: var(--text-muted);
-  cursor: not-allowed;
-  box-shadow: none;
-}
-</style>

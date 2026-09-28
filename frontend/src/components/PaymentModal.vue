@@ -1,43 +1,47 @@
 <template>
-  <div class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-content glass-panel payment-modal-content">
-      <div class="modal-header">
-        <div class="header-info">
-          <h3>Pembayaran Kasir</h3>
-          <p class="sub-info">Pilih metode pembayaran dan selesaikan transaksi</p>
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="$emit('close')">
+    <div class="w-full max-w-lg backdrop-blur-md bg-white/90 dark:bg-slate-900/90 rounded-xl shadow-xl flex flex-col overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Pembayaran Kasir</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Pilih metode pembayaran dan selesaikan transaksi</p>
         </div>
-        <button class="btn-close" @click="$emit('close')">
+        <button class="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" @click="$emit('close')">
           <XMarkIcon class="w-5 h-5" />
         </button>
       </div>
 
-      <div class="modal-body">
+      <!-- Body -->
+      <div class="p-5 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
         <!-- Total Display -->
-        <div class="total-card">
-          <div class="total-left">
-            <span class="total-label">Total Yang Harus Dibayar</span>
-            <div v-if="isMatchedMember" class="member-discount-tag flex items-center gap-1">
-              <CheckBadgeIcon class="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span>Diskon Member {{ memberDiscountPercent }}% (-Rp {{ formatPrice(memberDiscountAmount) }})</span>
+        <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
+          <div class="flex flex-col gap-1 items-center">
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Total Yang Harus Dibayar</span>
+            <div v-if="isMatchedMember" class="flex items-center gap-1">
+              <AppBadge variant="success">
+                <CheckBadgeIcon class="w-4 h-4 mr-1" />
+                Diskon Member {{ memberDiscountPercent }}% (-Rp {{ formatPrice(memberDiscountAmount) }})
+              </AppBadge>
             </div>
           </div>
-          <div class="total-right">
-            <h2 class="total-amount">Rp {{ formatPrice(finalGrandTotal) }}</h2>
-            <span v-if="isMatchedMember" class="original-subtotal">Semula: Rp {{ formatPrice(grandTotal) }}</span>
+          <div class="mt-2">
+            <h2 class="text-3xl font-extrabold text-blue-600 dark:text-blue-400">Rp {{ formatPrice(finalGrandTotal) }}</h2>
+            <span v-if="isMatchedMember" class="text-sm text-slate-500 line-through">Semula: Rp {{ formatPrice(grandTotal) }}</span>
           </div>
         </div>
 
         <!-- Customer Name / Member Dropdown -->
-        <div class="form-group">
-          <label class="form-label flex justify-between items-center">
+        <div class="flex flex-col gap-2">
+          <label class="flex justify-between items-center text-sm font-medium text-slate-700 dark:text-slate-300">
             <span>Nama Pelanggan / Member</span>
-            <span v-if="isMatchedMember" class="member-badge success flex items-center gap-1">
-              <CheckBadgeIcon class="w-3.5 h-3.5 text-emerald-500" />
-              <span>Diskon {{ memberDiscountPercent }}% Ditambahkan</span>
-            </span>
+            <AppBadge v-if="isMatchedMember" variant="success">
+              <CheckBadgeIcon class="w-3.5 h-3.5 mr-1" />
+              Diskon {{ memberDiscountPercent }}% Ditambahkan
+            </AppBadge>
           </label>
-          <div class="customer-input-flex">
-            <select class="form-control" v-model="selectedCustomerOption" @change="onCustomerSelect">
+          <div class="flex flex-col gap-2">
+            <select class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500" v-model="selectedCustomerOption" @change="onCustomerSelect">
               <option value="Umum">Umum (Non-Member)</option>
               <option v-for="c in customersList" :key="c.id" :value="c.name">
                 {{ c.name }} {{ c.phone ? '(' + c.phone + ')' : '' }} (Diskon Member {{ memberDiscountPercent }}%)
@@ -45,48 +49,52 @@
               <option value="custom">-- Ketik Nama Manual --</option>
             </select>
 
-            <input 
+            <AppInput 
               v-if="selectedCustomerOption === 'custom'" 
               type="text" 
-              class="form-control" 
               v-model="customerName" 
               placeholder="Ketik Nama Pelanggan..." 
             />
           </div>
-          <p v-if="isMatchedMember" class="member-hint success">
+          <p v-if="isMatchedMember" class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
             Pelanggan "{{ matchedMember?.name }}" terdaftar di database! Potongan member {{ memberDiscountPercent }}% (-Rp {{ formatPrice(memberDiscountAmount) }}) otomatis diterapkan.
           </p>
         </div>
 
         <!-- Payment Method Grid -->
-        <div class="form-group">
-          <label class="form-label">Metode Pembayaran</label>
-          <div class="method-grid">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Metode Pembayaran</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <button 
               v-for="m in paymentMethods" 
               :key="m.id" 
-              class="method-card" 
-              :class="{ active: paymentMethod === m.id }"
+              class="flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all text-center" 
+              :class="[
+                paymentMethod === m.id 
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20' 
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ]"
               @click="selectMethod(m.id)"
             >
-              <component :is="m.iconComp" class="w-5 h-5 method-icon-svg" />
-              <div class="method-details">
-                <span class="method-name">{{ m.name }}</span>
-                <span class="method-desc">{{ m.desc }}</span>
+              <component :is="m.iconComp" class="w-5 h-5" />
+              <div class="flex flex-col">
+                <span class="text-xs font-bold">{{ m.name }}</span>
+                <span class="text-[10px] opacity-70">{{ m.desc }}</span>
               </div>
             </button>
           </div>
         </div>
 
         <!-- 1. CASH SECTION -->
-        <div v-if="paymentMethod === 'cash'" class="payment-section cash-section">
-          <div class="form-group">
-            <label class="form-label">Nominal Uang Diterima</label>
-            <div class="input-prefix-wrapper">
-              <span class="input-prefix">Rp</span>
-              <input 
+        <div v-if="paymentMethod === 'cash'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Nominal Uang Diterima</label>
+            <div class="relative flex items-center">
+              <span class="absolute left-4 font-bold text-blue-600 dark:text-blue-400 z-10">Rp</span>
+              <AppInput 
                 type="number" 
-                class="form-control paid-input" 
+                class="w-full text-lg font-bold"
+                style="padding-left: 2.75rem;"
                 v-model.number="paidAmount" 
                 placeholder="0" 
               />
@@ -94,185 +102,191 @@
           </div>
 
           <!-- Quick Cash Buttons -->
-          <div class="quick-cash-grid">
-            <button class="quick-cash-btn exact-btn" @click="setExactCash">
-              <BoltIcon class="w-4 h-4 inline-block mr-1" /> Uang Pas (Rp {{ formatPrice(grandTotal) }})
-            </button>
-            <button 
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <AppButton variant="success" class="col-span-2 !bg-emerald-50 dark:!bg-emerald-900/20 !border-emerald-200 dark:!border-emerald-800 !text-emerald-600 dark:!text-emerald-400 hover:!bg-emerald-100 dark:hover:!bg-emerald-900/40" @click="setExactCash">
+              <BoltIcon class="w-4 h-4 mr-1" /> Uang Pas (Rp {{ formatPrice(grandTotal) }})
+            </AppButton>
+            <AppButton 
               v-for="amount in quickCashAmounts" 
               :key="amount" 
-              class="quick-cash-btn"
+              variant="secondary"
               @click="setPaidAmount(amount)"
             >
               Rp {{ formatPrice(amount) }}
-            </button>
+            </AppButton>
           </div>
 
           <!-- Change Amount Display -->
-          <div class="change-box" :class="{ 'insufficient': changeAmount < 0 }">
+          <div class="flex justify-between items-center p-3 rounded-lg mt-2 font-bold text-sm border"
+               :class="changeAmount >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'">
             <span>{{ changeAmount >= 0 ? 'Kembalian' : 'Uang Kurang' }}</span>
-            <span class="change-val">
+            <span class="text-lg">
               Rp {{ formatPrice(Math.abs(changeAmount)) }}
             </span>
           </div>
         </div>
 
         <!-- 2. QRIS SECTION -->
-        <div v-else-if="paymentMethod === 'qris'" class="payment-section qris-section">
-          <div class="qris-card">
-            <div class="qris-header">
-              <div class="qris-logo-badge">
-                <span class="qris-text">QRIS</span>
-                <span class="qris-sub">National QR Standard</span>
-              </div>
-              <span class="live-pulse">Standby Scan</span>
+        <div v-else-if="paymentMethod === 'qris'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col items-center gap-3 text-center">
+          <div class="w-full flex justify-between items-center">
+            <div class="flex flex-col items-start">
+              <span class="text-xl font-black text-red-600 tracking-wide">QRIS</span>
+              <span class="text-[10px] text-slate-500">National QR Standard</span>
             </div>
-
-            <!-- Custom QRIS Image or SVG QR Graphic -->
-            <div class="qr-code-wrapper">
-              <img 
-                v-if="effectiveQrisUrl" 
-                :src="effectiveQrisUrl" 
-                alt="Foto QRIS Toko" 
-                class="custom-qris-img" 
-              />
-              <svg v-else class="qr-svg" viewBox="0 0 200 200" width="160" height="160">
-                <!-- Background -->
-                <rect width="200" height="200" fill="#ffffff" rx="12"/>
-                <!-- QR Position Detection Patterns -->
-                <!-- Top Left -->
-                <rect x="15" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
-                <rect x="23" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
-                <rect x="30" y="30" width="15" height="15" fill="#4f46e5" rx="2"/>
-                <!-- Top Right -->
-                <rect x="140" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
-                <rect x="148" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
-                <rect x="155" y="30" width="15" height="15" fill="#4f46e5" rx="2"/>
-                <!-- Bottom Left -->
-                <rect x="15" y="140" width="45" height="45" fill="#0f172a" rx="4"/>
-                <rect x="23" y="148" width="29" height="29" fill="#ffffff" rx="2"/>
-                <rect x="30" y="155" width="15" height="15" fill="#4f46e5" rx="2"/>
-                <!-- QR Data Matrix Dots Simulation -->
-                <rect x="70" y="20" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="20" width="12" height="12" fill="#4f46e5"/>
-                <rect x="110" y="20" width="12" height="12" fill="#0f172a"/>
-                <rect x="70" y="40" width="12" height="12" fill="#0f172a"/>
-                <rect x="110" y="40" width="12" height="12" fill="#4f46e5"/>
-                <rect x="20" y="70" width="12" height="12" fill="#4f46e5"/>
-                <rect x="40" y="70" width="12" height="12" fill="#0f172a"/>
-                <rect x="70" y="70" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="70" width="20" height="20" fill="#4f46e5" rx="4"/>
-                <rect x="120" y="70" width="12" height="12" fill="#0f172a"/>
-                <rect x="140" y="70" width="12" height="12" fill="#4f46e5"/>
-                <rect x="160" y="70" width="12" height="12" fill="#0f172a"/>
-                <rect x="20" y="90" width="12" height="12" fill="#0f172a"/>
-                <rect x="40" y="90" width="12" height="12" fill="#4f46e5"/>
-                <rect x="140" y="90" width="12" height="12" fill="#0f172a"/>
-                <rect x="170" y="90" width="12" height="12" fill="#4f46e5"/>
-                <rect x="20" y="110" width="12" height="12" fill="#4f46e5"/>
-                <rect x="70" y="110" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="110" width="12" height="12" fill="#4f46e5"/>
-                <rect x="110" y="110" width="12" height="12" fill="#0f172a"/>
-                <rect x="150" y="110" width="12" height="12" fill="#4f46e5"/>
-                <rect x="70" y="140" width="12" height="12" fill="#0f172a"/>
-                <rect x="90" y="140" width="12" height="12" fill="#4f46e5"/>
-                <rect x="110" y="140" width="12" height="12" fill="#0f172a"/>
-                <rect x="140" y="140" width="12" height="12" fill="#4f46e5"/>
-                <rect x="160" y="140" width="12" height="12" fill="#0f172a"/>
-                <rect x="70" y="165" width="12" height="12" fill="#4f46e5"/>
-                <rect x="90" y="165" width="12" height="12" fill="#0f172a"/>
-                <rect x="120" y="165" width="12" height="12" fill="#4f46e5"/>
-                <rect x="150" y="165" width="20" height="20" fill="#0f172a" rx="4"/>
-              </svg>
-
-              <div class="qr-scan-line"></div>
-            </div>
-
-            <div class="qris-amount-tag">
-              <span>Nominal Bayar:</span>
-              <strong>Rp {{ formatPrice(grandTotal) }}</strong>
-            </div>
-
-            <p class="qris-hint">
-              Mendukung: <strong>BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay, LinkAja</strong>
-            </p>
+            <span class="text-xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">Standby Scan</span>
           </div>
+
+          <!-- Custom QRIS Image or SVG QR Graphic -->
+          <div class="relative p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <img 
+              v-if="effectiveQrisUrl" 
+              :src="effectiveQrisUrl" 
+              alt="Foto QRIS Toko" 
+              class="w-40 h-40 object-contain rounded-lg" 
+            />
+            <svg v-else class="w-40 h-40" viewBox="0 0 200 200">
+              <!-- Background -->
+              <rect width="200" height="200" fill="#ffffff" rx="12"/>
+              <!-- QR Position Detection Patterns -->
+              <!-- Top Left -->
+              <rect x="15" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
+              <rect x="23" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
+              <rect x="30" y="30" width="15" height="15" fill="#4f46e5" rx="2"/>
+              <!-- Top Right -->
+              <rect x="140" y="15" width="45" height="45" fill="#0f172a" rx="4"/>
+              <rect x="148" y="23" width="29" height="29" fill="#ffffff" rx="2"/>
+              <rect x="155" y="30" width="15" height="15" fill="#4f46e5" rx="2"/>
+              <!-- Bottom Left -->
+              <rect x="15" y="140" width="45" height="45" fill="#0f172a" rx="4"/>
+              <rect x="23" y="148" width="29" height="29" fill="#ffffff" rx="2"/>
+              <rect x="30" y="155" width="15" height="15" fill="#4f46e5" rx="2"/>
+              <!-- QR Data Matrix Dots Simulation -->
+              <rect x="70" y="20" width="12" height="12" fill="#0f172a"/>
+              <rect x="90" y="20" width="12" height="12" fill="#4f46e5"/>
+              <rect x="110" y="20" width="12" height="12" fill="#0f172a"/>
+              <rect x="70" y="40" width="12" height="12" fill="#0f172a"/>
+              <rect x="110" y="40" width="12" height="12" fill="#4f46e5"/>
+              <rect x="20" y="70" width="12" height="12" fill="#4f46e5"/>
+              <rect x="40" y="70" width="12" height="12" fill="#0f172a"/>
+              <rect x="70" y="70" width="12" height="12" fill="#0f172a"/>
+              <rect x="90" y="70" width="20" height="20" fill="#4f46e5" rx="4"/>
+              <rect x="120" y="70" width="12" height="12" fill="#0f172a"/>
+              <rect x="140" y="70" width="12" height="12" fill="#4f46e5"/>
+              <rect x="160" y="70" width="12" height="12" fill="#0f172a"/>
+              <rect x="20" y="90" width="12" height="12" fill="#0f172a"/>
+              <rect x="40" y="90" width="12" height="12" fill="#4f46e5"/>
+              <rect x="140" y="90" width="12" height="12" fill="#0f172a"/>
+              <rect x="170" y="90" width="12" height="12" fill="#4f46e5"/>
+              <rect x="20" y="110" width="12" height="12" fill="#4f46e5"/>
+              <rect x="70" y="110" width="12" height="12" fill="#0f172a"/>
+              <rect x="90" y="110" width="12" height="12" fill="#4f46e5"/>
+              <rect x="110" y="110" width="12" height="12" fill="#0f172a"/>
+              <rect x="150" y="110" width="12" height="12" fill="#4f46e5"/>
+              <rect x="70" y="140" width="12" height="12" fill="#0f172a"/>
+              <rect x="90" y="140" width="12" height="12" fill="#4f46e5"/>
+              <rect x="110" y="140" width="12" height="12" fill="#0f172a"/>
+              <rect x="140" y="140" width="12" height="12" fill="#4f46e5"/>
+              <rect x="160" y="140" width="12" height="12" fill="#0f172a"/>
+              <rect x="70" y="165" width="12" height="12" fill="#4f46e5"/>
+              <rect x="90" y="165" width="12" height="12" fill="#0f172a"/>
+              <rect x="120" y="165" width="12" height="12" fill="#4f46e5"/>
+              <rect x="150" y="165" width="20" height="20" fill="#0f172a" rx="4"/>
+            </svg>
+
+            <!-- Using simple keyframes for inline style -->
+            <component is="style">
+              @keyframes scanMove {
+                0% { top: 10px; }
+                50% { top: 155px; }
+                100% { top: 10px; }
+              }
+            </component>
+            <div class="absolute left-2 right-2 h-[3px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_6px_#4f46e5]" style="animation: scanMove 2s infinite ease-in-out;"></div>
+          </div>
+
+          <div class="flex items-center gap-2 text-sm bg-indigo-50 dark:bg-indigo-900/20 px-3.5 py-1.5 rounded-full text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+            <span>Nominal Bayar:</span>
+            <strong>Rp {{ formatPrice(grandTotal) }}</strong>
+          </div>
+
+          <p class="text-xs text-slate-500">
+            Mendukung: <strong>BCA, Mandiri, BRI, BNI, GoPay, OVO, Dana, ShopeePay, LinkAja</strong>
+          </p>
         </div>
 
         <!-- 3. TRANSFER BANK SECTION -->
-        <div v-else-if="paymentMethod === 'transfer'" class="payment-section transfer-section">
+        <div v-else-if="paymentMethod === 'transfer'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-4">
           <!-- Select Bank -->
-          <div class="form-group">
-            <label class="form-label">Pilih Bank Tujuan</label>
-            <div class="bank-selector-grid">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Pilih Bank Tujuan</label>
+            <div class="grid grid-cols-4 gap-2">
               <button 
                 v-for="(acc, code) in bankAccounts" 
                 :key="code" 
-                class="bank-btn" 
-                :class="{ active: selectedBank === code }"
+                class="flex flex-col items-center p-2 bg-slate-50 dark:bg-slate-800/50 border rounded-md transition-all text-slate-600 dark:text-slate-400" 
+                :class="selectedBank === code ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'"
                 @click="selectedBank = code"
               >
-                <span class="bank-code">{{ code }}</span>
-                <span class="bank-title">{{ acc.name }}</span>
+                <span class="font-bold text-sm">{{ code }}</span>
+                <span class="text-[10px] text-slate-500">{{ acc.name }}</span>
               </button>
             </div>
           </div>
 
           <!-- Account Details Box -->
-          <div class="account-card">
-            <div class="acc-row">
-              <span class="acc-label">Bank:</span>
-              <span class="acc-val">{{ bankAccounts[selectedBank].name }}</span>
+          <div class="p-3.5 flex flex-col gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+            <div class="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+              <span>Bank:</span>
+              <span>{{ bankAccounts[selectedBank].name }}</span>
             </div>
-            <div class="acc-row highlight">
-              <span class="acc-label">No. Rekening:</span>
-              <div class="copy-wrapper">
-                <strong class="acc-number">{{ bankAccounts[selectedBank].account }}</strong>
-                <button class="btn-copy" @click="copyAccount(bankAccounts[selectedBank].account)">
+            <div class="flex justify-between items-center text-xs bg-slate-50 dark:bg-slate-900 p-2 rounded-md border border-slate-200 dark:border-slate-700">
+              <span>No. Rekening:</span>
+              <div class="flex items-center gap-2">
+                <strong class="text-sm font-extrabold text-slate-900 dark:text-slate-100 tracking-wide">{{ bankAccounts[selectedBank].account }}</strong>
+                <button class="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px] font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer transition-colors" @click="copyAccount(bankAccounts[selectedBank].account)">
                   <span v-if="copiedState" class="flex items-center gap-1 text-emerald-500"><CheckIcon class="w-3.5 h-3.5" /> Tersalin</span>
                   <span v-else class="flex items-center gap-1"><ClipboardDocumentIcon class="w-3.5 h-3.5" /> Salin</span>
                 </button>
               </div>
             </div>
-            <div class="acc-row">
-              <span class="acc-label">Atas Nama:</span>
-              <span class="acc-val">{{ bankAccounts[selectedBank].holder }}</span>
+            <div class="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+              <span>Atas Nama:</span>
+              <span>{{ bankAccounts[selectedBank].holder }}</span>
             </div>
-            <div class="acc-row">
-              <span class="acc-label">Nominal Transfer:</span>
-              <strong class="acc-amount">Rp {{ formatPrice(grandTotal) }}</strong>
+            <div class="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
+              <span>Nominal Transfer:</span>
+              <strong class="text-sm text-blue-600 dark:text-blue-400">Rp {{ formatPrice(grandTotal) }}</strong>
             </div>
           </div>
 
-          <div class="transfer-hint-box">
-            <InformationCircleIcon class="w-4 h-4 inline-block mr-1 text-amber-500" />
+          <div class="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-2.5 rounded-md flex items-start">
+            <InformationCircleIcon class="w-4 h-4 mr-1 shrink-0" />
             <span>Mohon verifikasi bahwa dana sudah masuk di m-Banking sebelum menekan tombol Selesaikan.</span>
           </div>
         </div>
 
         <!-- 4. DEBIT / EDC CARD SECTION -->
-        <div v-else-if="paymentMethod === 'debit'" class="payment-section debit-section">
-          <div class="edc-card">
-            <div class="edc-top">
-              <span class="edc-title">MESIN EDC KARTU</span>
-              <div class="card-brands">
-                <span class="brand-pill visa">VISA</span>
-                <span class="brand-pill master">MC</span>
-                <span class="brand-pill gpn">GPN</span>
+        <div v-else-if="paymentMethod === 'debit'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+          <div class="flex flex-col gap-3 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">MESIN EDC KARTU</span>
+              <div class="flex gap-1.5">
+                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-800 text-white">VISA</span>
+                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-red-600 text-white">MC</span>
+                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-sky-700 text-white">GPN</span>
               </div>
             </div>
 
-            <div class="edc-display">
-              <span class="edc-amount-label">TOTAL CHARGE</span>
-              <h3 class="edc-amount-val">Rp {{ formatPrice(grandTotal) }}</h3>
-              <span class="edc-status">INSERT / SWIPE KARTU DEBIT</span>
+            <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
+              <span class="text-xs text-slate-500 font-semibold">TOTAL CHARGE</span>
+              <h3 class="text-2xl font-extrabold text-blue-600 dark:text-blue-400">Rp {{ formatPrice(grandTotal) }}</h3>
+              <span class="text-xs font-bold text-blue-500 dark:text-blue-400">INSERT / SWIPE KARTU DEBIT</span>
             </div>
 
-            <div class="form-group" style="margin-top: 1rem;">
-              <label class="form-label">No. Approval / Ref EDC (Opsional)</label>
-              <input 
+            <div class="flex flex-col gap-2 mt-2">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">No. Approval / Ref EDC (Opsional)</label>
+              <AppInput 
                 type="text" 
-                class="form-control" 
                 v-model="approvalCode" 
                 placeholder="cth: REF-981240" 
               />
@@ -281,10 +295,11 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-secondary" @click="$emit('close')">Batal</button>
-        <button 
-          class="btn btn-success btn-submit" 
+      <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-white dark:bg-slate-800">
+        <AppButton variant="secondary" @click="$emit('close')">Batal</AppButton>
+        <AppButton 
+          variant="primary" 
+          class="flex-1"
           :disabled="isSubmitting || (paymentMethod === 'cash' && changeAmount < 0)"
           @click="submitPayment"
         >
@@ -293,7 +308,7 @@
             <PrinterIcon class="w-4 h-4" />
             <span>Selesaikan & Cetak Struk</span>
           </span>
-        </button>
+        </AppButton>
       </div>
     </div>
   </div>
@@ -318,6 +333,9 @@ import {
   InformationCircleIcon,
   CheckBadgeIcon
 } from '@heroicons/vue/24/outline';
+import AppButton from './ui/AppButton.vue';
+import AppInput from './ui/AppInput.vue';
+import AppBadge from './ui/appBadge.vue';
 
 const props = defineProps({
   grandTotal: { type: Number, required: true },
@@ -460,502 +478,3 @@ const submitPayment = () => {
   });
 };
 </script>
-
-<style scoped>
-.payment-modal-content {
-  max-width: 540px;
-  background: var(--bg-card);
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.header-info h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.sub-info {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.btn-close {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-close:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-
-.modal-body {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.total-card {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-}
-
-.total-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.total-amount {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--accent-secondary);
-  margin-top: 0.15rem;
-}
-
-.method-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.6rem;
-}
-
-@media (min-width: 480px) {
-  .method-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.method-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.75rem 0.4rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.method-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-color);
-}
-
-.method-card.active {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-}
-
-.method-icon-svg {
-  color: currentColor;
-}
-
-.method-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.method-name {
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.method-desc {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-}
-
-.payment-section {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 1rem;
-}
-
-.input-prefix-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-prefix {
-  position: absolute;
-  left: 1rem;
-  font-weight: 700;
-  color: var(--accent-secondary);
-}
-
-.paid-input {
-  padding-left: 2.75rem;
-  font-size: 1.15rem;
-  font-weight: 700;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.quick-cash-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-}
-
-.quick-cash-btn {
-  padding: 0.45rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.quick-cash-btn:hover {
-  background: var(--bg-card-hover);
-}
-
-.exact-btn {
-  grid-column: span 2;
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.3);
-  color: #10b981;
-}
-.exact-btn:hover {
-  background: rgba(16, 185, 129, 0.25);
-}
-
-.change-box {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 10px;
-  margin-top: 0.6rem;
-  font-weight: 700;
-  font-size: 0.85rem;
-  color: #10b981;
-}
-
-.change-box.insufficient {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-.change-val {
-  font-size: 1.15rem;
-  font-weight: 800;
-}
-
-/* QRIS Section */
-.qris-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
-  text-align: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-}
-
-.qris-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.qris-logo-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.qris-text {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #dc2626;
-  letter-spacing: 0.05em;
-}
-
-.qris-sub {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-}
-
-.live-pulse {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.15);
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.qr-code-wrapper {
-  position: relative;
-  padding: 0.6rem;
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-.qr-scan-line {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #4f46e5, transparent);
-  box-shadow: 0 0 6px #4f46e5;
-  animation: scanMove 2s infinite ease-in-out;
-}
-
-@keyframes scanMove {
-  0% { top: 10px; }
-  50% { top: 155px; }
-  100% { top: 10px; }
-}
-
-.qris-amount-tag {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  font-size: 0.9rem;
-  background: rgba(99, 102, 241, 0.15);
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  color: var(--accent-primary);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-}
-
-.qris-hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* Transfer Section */
-.bank-selector-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-}
-
-.bank-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.bank-btn.active {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-
-.bank-code {
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.bank-title {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-}
-
-.account-card {
-  margin-top: 0.75rem;
-  padding: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-}
-
-.acc-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.acc-row.highlight {
-  background: var(--bg-primary);
-  padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-}
-
-.copy-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.acc-number {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: 0.05em;
-}
-
-.btn-copy {
-  padding: 0.25rem 0.6rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-copy:hover {
-  background: var(--bg-card-hover);
-}
-
-.acc-amount {
-  font-size: 0.95rem;
-  color: var(--accent-secondary);
-}
-
-.transfer-hint-box {
-  margin-top: 0.6rem;
-  font-size: 0.75rem;
-  color: #d97706;
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  display: flex;
-  align-items: flex-start;
-}
-
-/* Debit Section */
-.edc-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-}
-
-.edc-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.edc-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.card-brands {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.brand-pill {
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
-}
-
-.brand-pill.visa { background: #1e40af; color: #fff; }
-.brand-pill.master { background: #dc2626; color: #fff; }
-.brand-pill.gpn { background: #0369a1; color: #fff; }
-
-.edc-display {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-}
-
-.edc-amount-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
-.edc-amount-val {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--accent-primary);
-}
-
-.edc-status {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--accent-secondary);
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  background: var(--bg-card);
-}
-
-.btn-submit {
-  flex: 1;
-}
-
-.custom-qris-img {
-  width: 160px;
-  height: 160px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-</style>

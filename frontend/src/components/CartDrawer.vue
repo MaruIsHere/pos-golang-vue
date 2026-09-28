@@ -2,147 +2,151 @@
   <!-- Mobile Backdrop -->
   <div 
     v-if="isOpenMobile" 
-    class="cart-backdrop" 
+    class="fixed top-0 left-0 right-0 bottom-0 bg-slate-900/40 z-[80]" 
     @click="$emit('toggle-mobile')"
   ></div>
 
-  <aside class="cart-container glass-panel" :class="{ 'mobile-open': isOpenMobile }">
-    <div class="cart-header">
-      <div class="header-title">
+  <aside 
+    class="flex flex-col h-full w-full rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm backdrop-blur-md bg-white/90 dark:bg-slate-900/90 max-md:fixed max-md:bottom-[60px] max-md:left-0 max-md:right-0 max-md:h-[75vh] max-md:z-[90] max-md:rounded-t-xl max-md:rounded-b-none max-md:translate-y-[105%] max-md:transition-transform max-md:duration-300 max-md:ease-[cubic-bezier(0.16,1,0.3,1)]" 
+    :class="{ 'max-md:translate-y-0': isOpenMobile }"
+  >
+    <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+      <div class="flex items-center gap-2">
         <ShoppingCartIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-        <h2>Keranjang</h2>
-        <span class="item-count">{{ totalItemCount }} Item</span>
+        <h2 class="text-[1.05rem] font-bold text-slate-900 dark:text-slate-100">Keranjang</h2>
+        <AppBadge variant="primary" class="text-xs font-bold">{{ totalItemCount }} Item</AppBadge>
       </div>
-      <button v-if="cart.length > 0" class="btn-clear" @click="handleClearCart">
+      <AppButton v-if="cart.length > 0" variant="ghost" class="text-red-500 text-[0.8rem] font-semibold hover:text-red-600 p-0" @click="handleClearCart">
         Hapus Semua
-      </button>
+      </AppButton>
     </div>
 
     <!-- Empty State -->
-    <div v-if="cart.length === 0" class="empty-cart">
-      <div class="empty-icon-box">
+    <div v-if="cart.length === 0" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+      <div class="mb-3">
         <ShoppingBagIcon class="w-12 h-12 text-slate-300 dark:text-slate-600" />
       </div>
-      <p class="empty-text">Keranjang masih kosong</p>
-      <span class="empty-sub">Pilih produk di sebelah kiri untuk ditambahkan</span>
+      <p class="font-bold text-slate-900 dark:text-slate-100 mb-1">Keranjang masih kosong</p>
+      <span class="text-[0.8rem] text-slate-500">Pilih produk di sebelah kiri untuk ditambahkan</span>
     </div>
 
     <!-- Cart Items List -->
-    <div v-else class="cart-items-list">
-      <div v-for="(item, index) in cart" :key="item.product.id" class="cart-item">
-        <div class="item-info">
-          <h4 class="item-name">{{ item.product.name }}</h4>
-          <span class="item-price">Rp {{ formatPrice(item.product.price) }}</span>
+    <div v-else class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+      <div v-for="(item, index) in cart" :key="item.product.id" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[10px] p-3 flex flex-col gap-2">
+        <div class="flex justify-between items-start">
+          <h4 class="text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">{{ item.product.name }}</h4>
+          <span class="text-[0.8rem] text-slate-500">Rp {{ formatPrice(item.product.price) }}</span>
         </div>
 
-        <div class="item-controls">
-          <div class="qty-group">
-            <button class="qty-btn" @click="$emit('update-qty', { index, delta: -1 })">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+            <AppButton variant="ghost" class="w-[26px] h-[26px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold p-0 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700" @click="$emit('update-qty', { index, delta: -1 })">
               <MinusIcon class="w-3.5 h-3.5" />
-            </button>
-            <span class="qty-val">{{ item.quantity }}</span>
-            <button class="qty-btn" @click="$emit('update-qty', { index, delta: 1 })">
+            </AppButton>
+            <span class="text-[0.85rem] font-extrabold min-w-[20px] text-center text-slate-900 dark:text-slate-100">{{ item.quantity }}</span>
+            <AppButton variant="ghost" class="w-[26px] h-[26px] rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-bold p-0 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700" @click="$emit('update-qty', { index, delta: 1 })">
               <PlusIcon class="w-3.5 h-3.5" />
-            </button>
+            </AppButton>
           </div>
-          <span class="item-subtotal">Rp {{ formatPrice(item.product.price * item.quantity) }}</span>
-          <button class="btn-remove" @click="$emit('remove-item', index)">
+          <span class="text-[0.85rem] font-extrabold text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(item.product.price * item.quantity) }}</span>
+          <AppButton variant="ghost" class="p-1 flex items-center justify-center" @click="$emit('remove-item', index)">
             <TrashIcon class="w-4 h-4 text-slate-400 hover:text-red-500" />
-          </button>
+          </AppButton>
         </div>
       </div>
     </div>
 
     <!-- Summary & Checkout Footer -->
-    <div v-if="cart.length > 0" class="cart-footer">
+    <div v-if="cart.length > 0" class="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex flex-col gap-2.5">
       <!-- Voucher Code Input Section -->
-      <div class="voucher-container">
-        <div class="voucher-input-wrapper">
-          <TagIcon class="w-4 h-4 text-slate-400 voucher-icon" />
-          <input 
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-1 px-2">
+          <TagIcon class="w-4 h-4 text-slate-400" />
+          <AppInput 
             type="text" 
-            class="voucher-input" 
+            class="flex-1 text-[0.8rem] uppercase bg-transparent border-none outline-none text-slate-900 dark:text-slate-100" 
             v-model="voucherInput" 
             placeholder="Kode Voucher (DISKON10...)"
             @keyup.enter="applyVoucher"
           />
-          <button class="btn-voucher-apply" @click="applyVoucher">
+          <AppButton variant="primary" class="py-1.5 px-3 text-[0.75rem] font-bold rounded-md" @click="applyVoucher">
             Gunakan
-          </button>
+          </AppButton>
         </div>
 
         <!-- Applied Voucher Alert Badge -->
-        <div v-if="appliedVoucher" class="voucher-badge success">
-          <div class="voucher-info">
-            <span class="voucher-title flex items-center gap-1">
+        <AppBadge v-if="appliedVoucher" variant="success" class="flex items-center justify-between p-2 rounded-lg text-[0.75rem] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-500">
+          <div class="flex flex-col">
+            <span class="font-extrabold flex items-center gap-1">
               <TicketIcon class="w-4 h-4 text-emerald-600" /> {{ appliedVoucher.code }}
             </span>
-            <span class="voucher-desc">Potongan Rp {{ formatPrice(appliedVoucher.discountAmount) }} ({{ appliedVoucher.description }})</span>
+            <span class="text-[0.7rem] opacity-90">Potongan Rp {{ formatPrice(appliedVoucher.discountAmount) }} ({{ appliedVoucher.description }})</span>
           </div>
-          <button class="btn-voucher-remove" title="Hapus Voucher" @click="removeVoucher">
+          <AppButton variant="ghost" class="p-1" title="Hapus Voucher" @click="removeVoucher">
             <XMarkIcon class="w-4 h-4" />
-          </button>
-        </div>
+          </AppButton>
+        </AppBadge>
 
         <!-- Error Message -->
-        <div v-if="voucherError" class="voucher-badge error">
+        <AppBadge v-if="voucherError" variant="danger" class="flex items-center gap-1 p-2 rounded-lg text-[0.75rem] font-bold bg-red-500/15 border border-red-500/30 text-red-500">
           <span class="flex items-center gap-1">
             <ExclamationTriangleIcon class="w-4 h-4 text-red-600" /> {{ voucherError }}
           </span>
-        </div>
+        </AppBadge>
 
         <!-- Voucher Hints Pills -->
-        <div v-if="!appliedVoucher" class="voucher-hints">
-          <span class="hints-label">Rekomendasi Voucher:</span>
-          <button 
+        <div v-if="!appliedVoucher" class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[0.7rem] text-slate-500">Rekomendasi Voucher:</span>
+          <AppButton 
             v-for="v in availableVouchersHint" 
             :key="v.code" 
-            class="hint-pill"
+            variant="outline"
+            class="px-2 py-0.5 rounded-full text-[0.68rem] font-bold border-dashed text-indigo-600 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:border-indigo-600"
             @click="useHint(v.code)"
           >
             {{ v.code }}
-          </button>
+          </AppButton>
         </div>
       </div>
 
-      <div class="divider"></div>
+      <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
 
-      <div class="summary-row">
+      <div class="flex justify-between items-center text-[0.85rem] text-slate-600 dark:text-slate-400">
         <span>Subtotal</span>
         <span>Rp {{ formatPrice(subtotal) }}</span>
       </div>
 
-      <div class="summary-row discount-row">
+      <div class="flex justify-between items-center text-[0.85rem] text-slate-600 dark:text-slate-400">
         <span>Diskon {{ appliedVoucher ? '(' + appliedVoucher.code + ')' : '(Manual)' }}</span>
-        <div class="discount-input-wrapper">
-          <span class="input-rp">Rp</span>
-          <input 
+        <div class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-1.5 py-0.5">
+          <span class="text-[0.75rem] text-slate-500 mr-1">Rp</span>
+          <AppInput 
             type="number" 
-            class="discount-input" 
-            :value="discount" 
-            @input="onManualDiscountInput(($event.target as HTMLInputElement).value)"
+            class="w-[75px] bg-transparent border-none text-right text-[0.85rem] text-slate-900 dark:text-slate-100 outline-none" 
+            :modelValue="discount" 
+            @update:modelValue="val => onManualDiscountInput(String(val))"
             placeholder="0"
             min="0"
           />
         </div>
       </div>
 
-      <div class="summary-row">
+      <div class="flex justify-between items-center text-[0.85rem] text-slate-600 dark:text-slate-400">
         <span>Pajak ({{ taxPercentage }}%)</span>
         <span>Rp {{ formatPrice(taxAmount) }}</span>
       </div>
 
-      <div class="divider"></div>
+      <div class="h-px bg-slate-200 dark:bg-slate-700 my-1"></div>
 
-      <div class="summary-row grand-total-row">
+      <div class="flex justify-between items-center text-base font-extrabold text-slate-900 dark:text-slate-100">
         <span>Total Bayar</span>
-        <span class="grand-total-val">Rp {{ formatPrice(grandTotal) }}</span>
+        <span class="text-[1.25rem] text-indigo-600 dark:text-indigo-400 font-extrabold">Rp {{ formatPrice(grandTotal) }}</span>
       </div>
 
-      <button class="btn btn-primary btn-checkout flex items-center justify-center gap-2" @click="$emit('open-payment')">
+      <AppButton variant="primary" class="w-full p-3 text-base mt-1.5 flex items-center justify-center gap-2" @click="$emit('open-payment')">
         <span>Bayar Sekarang</span>
         <ArrowRightIcon class="w-4 h-4" />
-      </button>
+      </AppButton>
     </div>
   </aside>
 </template>
@@ -151,6 +155,9 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { CartItem, Voucher } from '../types';
+import AppButton from './ui/AppButton.vue';
+import AppInput from './ui/AppInput.vue';
+import AppBadge from './ui/appBadge.vue';
 import {
   ShoppingCartIcon,
   ShoppingBagIcon,
@@ -290,387 +297,3 @@ const handleClearCart = () => {
   emit('clear-cart');
 };
 </script>
-
-<style scoped>
-.cart-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(15, 23, 42, 0.4);
-  z-index: 80;
-}
-
-.cart-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-@media (max-width: 767px) {
-  .cart-container {
-    position: fixed;
-    bottom: 60px;
-    left: 0;
-    right: 0;
-    height: 75vh;
-    z-index: 90;
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    transform: translateY(105%);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .cart-container.mobile-open {
-    transform: translateY(0);
-  }
-}
-
-.cart-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-primary);
-}
-
-.header-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.header-title h2 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.item-count {
-  background: rgba(99, 102, 241, 0.12);
-  color: var(--accent-primary);
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 1px solid rgba(99, 102, 241, 0.3);
-}
-
-.btn-clear {
-  background: transparent;
-  border: none;
-  color: var(--accent-danger);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.empty-cart {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  text-align: center;
-}
-
-.empty-icon-box {
-  margin-bottom: 0.75rem;
-}
-
-.empty-text {
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.empty-sub {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.cart-items-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.cart-item {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.item-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.item-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.item-price {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.item-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.qty-group {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--bg-primary);
-  border-radius: 8px;
-  padding: 0.15rem;
-  border: 1px solid var(--border-color);
-}
-
-.qty-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.qty-btn:hover {
-  background: var(--bg-card-hover);
-}
-
-.qty-val {
-  font-size: 0.85rem;
-  font-weight: 800;
-  min-width: 20px;
-  text-align: center;
-  color: var(--text-primary);
-}
-
-.item-subtotal {
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--accent-secondary);
-}
-
-.btn-remove {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cart-footer {
-  padding: 1rem 1.25rem;
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-primary);
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-/* Voucher Code Styling */
-.voucher-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.voucher-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.25rem 0.5rem;
-}
-
-.voucher-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  outline: none;
-}
-
-.btn-voucher-apply {
-  padding: 0.35rem 0.75rem;
-  background: var(--accent-primary);
-  border: none;
-  border-radius: 6px;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.btn-voucher-apply:hover {
-  opacity: 0.9;
-}
-
-.voucher-badge {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.voucher-badge.success {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
-}
-
-.voucher-badge.error {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #f87171;
-}
-
-.voucher-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.voucher-title {
-  font-weight: 800;
-}
-
-.voucher-desc {
-  font-size: 0.7rem;
-  opacity: 0.9;
-}
-
-.btn-voucher-remove {
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 0.2rem;
-}
-
-.voucher-hints {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.hints-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.hint-pill {
-  padding: 0.15rem 0.45rem;
-  background: var(--bg-secondary);
-  border: 1px dashed var(--border-color);
-  border-radius: 999px;
-  color: var(--accent-primary);
-  font-size: 0.68rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.hint-pill:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--accent-primary);
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.discount-input-wrapper {
-  display: flex;
-  align-items: center;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 0.15rem 0.4rem;
-}
-
-.input-rp {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-right: 0.25rem;
-}
-
-.discount-input {
-  width: 75px;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-family: var(--font-family);
-  font-size: 0.85rem;
-  text-align: right;
-  outline: none;
-}
-
-.divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 0.2rem 0;
-}
-
-.grand-total-row {
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.grand-total-val {
-  font-size: 1.25rem;
-  color: var(--accent-secondary);
-  font-weight: 800;
-}
-
-.btn-checkout {
-  width: 100%;
-  padding: 0.85rem;
-  font-size: 1rem;
-  margin-top: 0.35rem;
-}
-</style>
