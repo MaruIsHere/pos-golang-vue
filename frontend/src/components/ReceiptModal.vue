@@ -1,6 +1,6 @@
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:static print:inset-auto print:bg-transparent print:p-0 print:flex-none print:items-start print:justify-start" @click.self="$emit('close')">
-    <div class="w-full max-w-[420px] rounded-xl shadow-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 flex flex-col max-h-[90vh] print:shadow-none print:bg-transparent print:text-black print:max-h-none print:max-w-full">
+    <div class="w-full max-w-[420px] rounded-xl shadow-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex flex-col max-h-[90vh] print:shadow-none print:bg-transparent print:text-black print:max-h-none print:max-w-full">
       <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 print:hidden">
         <h3 class="text-lg font-bold">Struk Belanja</h3>
         <button class="bg-transparent border-none cursor-pointer p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" @click="$emit('close')">

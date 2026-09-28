@@ -7,14 +7,14 @@
   ></div>
 
   <aside 
-    class="flex flex-col h-full w-full rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm backdrop-blur-md bg-white/90 dark:bg-slate-900/90 max-md:fixed max-md:bottom-[60px] max-md:left-0 max-md:right-0 max-md:h-[75vh] max-md:z-[90] max-md:rounded-t-xl max-md:rounded-b-none max-md:translate-y-[105%] max-md:transition-transform max-md:duration-300 max-md:ease-[cubic-bezier(0.16,1,0.3,1)]" 
+    class="flex flex-col h-full w-full rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm bg-white dark:bg-slate-800 max-md:fixed max-md:bottom-[60px] max-md:left-0 max-md:right-0 max-md:h-[75vh] max-md:z-[90] max-md:rounded-t-xl max-md:rounded-b-none max-md:translate-y-[105%] max-md:transition-transform max-md:duration-300 max-md:ease-[cubic-bezier(0.16,1,0.3,1)]" 
     :class="{ 'max-md:translate-y-0': isOpenMobile }"
   >
     <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
       <div class="flex items-center gap-2">
         <ShoppingCartIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
         <h2 class="text-[1.05rem] font-bold text-slate-900 dark:text-slate-100">Keranjang</h2>
-        <AppBadge variant="primary" class="text-xs font-bold">{{ totalItemCount }} Item</AppBadge>
+        <AppBadge variant="info" class="text-xs font-bold">{{ totalItemCount }} Item</AppBadge>
       </div>
       <AppButton v-if="cart.length > 0" variant="ghost" class="text-red-500 text-[0.8rem] font-semibold hover:text-red-600 p-0" @click="handleClearCart">
         Hapus Semua

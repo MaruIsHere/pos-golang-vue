@@ -1,6 +1,6 @@
 <template>
   <div 
-    class="group flex flex-col overflow-hidden cursor-pointer transition-all duration-200 relative h-full rounded-xl border border-slate-200 dark:border-slate-700 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500"
+    class="group flex flex-col overflow-hidden cursor-pointer transition-all duration-200 relative h-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-500"
     :class="{ 'opacity-65 cursor-not-allowed hover:translate-y-0 hover:shadow-none hover:border-slate-200 dark:hover:border-slate-700': product.stock <= 0 }"
     @click="addToCart"
   >
@@ -19,8 +19,8 @@
       </AppBadge>
       <AppBadge 
         v-if="product.category" 
-        variant="secondary"
-        class="absolute bottom-2 left-2 text-[0.65rem] font-semibold px-1.5 py-0.5 border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm text-slate-600 dark:text-slate-400 rounded-md"
+        variant="neutral"
+        class="absolute bottom-2 left-2 text-[0.65rem] font-semibold px-1.5 py-0.5 border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-md"
       >
         {{ product.category.name }}
       </AppBadge>
