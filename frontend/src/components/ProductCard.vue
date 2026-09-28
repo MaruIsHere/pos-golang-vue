@@ -1,9 +1,10 @@
 <template>
   <div 
-    class="group flex flex-col cursor-pointer transition-all duration-300 relative rounded-[24px] bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400/50 dark:hover:border-indigo-500/50 h-fit"
+    class="group flex flex-col cursor-pointer transition-all duration-300 relative rounded-[24px] bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400/50 dark:hover:border-indigo-500/50 h-full"
     :class="{ 'opacity-50 grayscale-[50%] cursor-not-allowed hover:translate-y-0 hover:shadow-sm': product.stock <= 0 }"
     @click="addToCart"
   >
+    <!-- Kontainer Gambar dengan Rasio Paten 4:3 -->
     <div class="relative w-full aspect-[4/3] p-2 shrink-0">
       <div class="w-full h-full overflow-hidden rounded-[18px] bg-slate-100 dark:bg-slate-900 shadow-inner relative">
         <img 
@@ -22,14 +23,23 @@
       </AppBadge>
     </div>
     
-    <div class="flex flex-col px-4 pb-4 pt-2">
-      <div class="flex items-center gap-1.5 mb-1.5">
+    <!-- Kontainer Teks yang Fleksibel -->
+    <div class="flex flex-col px-4 pb-4 pt-2 flex-1">
+      <div class="flex items-center gap-1.5 mb-1.5 shrink-0">
         <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider line-clamp-1">
           {{ product.category?.name || 'Umum' }}
         </span>
       </div>
-      <h3 class="font-bold text-slate-800 dark:text-slate-100 text-[0.95rem] leading-tight line-clamp-2 min-h-[2.5rem]">{{ product.name }}</h3>
-      <p class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400 mt-2">Rp {{ formatPrice(product.price) }}</p>
+      
+      <!-- Judul dikunci ukurannya setara 2 baris teks (sekitar 2.5rem) agar kartu simetris -->
+      <h3 class="font-bold text-slate-800 dark:text-slate-100 text-[0.95rem] leading-tight line-clamp-2 h-[2.5rem] shrink-0">
+        {{ product.name }}
+      </h3>
+      
+      <!-- Harga didorong ke paling bawah agar sejajar semua -->
+      <p class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400 mt-auto pt-2">
+        Rp {{ formatPrice(product.price) }}
+      </p>
     </div>
   </div>
 </template>
