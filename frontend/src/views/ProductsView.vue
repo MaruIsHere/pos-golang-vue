@@ -1,33 +1,22 @@
 <template>
-  <!-- WRAPPER UTAMA -->
   <div class="flex flex-col lg:flex-row gap-5 h-full lg:max-h-[calc(100vh-100px)]">
     
     <!-- KARTU KIRI: SIDEBAR FILTER -->
     <div class="w-full lg:w-[300px] shrink-0 flex flex-col gap-5 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm p-5 lg:overflow-y-auto custom-scrollbar">
-      
       <div class="flex flex-col gap-1.5">
         <h2 class="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Katalog</h2>
         <p class="text-[0.8rem] font-medium text-slate-500 dark:text-slate-400">Atur produk & kategori.</p>
       </div>
-      
       <div class="h-px w-full bg-slate-100 dark:bg-slate-700/50"></div>
       
       <div class="flex flex-col gap-4">
-        <!-- Pencarian -->
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Pencarian</label>
           <div class="relative w-full">
-            <AppInput 
-              type="text" 
-              class="w-full pl-10 pr-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20" 
-              v-model="searchQuery" 
-              placeholder="Nama / SKU..."
-            />
+            <AppInput type="text" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20" v-model="searchQuery" placeholder="Nama / SKU..." />
             <MagnifyingGlassIcon class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
-
-        <!-- Kategori -->
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Kategori</label>
           <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedCatId">
@@ -35,8 +24,6 @@
             <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
           </select>
         </div>
-
-        <!-- Artist -->
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Artist</label>
           <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedArtist">
@@ -44,8 +31,6 @@
             <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
           </select>
         </div>
-
-        <!-- Tipe Produk -->
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Tipe Produk</label>
           <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedProductType">
@@ -54,12 +39,10 @@
           </select>
         </div>
       </div>
-    </div> <!-- TUTUP KARTU KIRI -->
+    </div>
 
     <!-- KARTU KANAN: KONTEN PRODUK (SCROLLABLE) -->
     <div class="flex-1 flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm overflow-hidden min-w-0">
-      
-      <!-- Sticky Header: Tombol Aksi -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 border-b border-slate-100 dark:border-slate-700/50 shrink-0 bg-white dark:bg-slate-800 z-10">
         <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           Daftar Produk 
@@ -77,16 +60,12 @@
         </div>
       </div>
 
-      <!-- Scrollable Grid Content -->
       <div class="flex-1 overflow-y-auto p-5 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/20">
-        
-        <!-- Loading State -->
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 bg-white/40 dark:bg-slate-800/40 rounded-[24px]">
           <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
           <p class="text-sm font-semibold text-slate-500">Memuat katalog...</p>
         </div>
 
-        <!-- Empty State -->
         <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center py-24 px-6 text-center bg-white/60 dark:bg-slate-800/40 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[24px]">
           <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
             <MagnifyingGlassIcon class="w-10 h-10 text-slate-400" />
@@ -95,7 +74,6 @@
           <p class="text-sm text-slate-500 mt-1 max-w-sm">Produk yang dicari tidak ditemukan.</p>
         </div>
 
-        <!-- Grid Produk -->
         <div v-else class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <div v-for="prod in filteredProducts" :key="prod.id" class="group flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400/50 transition-all h-full">
             
@@ -125,17 +103,92 @@
                   <TrashIcon class="w-3.5 h-3.5" /> Hapus
                 </button>
               </div>
-            </div> <!-- TUTUP DETAILS -->
+            </div>
 
-          </div> <!-- TUTUP CARD -->
-        </div> <!-- TUTUP GRID -->
-      </div> <!-- TUTUP KONTEN SCROLLABLE -->
-    </div> <!-- TUTUP KARTU KANAN -->
-    
-  </div> <!-- TUTUP WRAPPER UTAMA (INI YANG HILANG TADI) -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Product Form Modal (Add / Edit) -->
+    <div v-if="isProductModalOpen" class="modal-overlay" @click.self="isProductModalOpen = false">
+      <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90 modal-lg">
+        <div class="modal-header">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ editingId ? 'Edit Produk & Sub-Kategori' : 'Tambah Produk Baru' }}</h3>
+          <AppButton variant="primary" class="" @click="isProductModalOpen = false">
+            <XMarkIcon class="w-5 h-5 text-slate-500" />
+          </AppButton>
+        </div>
 
+        <form @submit.prevent="saveProduct" class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nama Produk *</label>
+            <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.name" required placeholder="Contoh: Keyring Chibi Character" />
+          </div>
 
-  <!-- Category Modal -->
+          <div class="form-group">
+            <label class="form-label">Kategori Utama *</label>
+            <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.category_id" required>
+              <option value="" disabled>Pilih Kategori</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Artist</label>
+              <AppInput type="text" list="artist-list" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.artist" placeholder="Contoh: Nama Artist / Kreator" />
+              <datalist id="artist-list">
+                <option v-for="a in availableArtists" :key="a" :value="a" />
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipe Produk</label>
+              <AppInput type="text" list="type-list" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.product_type" placeholder="Contoh: Art Print, Merchandise, Apparel" />
+              <datalist id="type-list">
+                <option v-for="t in availableProductTypes" :key="t" :value="t" />
+              </datalist>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Harga Jual (Rp) *</label>
+              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.price" required min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Harga Modal (Rp)</label>
+              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.cost_price" min="0" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Stok Awal *</label>
+              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.stock" required min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kode SKU / Barcode</label>
+              <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.barcode" placeholder="8991001" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">URL Gambar (Opsional)</label>
+            <AppInput type="url" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.image_url" placeholder="https://..." />
+          </div>
+
+          <div class="modal-footer">
+            <AppButton variant="secondary" type="button" class="" @click="isProductModalOpen = false">Batal</AppButton>
+            <AppButton variant="primary" type="submit" class="" :disabled="isSaving">
+              {{ isSaving ? 'Menyimpan...' : 'Simpan Produk' }}
+            </AppButton>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Category Modal -->
     <div v-if="isCategoryModalOpen" class="modal-overlay" @click.self="isCategoryModalOpen = false">
       <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
         <div class="modal-header">
