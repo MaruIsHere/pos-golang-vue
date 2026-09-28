@@ -8,13 +8,15 @@ type UserRole string
 
 const (
 	RoleOwner UserRole = "OWNER"
+	RoleAdministrator UserRole = "ADMINISTRATOR"
+	RoleKepalaKasir UserRole = "KEPALA_KASIR"
 	RoleAdmin UserRole = "ADMIN"
 	RoleKasir UserRole = "KASIR"
 )
 
 func (r UserRole) IsValid() bool {
 	switch r {
-	case RoleOwner, RoleAdmin, RoleKasir:
+	case RoleOwner, RoleAdministrator, RoleAdmin, RoleKepalaKasir, RoleKasir:
 		return true
 	}
 	return false
