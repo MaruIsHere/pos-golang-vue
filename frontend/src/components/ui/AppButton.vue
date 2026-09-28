@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { cn } from '@/utils/cn'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'success'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 export type ButtonType = 'button' | 'submit' | 'reset'
 

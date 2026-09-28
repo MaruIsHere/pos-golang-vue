@@ -148,6 +148,8 @@ interface AppliedVoucher {
   description: string;
 }
 
+const voucherCode = ref("");
+
 const props = defineProps({
   cart: { type: Array as () => CartItem[], required: true },
   discount: { type: Number, default: 0 },
