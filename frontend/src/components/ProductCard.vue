@@ -1,11 +1,11 @@
 <template>
   <div 
-    class="group flex flex-col overflow-hidden cursor-pointer transition-all duration-300 relative h-full rounded-[24px] bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:shadow-[0_8px_24px_-8px_rgba(79,70,229,0.2)] hover:border-indigo-400/50 dark:hover:border-indigo-500/50"
-    :class="{ 'opacity-50 grayscale-[50%] cursor-not-allowed hover:translate-y-0 hover:shadow-none hover:border-slate-200': product.stock <= 0 }"
+    class="group flex flex-col cursor-pointer transition-all duration-300 relative rounded-[24px] bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400/50 dark:hover:border-indigo-500/50 h-fit"
+    :class="{ 'opacity-50 grayscale-[50%] cursor-not-allowed hover:translate-y-0 hover:shadow-sm': product.stock <= 0 }"
     @click="addToCart"
   >
-    <div class="relative w-full h-36 sm:h-40 p-2 shrink-0">
-      <div class="w-full h-full overflow-hidden rounded-[18px] bg-slate-50 dark:bg-slate-900 shadow-inner">
+    <div class="relative w-full aspect-[4/3] p-2 shrink-0">
+      <div class="w-full h-full overflow-hidden rounded-[18px] bg-slate-100 dark:bg-slate-900 shadow-inner relative">
         <img 
           :src="product.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" 
           :alt="product.name" 
@@ -14,7 +14,6 @@
         />
       </div>
       
-      <!-- Badges overlay directly on the image area for elegant look -->
       <AppBadge 
         class="absolute top-4 right-4 text-[0.65rem] px-2.5 py-1 font-bold shadow-sm backdrop-blur-md"
         :variant="stockBadgeVariant"
@@ -23,14 +22,14 @@
       </AppBadge>
     </div>
     
-    <div class="flex flex-col px-4 pb-4 pt-1 flex-1">
+    <div class="flex flex-col px-4 pb-4 pt-2">
       <div class="flex items-center gap-1.5 mb-1.5">
         <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider line-clamp-1">
           {{ product.category?.name || 'Umum' }}
         </span>
       </div>
-      <h3 class="font-bold text-slate-800 dark:text-slate-100 text-[0.95rem] leading-tight line-clamp-2">{{ product.name }}</h3>
-      <p class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400 mt-auto pt-3">Rp {{ formatPrice(product.price) }}</p>
+      <h3 class="font-bold text-slate-800 dark:text-slate-100 text-[0.95rem] leading-tight line-clamp-2 min-h-[2.5rem]">{{ product.name }}</h3>
+      <p class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400 mt-2">Rp {{ formatPrice(product.price) }}</p>
     </div>
   </div>
 </template>
