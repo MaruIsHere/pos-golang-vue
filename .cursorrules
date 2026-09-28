@@ -1,0 +1,7 @@
+# 🚨 ATURAN WAJIB REPOSITORI (JANGAN DILANGGAR) 🚨
+
+1. **HTTP Client**: WAJIB menggunakan instans **Axios** yang ada di `@/utils/api`. DILARANG KERAS menggunakan `fetch()` mentah atau membuat wrapper buatan sendiri!
+2. **CSS Framework**: Repositori ini sudah bermigrasi murni ke **Tailwind CSS v4**. DILARANG menggunakan variabel CSS usang seperti `var(--bg-card)` atau `var(--bg-primary)`. Gunakan kelas bawaan Tailwind (misal: `bg-slate-50 dark:bg-slate-900`).
+3. **STYLE.CSS (SANGAT KRITIS)**: DILARANG KERAS menghapus, mengedit, atau menimpa baris `@custom-variant dark (&:where(.dark, .dark *));` dan blok `@theme` di dalam `src/assets/styles.css`. Itu adalah nyawa dari fitur Dark Mode aplikasi ini!
+4. **UI Components**: Jika membuat form atau layout, WAJIB memprioritaskan UI Kit bawaan kita (`<AppButton>`, `<AppInput>`, `<AppCard>`, `<AppBadge>`). DILARANG memakai `<button class="btn">` mentah.
+5. **Logic Standard**: Gunakan TypeScript standar industri, jangan buat fungsi experimental.
