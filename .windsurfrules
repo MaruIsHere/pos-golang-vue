@@ -32,3 +32,5 @@ Setiap kali user meminta fitur baru, pikirkan: "Bagaimana jika saat fungsi ini d
 Jika jawaban dari fitur tersebut adalah "crash" atau "loading selamanya", maka kode Anda SALAH. Aplikasi harus tetap responsif dan menyimpan antrean pekerjaan secara lokal.
 
 6. **BACA DOKUMENTASI TERLEBIH DAHULU**: SEBELUM MENULIS KODE ATAU MEROMBAK SISTEM, BACA SELURUH DOKUMENTASI YANG ADA (seperti README.md atau folder docs/) TERLEBIH DAHULU! JANGAN pernah berasumsi atau menebak-nebak struktur folder/kode sendiri. Pahami visi arsitekturnya dulu sebelum bekerja!
+
+7. **PECAH TUGAS (STEP-BY-STEP)**: Untuk menghemat penggunaan token dan mencegah kerusakan kode massal, JANGAN PERNAH memuntahkan ratusan baris kode sekaligus. Selalu pecah tugas yang diberikan menjadi langkah-langkah kecil dan spesifik. Buat rencananya, laporkan, lalu kerjakan SATU PER SATU secara bertahap!
