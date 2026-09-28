@@ -1,77 +1,77 @@
 <template>
-  <div class="products-page">
+  <div class="flex flex-col gap-5">
     <!-- Top Header Controls -->
-    <div class="page-header glass-panel">
-      <div class="header-title">
-        <h2>Kelola Produk & Sub-Kategori</h2>
-        <p>Atur produk, artist, dan tipe produk untuk analisa laporan kasir</p>
+    <div class="flex justify-between items-center p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+      <div class="flex flex-col gap-1">
+        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Kelola Produk & Sub-Kategori</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Atur produk, artist, dan tipe produk untuk analisa laporan kasir</p>
       </div>
 
-      <div class="header-actions">
-        <button class="btn btn-secondary flex items-center gap-1" @click="isCategoryModalOpen = true">
+      <div class="flex items-center gap-3">
+        <AppButton variant="secondary" class="flex items-center gap-1" @click="isCategoryModalOpen = true">
           <PlusIcon class="w-4 h-4" />
           <span>Kategori Baru</span>
-        </button>
-        <button class="btn btn-primary flex items-center gap-1" @click="openAddModal">
+        </AppButton>
+        <AppButton variant="primary" class="flex items-center gap-1" @click="openAddModal">
           <PlusIcon class="w-4 h-4" />
           <span>Produk Baru</span>
-        </button>
+        </AppButton>
       </div>
     </div>
 
     <!-- Search & Filter Bar -->
-    <div class="filter-bar glass-panel">
-      <input 
+    <div class="flex flex-wrap items-center gap-3 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+      <AppInput 
         type="text" 
-        class="form-control search-input" 
+        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 flex-auto min-w-[200px]" 
         v-model="searchQuery" 
         placeholder="Cari produk, SKU, artist, atau tipe..."
       />
 
-      <select class="form-control filter-select" v-model="selectedCatId">
+      <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 flex-none min-w-[140px]" v-model="selectedCatId">
         <option :value="null">Semua Kategori</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">
           {{ cat.name }}
         </option>
       </select>
 
-      <select class="form-control filter-select" v-model="selectedArtist">
+      <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 flex-none min-w-[140px]" v-model="selectedArtist">
         <option value="">Artist</option>
         <option v-for="a in availableArtists" :key="a" :value="a">
           {{ a }}
         </option>
       </select>
 
-      <select class="form-control filter-select" v-model="selectedProductType">
+      <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 flex-none min-w-[140px]" v-model="selectedProductType">
         <option value="">Tipe Produk</option>
         <option v-for="t in availableProductTypes" :key="t" :value="t">
           {{ t }}
         </option>
       </select>
 
-      <button 
+      <AppButton variant="secondary" 
         v-if="selectedCatId !== null || selectedArtist || selectedProductType || searchQuery" 
-        class="btn btn-secondary text-xs" 
+        class="text-xs" 
         @click="resetFilters"
       >
         Reset Filter
-      </button>
+      </AppButton>
     </div>
 
     <!-- Products Table / Grid -->
-    <div class="table-container glass-panel">
-      <table class="data-table">
+    <div class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+      <table class="w-full text-left text-sm">
         <thead>
           <tr>
-            <th>Gambar</th>
-            <th>Nama Produk</th>
-            <th>Kategori</th>
-            <th>Artist</th>
-            <th>Tipe Produk</th>
-            <th>Harga Jual</th>
-            <th>Harga Modal</th>
-            <th>Stok</th>
-            <th>SKU / Barcode</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Gambar</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Nama Produk</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Kategori</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Artist</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Tipe Produk</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Harga Jual</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Harga Modal</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Stok</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">SKU / Barcode</th>
             <th class="text-right">Aksi</th>
           </tr>
         </thead>
@@ -83,42 +83,42 @@
             <td colspan="10" class="text-center">Tidak ada produk ditemukan</td>
           </tr>
           <tr v-else v-for="prod in filteredProducts" :key="prod.id">
-            <td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
               <img 
                 :src="prod.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" 
-                class="prod-thumb"
+                class="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700"
               />
             </td>
-            <td>
-              <div class="prod-name-box">
-                <span class="prod-name">{{ prod.name }}</span>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
+              <div class="font-semibold text-slate-900 dark:text-slate-100-box">
+                <span class="font-semibold text-slate-900 dark:text-slate-100">{{ prod.name }}</span>
               </div>
             </td>
-            <td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
               <span class="cat-tag">{{ prod.category ? prod.category.name : '-' }}</span>
             </td>
-            <td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
               <span class="sub-tag artist-tag">{{ prod.artist || '-' }}</span>
             </td>
-            <td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
               <span class="sub-tag type-tag">{{ prod.product_type || '-' }}</span>
             </td>
             <td class="font-bold price-text">Rp {{ formatPrice(prod.price) }}</td>
-            <td class="text-muted">Rp {{ formatPrice(prod.cost_price ?? 0) }}</td>
-            <td>
+            <td class="text-slate-400 dark:text-slate-500">Rp {{ formatPrice(prod.cost_price ?? 0) }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
               <span class="badge" :class="getStockBadge(prod.stock)">
                 {{ prod.stock }} unit
               </span>
             </td>
-            <td><code>{{ prod.barcode || '-' }}</code></td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100"><code>{{ prod.barcode || '-' }}</code></td>
             <td class="text-right">
               <div class="action-buttons">
-                <button class="btn-icon btn-edit" title="Edit Produk" @click="openEditModal(prod)">
+                <AppButton variant="secondary" class="" title="Edit Produk" @click="openEditModal(prod)">
                   <PencilSquareIcon class="w-4 h-4 text-indigo-600" />
-                </button>
-                <button class="btn-icon btn-delete" title="Hapus Produk" @click="deleteProduct(prod)">
+                </AppButton>
+                <AppButton variant="secondary" class="" title="Hapus Produk" @click="deleteProduct(prod)">
                   <TrashIcon class="w-4 h-4 text-red-600" />
-                </button>
+                </AppButton>
               </div>
             </td>
           </tr>
@@ -128,23 +128,23 @@
 
     <!-- Product Form Modal (Add / Edit) -->
     <div v-if="isProductModalOpen" class="modal-overlay" @click.self="isProductModalOpen = false">
-      <div class="modal-content glass-panel modal-lg">
+      <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90 modal-lg">
         <div class="modal-header">
-          <h3>{{ editingId ? 'Edit Produk & Sub-Kategori' : 'Tambah Produk Baru' }}</h3>
-          <button class="btn-close" @click="isProductModalOpen = false">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ editingId ? 'Edit Produk & Sub-Kategori' : 'Tambah Produk Baru' }}</h3>
+          <AppButton variant="primary" class="" @click="isProductModalOpen = false">
             <XMarkIcon class="w-5 h-5 text-slate-500" />
-          </button>
+          </AppButton>
         </div>
 
         <form @submit.prevent="saveProduct" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Produk *</label>
-            <input type="text" class="form-control" v-model="form.name" required placeholder="Contoh: Keyring Chibi Character" />
+            <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.name" required placeholder="Contoh: Keyring Chibi Character" />
           </div>
 
           <div class="form-group">
             <label class="form-label">Kategori Utama *</label>
-            <select class="form-control" v-model="form.category_id" required>
+            <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.category_id" required>
               <option value="" disabled>Pilih Kategori</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
@@ -153,14 +153,14 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Artist</label>
-              <input type="text" list="artist-list" class="form-control" v-model="form.artist" placeholder="Contoh: Nama Artist / Kreator" />
+              <AppInput type="text" list="artist-list" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.artist" placeholder="Contoh: Nama Artist / Kreator" />
               <datalist id="artist-list">
                 <option v-for="a in availableArtists" :key="a" :value="a" />
               </datalist>
             </div>
             <div class="form-group">
               <label class="form-label">Tipe Produk</label>
-              <input type="text" list="type-list" class="form-control" v-model="form.product_type" placeholder="Contoh: Art Print, Merchandise, Apparel" />
+              <AppInput type="text" list="type-list" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.product_type" placeholder="Contoh: Art Print, Merchandise, Apparel" />
               <datalist id="type-list">
                 <option v-for="t in availableProductTypes" :key="t" :value="t" />
               </datalist>
@@ -170,35 +170,35 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Harga Jual (Rp) *</label>
-              <input type="number" class="form-control" v-model.number="form.price" required min="0" />
+              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.price" required min="0" />
             </div>
             <div class="form-group">
               <label class="form-label">Harga Modal (Rp)</label>
-              <input type="number" class="form-control" v-model.number="form.cost_price" min="0" />
+              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.cost_price" min="0" />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Stok Awal *</label>
-              <input type="number" class="form-control" v-model.number="form.stock" required min="0" />
+              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.stock" required min="0" />
             </div>
             <div class="form-group">
               <label class="form-label">Kode SKU / Barcode</label>
-              <input type="text" class="form-control" v-model="form.barcode" placeholder="8991001" />
+              <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.barcode" placeholder="8991001" />
             </div>
           </div>
 
           <div class="form-group">
             <label class="form-label">URL Gambar (Opsional)</label>
-            <input type="url" class="form-control" v-model="form.image_url" placeholder="https://..." />
+            <AppInput type="url" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.image_url" placeholder="https://..." />
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="isProductModalOpen = false">Batal</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSaving">
+            <AppButton variant="secondary" type="button" class="" @click="isProductModalOpen = false">Batal</AppButton>
+            <AppButton variant="primary" type="submit" class="" :disabled="isSaving">
               {{ isSaving ? 'Menyimpan...' : 'Simpan Produk' }}
-            </button>
+            </AppButton>
           </div>
         </form>
       </div>
@@ -206,21 +206,21 @@
 
     <!-- Category Modal -->
     <div v-if="isCategoryModalOpen" class="modal-overlay" @click.self="isCategoryModalOpen = false">
-      <div class="modal-content glass-panel">
+      <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
         <div class="modal-header">
-          <h3>Tambah Kategori Utama</h3>
-          <button class="btn-close" @click="isCategoryModalOpen = false">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Tambah Kategori Utama</h3>
+          <AppButton variant="primary" class="" @click="isCategoryModalOpen = false">
             <XMarkIcon class="w-5 h-5 text-slate-500" />
-          </button>
+          </AppButton>
         </div>
         <form @submit.prevent="saveCategory" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Kategori</label>
-            <input type="text" class="form-control" v-model="catForm.name" required placeholder="Contoh: Merchandise" />
+            <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="catForm.name" required placeholder="Contoh: Merchandise" />
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="isCategoryModalOpen = false">Batal</button>
-            <button type="submit" class="btn btn-primary">Simpan Kategori</button>
+            <AppButton variant="secondary" type="button" class="" @click="isCategoryModalOpen = false">Batal</AppButton>
+            <AppButton variant="primary" type="submit" class="">Simpan Kategori</AppButton>
           </div>
         </form>
       </div>
@@ -229,6 +229,9 @@
 </template>
 
 <script setup lang="ts">
+import AppButton from '@/components/ui/AppButton.vue';
+import AppInput from '@/components/ui/AppInput.vue';
+
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Category, Product } from '../types';
@@ -327,9 +330,9 @@ const filteredProducts = computed(() => {
 });
 
 const getStockBadge = (stock: number): string => {
-  if (stock <= 0) return 'badge-danger';
+  if (stock <= 0) return 'badge';
   if (stock <= 10) return 'badge-warning';
-  return 'badge-success';
+  return 'badge';
 };
 
 const openAddModal = () => {
@@ -386,7 +389,7 @@ const saveProduct = async () => {
 };
 
 const deleteProduct = async (prod: Product): Promise<void> => {
-  if (confirm(`Hapus produk "${prod.name}"?`)) {
+  if (confirm(`Hapus produk"${prod.name}"?`)) {
     try {
       await api.delete(`/products/${prod.id}`);
       fetchProducts();
@@ -411,181 +414,4 @@ const saveCategory = async () => {
 };
 </script>
 
-<style scoped>
-.products-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-}
-
-.header-title h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.header-title p {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.85rem 1.25rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  align-items: center;
-}
-
-.search-input {
-  flex: 1 1 240px;
-  min-width: 200px;
-}
-
-.filter-select {
-  flex: 0 1 180px;
-  min-width: 140px;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-.table-container {
-  overflow-x: auto;
-  padding: 0.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 0.875rem;
-}
-
-.data-table th {
-  padding: 0.85rem 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-primary);
-  white-space: nowrap;
-}
-
-.data-table td {
-  padding: 0.85rem 0.85rem;
-  border-bottom: 1px solid var(--border-color);
-  vertical-align: middle;
-  color: var(--text-primary);
-}
-
-.prod-thumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 1px solid var(--border-color);
-}
-
-.prod-name {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.cat-tag {
-  background: rgba(99, 102, 241, 0.12);
-  color: var(--accent-primary);
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  white-space: nowrap;
-}
-
-.sub-tag {
-  display: inline-block;
-  padding: 0.18rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.artist-tag {
-  background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
-.type-tag {
-  background: rgba(236, 72, 153, 0.12);
-  color: #db2777;
-  border: 1px solid rgba(236, 72, 153, 0.25);
-}
-
-.price-text {
-  color: #059669;
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.35rem;
-}
-
-.btn-icon {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0.35rem 0.5rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-.btn-icon:hover {
-  background: var(--bg-card-hover);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.modal-lg {
-  max-width: 650px;
-}
-
-.btn-close {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-</style>

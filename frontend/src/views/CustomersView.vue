@@ -1,17 +1,17 @@
 <template>
-  <div class="customers-page">
-    <div class="page-header glass-panel">
-      <div class="header-title">
-        <h2>Master Data Pelanggan & Member</h2>
-        <p>Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member toko</p>
+  <div class="flex flex-col gap-5">
+    <div class="flex justify-between items-center p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+      <div class="flex flex-col gap-1">
+        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Master Data Pelanggan & Member</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member toko</p>
       </div>
     </div>
 
     <div class="customers-grid">
       <!-- Add / Edit Customer Form -->
-      <div class="customers-card glass-panel">
-        <div class="card-header">
-          <h3>
+      <div class="customers-card backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+        <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-900 dark:text-slate-100">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">
             <template v-if="editingId">
               <span class="flex items-center gap-1.5"><PencilSquareIcon class="w-4 h-4 text-indigo-600" /> Edit Data Pelanggan</span>
             </template>
@@ -24,9 +24,9 @@
         <form @submit.prevent="saveCustomer" class="card-body">
           <div class="form-group">
             <label class="form-label">Nama Pelanggan *</label>
-            <input
+            <AppInput
               type="text"
-              class="form-control"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
               v-model="custForm.name"
               placeholder="cth: Budi Santoso"
               required
@@ -35,9 +35,9 @@
 
           <div class="form-group">
             <label class="form-label">No. Telepon / WhatsApp</label>
-            <input
+            <AppInput
               type="text"
-              class="form-control"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
               v-model="custForm.phone"
               placeholder="cth: 081234567890"
             />
@@ -45,9 +45,9 @@
 
           <div class="form-group">
             <label class="form-label">Email</label>
-            <input
+            <AppInput
               type="email"
-              class="form-control"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
               v-model="custForm.email"
               placeholder="cth: budi@gmail.com"
             />
@@ -56,7 +56,7 @@
           <div class="form-group">
             <label class="form-label">Alamat Lengkap</label>
             <textarea
-              class="form-control"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
               rows="2"
               v-model="custForm.address"
               placeholder="Alamat rumah / kantor pelanggan..."
@@ -65,47 +65,47 @@
 
           <div class="form-group">
             <label class="form-label">Poin Loyalty</label>
-            <input
+            <AppInput
               type="number"
-              class="form-control"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
               v-model.number="custForm.points"
               min="0"
             />
           </div>
 
           <div class="form-actions">
-            <button
+            <AppButton variant="secondary"
               v-if="editingId"
               type="button"
-              class="btn btn-secondary"
+              class=""
               @click="resetForm"
             >
               Batal Edit
-            </button>
+            </AppButton>
 
-            <button type="submit" class="btn btn-success" :disabled="isSaving">
+            <AppButton variant="success" type="submit" class="" :disabled="isSaving">
               {{
                 isSaving
-                  ? "Memproses..."
+                  ?"Memproses..."
                   : editingId
-                    ? "Simpan Perubahan"
-                    : "Tambah Pelanggan"
+                    ?"Simpan Perubahan"
+                    :"Tambah Pelanggan"
               }}
-            </button>
+            </AppButton>
           </div>
         </form>
       </div>
 
       <!-- Customers Table List -->
-      <div class="customers-card glass-panel main-list-card">
-        <div class="card-header">
-          <h3>Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
+      <div class="customers-card backdrop-blur-md bg-white/90 dark:bg-slate-900/90 main-list-card">
+        <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-900 dark:text-slate-100">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
 
           <div class="search-box">
             <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
-            <input
+            <AppInput
               type="text"
-              class="search-input"
+              class="flex-auto min-w-[200px]"
               v-model="searchQuery"
               placeholder="Cari nama / HP..."
             />
@@ -113,54 +113,54 @@
         </div>
 
         <div class="card-body">
-          <div v-if="isLoading" class="loading-box">
-            <div class="spinner"></div>
-            <p>Memuat data pelanggan...</p>
+          <div v-if="isLoading" class="p-12 text-center text-slate-500">
+            <div class="w-8 h-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 rounded-full animate-spin mx-auto mb-2"></div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Memuat data pelanggan...</p>
           </div>
 
-          <div v-else-if="filteredCustomers.length === 0" class="empty-box">
-            <p>Belum ada data pelanggan yang tersimpan.</p>
+          <div v-else-if="filteredCustomers.length === 0" class="p-12 text-center text-slate-500">
+            <p class="text-sm text-slate-500 dark:text-slate-400">Belum ada data pelanggan yang tersimpan.</p>
           </div>
 
-          <div v-else class="table-wrapper">
+          <div v-else class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
             <table class="cust-table">
               <thead>
                 <tr>
-                  <th>Nama</th>
-                  <th>No. Telepon</th>
-                  <th>Email</th>
-                  <th>Alamat</th>
-                  <th>Poin</th>
+                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Nama</th>
+                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">No. Telepon</th>
+                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Email</th>
+                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Alamat</th>
+                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Poin</th>
                   <th class="text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="c in filteredCustomers" :key="c.id">
-                  <td>
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
                     <strong class="cust-name">{{ c.name }}</strong>
                   </td>
-                  <td>{{ c.phone || "-" }}</td>
-                  <td>{{ c.email || "-" }}</td>
-                  <td class="addr-col">{{ c.address || "-" }}</td>
-                  <td>
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">{{ c.phone ||"-" }}</td>
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">{{ c.email ||"-" }}</td>
+                  <td class="addr-col">{{ c.address ||"-" }}</td>
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
                     <span class="points-badge">{{ c.points }} Poin</span>
                   </td>
                   <td class="text-right">
                     <div class="action-btns">
-                      <button
-                        class="btn-icon btn-edit"
+                      <AppButton variant="secondary"
+                        class=""
                         title="Edit"
                         @click="editCustomer(c)"
                       >
                         <PencilSquareIcon class="w-4 h-4 text-indigo-600" />
-                      </button>
-                      <button
-                        class="btn-icon btn-delete"
+                      </AppButton>
+                      <AppButton variant="secondary"
+                        class=""
                         title="Hapus"
                         @click="deleteCustomer(c.id, c.name)"
                       >
                         <TrashIcon class="w-4 h-4 text-red-600" />
-                      </button>
+                      </AppButton>
                     </div>
                   </td>
                 </tr>
@@ -174,10 +174,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import AppButton from '@/components/ui/AppButton.vue';
+import AppInput from '@/components/ui/AppInput.vue';
+
+import { ref, computed, onMounted } from"vue";
 import api from '@/utils/api';
-import type { Customer } from "../types";
-import { PencilSquareIcon, TrashIcon, UserPlusIcon, MagnifyingGlassIcon } from "@heroicons/vue/24/outline";
+import type { Customer } from"../types";
+import { PencilSquareIcon, TrashIcon, UserPlusIcon, MagnifyingGlassIcon } from"@heroicons/vue/24/outline";
 
 const customers = ref<Customer[]>([]);
 const isLoading = ref(true);
@@ -186,10 +189,10 @@ const searchQuery = ref("");
 
 const editingId = ref<number | null>(null);
 const custForm = ref({
-  name: "",
-  phone: "",
-  email: "",
-  address: "",
+  name:"",
+  phone:"",
+  email:"",
+  address:"",
   points: 0,
 });
 
@@ -217,16 +220,16 @@ const filteredCustomers = computed(() => {
 
 const resetForm = () => {
   editingId.value = null;
-  custForm.value = { name: "", phone: "", email: "", address: "", points: 0 };
+  custForm.value = { name:"", phone:"", email:"", address:"", points: 0 };
 };
 
 const editCustomer = (cust: Customer): void => {
   editingId.value = cust.id;
   custForm.value = {
     name: cust.name,
-    phone: cust.phone || "",
-    email: cust.email || "",
-    address: cust.address || "",
+    phone: cust.phone ||"",
+    email: cust.email ||"",
+    address: cust.address ||"",
     points: cust.points || 0,
   };
 };
@@ -238,7 +241,7 @@ const saveCustomer = async () => {
   try {
     const url = editingId.value
       ? `/customers/${editingId.value}`
-      : "/customers";
+      :"/customers";
     
     if (editingId.value) {
       await api.put(url, custForm.value);
@@ -250,7 +253,7 @@ const saveCustomer = async () => {
     loadCustomers();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert("Koneksi error: " + errMsg);
+    alert("Koneksi error:" + errMsg);
   } finally {
     isSaving.value = false;
   }
@@ -265,184 +268,9 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
     loadCustomers();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert("Koneksi error: " + errMsg);
+    alert("Koneksi error:" + errMsg);
   }
 };
 </script>
 
-<style scoped>
-.customers-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
 
-.page-header {
-  padding: 1.25rem 1.5rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-}
-
-.header-title h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.header-title p {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.customers-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.25rem;
-}
-
-@media (min-width: 1024px) {
-  .customers-grid {
-    grid-template-columns: 360px 1fr;
-  }
-}
-
-.customers-card {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.85rem;
-}
-
-.card-header h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.25rem 0.6rem;
-}
-
-.search-input {
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-size: 0.8rem;
-  outline: none;
-  width: 130px;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-}
-
-.cust-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.cust-table th,
-.cust-table td {
-  padding: 0.75rem 0.85rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.cust-table th {
-  background: var(--bg-primary);
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.cust-name {
-  color: var(--text-primary);
-}
-
-.points-badge {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.addr-col {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.action-btns {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.35rem;
-}
-
-.btn-icon {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 0.35rem 0.5rem;
-  color: var(--text-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-icon:hover {
-  background: var(--bg-card-hover);
-}
-
-.loading-box,
-.empty-box {
-  padding: 3rem;
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--border-color);
-  border-top-color: var(--accent-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 0.5rem auto;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.text-right { text-align: right; }
-</style>
