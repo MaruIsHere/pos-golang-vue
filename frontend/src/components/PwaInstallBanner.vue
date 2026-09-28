@@ -1,6 +1,6 @@
 <template>
   <div v-if="showBanner" class="pwa-banner-wrapper">
-    <div class="pwa-banner glass-panel">
+    <div class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 p-5 flex flex-col gap-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-xl z-50">
       <div class="pwa-info">
         <div class="pwa-icon-badge">
           <DevicePhoneMobileIcon class="w-5 h-5 text-indigo-600" />
@@ -21,7 +21,7 @@
           <ArrowDownTrayIcon class="w-3.5 h-3.5" />
           <span>Install</span>
         </button>
-        <button class="btn-pwa-dismiss" title="Nanti saja" @click="dismissBanner">
+        <button class="flex-1 py-2 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title="Nanti saja" @click="dismissBanner">
           <XMarkIcon class="w-4 h-4 text-slate-400 hover:text-red-500" />
         </button>
       </div>

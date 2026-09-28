@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-5 p-1">
     <div
-      class="flex justify-between items-center py-5 px-6 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl"
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-5 px-6 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm"
     >
       <!-- <div class="flex flex-col gap-1"> -->
       <div class="">
@@ -11,14 +11,14 @@
         </p>
       </div>
 
-      <appButton variant="primary" @click="fetchOrders">
+      <AppButton variant="primary" @click="fetchOrders">
         <ArrowPathIcon class="w-4 h-4" />
         <span>Refresh</span>
-      </appButton>
+      </AppButton>
     </div>
 
     <!-- Orders Table -->
-    <div class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+    <div class="overflow-x-auto bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm">
       <table class="w-full text-left text-sm">
         <thead>
           <tr>
@@ -60,11 +60,11 @@
             </td>
             <td class="text-right">
               <div class="action-flex">
-                <appButton @click="openReceipt(order)" variant="secondary" size="sm">
+                <AppButton @click="openReceipt(order)" variant="secondary" size="sm">
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>
-                </appButton>
-                <appButton
+                </AppButton>
+                <AppButton
                   v-if="order.status !== 'refunded'"
                   @click="refundOrder(order)"
                   title="Retur Transaksi & Pulihkan Stok"
@@ -73,7 +73,7 @@
                 >
                   <ArrowUturnLeftIcon class="w-3.5 h-3.5" />
                   <span>Retur</span>
-                </appButton>
+                </AppButton>
               </div>
             </td>
           </tr>

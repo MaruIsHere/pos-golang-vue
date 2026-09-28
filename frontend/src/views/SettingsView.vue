@@ -15,7 +15,7 @@
             <SunIcon class="w-5 h-5 text-amber-500" />
             <span>Tema Tampilan (Mode Terang / Mode Gelap)</span>
           </h3>
-          <span class="active-db-badge" :class="isDarkMode ? 'mysql' : 'sqlite'">
+          <span class="px-3 py-1 text-xs font-bold rounded-full" :class="dbEngine === 'mysql' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'">
             {{ isDarkMode ? 'Mode Gelap (Dark)' : 'Mode Terang (Light)' }}
           </span>
         </div>
@@ -115,7 +115,7 @@
             </div>
 
             <div class="qris-upload-actions">
-              <label class="btn-upload flex items-center justify-center gap-1">
+              <label class="cursor-pointer flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 font-bold rounded-xl hover:bg-indigo-600 hover:text-white transition-colors">
                 <ArrowUpTrayIcon class="w-4 h-4" />
                 <span>Upload Gambar QRIS</span>
                 <input type="file" accept="image/*" @change="onQrisFileSelected" style="display: none;" />
@@ -436,13 +436,13 @@
       </div>
 
       <!-- 4. Database Engine Switcher Panel -->
-      <div class="settings-card glass-panel highlight-card full-width-card">
+      <div class="flex flex-col p-6 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 rounded-[24px] shadow-sm mt-6">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5">
             <CircleStackIcon class="w-5 h-5 text-indigo-600" />
             <span>Engine Basis Data (Database Switcher)</span>
           </h3>
-          <span class="active-db-badge" :class="dbEngine === 'mysql' ? 'mysql' : 'sqlite'">
+          <span class="px-3 py-1 text-xs font-bold rounded-full" :class="dbEngine === 'mysql' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'">
             Aktif: {{ dbEngine.toUpperCase() }}
           </span>
         </div>
