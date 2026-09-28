@@ -1,35 +1,36 @@
 <template>
-  <div class="h-full w-full flex flex-col lg:grid lg:grid-cols-3 xl:grid-cols-4 gap-4 relative">
+  <div class="h-[calc(100vh-8rem)] md:h-[calc(100vh-6.5rem)] w-full flex flex-col lg:grid lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px] gap-6 relative">
+    
     <!-- Left Area: Catalog & Products -->
-    <div class="lg:col-span-2 xl:col-span-3 flex flex-col gap-4 h-full min-h-0">
+    <div class="flex flex-col gap-5 h-full min-h-0 relative">
       
-      <!-- Search Bar & Barcode Scanner -->
-      <div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm shrink-0">
-        <div class="relative flex-1 flex items-center bg-slate-100 dark:bg-slate-900/50 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700/50 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+      <!-- Apple-style Search Bar & Scan -->
+      <div class="flex items-center gap-3 shrink-0 relative z-10">
+        <div class="relative flex-1 flex items-center bg-white dark:bg-slate-800 rounded-full px-5 py-3 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700/50 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:border-indigo-300 dark:focus-within:border-indigo-600 transition-all duration-300">
           <MagnifyingGlassIcon class="w-5 h-5 text-slate-400 shrink-0" />
           <input 
             type="text" 
-            class="w-full bg-transparent border-none outline-none text-sm font-semibold text-slate-800 dark:text-slate-100 ml-2 placeholder:text-slate-500 placeholder:font-normal" 
+            class="w-full bg-transparent border-none outline-none text-[0.95rem] font-medium text-slate-800 dark:text-slate-100 ml-3 placeholder:text-slate-400" 
             v-model="searchQuery" 
-            placeholder="Cari nama produk atau ketik / scan barcode SKU..." 
+            placeholder="Cari nama produk, artist, atau scan barcode..." 
             @keyup.enter="onBarcodeSubmit"
           />
-          <button v-if="searchQuery" class="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors" @click="searchQuery = ''">
-            <XMarkIcon class="w-4 h-4 text-slate-400" />
+          <button v-if="searchQuery" class="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-full transition-colors text-slate-500" @click="searchQuery = ''">
+            <XMarkIcon class="w-4 h-4" />
           </button>
         </div>
 
-        <button class="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 rounded-xl font-bold text-sm shrink-0 transition-colors border border-indigo-200 dark:border-indigo-800/50 shadow-sm active:scale-95" title="Buka Scanner Barcode" @click="isScannerModalOpen = true">
+        <button class="flex items-center gap-2 px-6 py-3.5 bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:scale-105 active:scale-95 rounded-full font-bold text-sm shrink-0 transition-transform shadow-[0_4px_15px_-3px_rgba(0,0,0,0.15)]" title="Buka Scanner Barcode" @click="isScannerModalOpen = true">
           <CameraIcon class="w-5 h-5" />
-          <span class="hidden sm:inline">Scan</span>
+          <span class="hidden sm:inline">Scanner</span>
         </button>
       </div>
 
-      <!-- Categories Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 no-scrollbar scroll-smooth">
+      <!-- M3 Segmented Categories Pills -->
+      <div class="flex items-center gap-2.5 overflow-x-auto pb-2 shrink-0 no-scrollbar snap-x">
         <button 
-          class="px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all border shadow-sm" 
-          :class="selectedCategoryId === null ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'"
+          class="px-5 py-2 rounded-full text-[0.85rem] font-bold whitespace-nowrap transition-all duration-300 shadow-sm snap-start" 
+          :class="selectedCategoryId === null ? 'bg-indigo-600 text-white border-transparent shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
           @click="selectedCategoryId = null"
         >
           Semua Produk
@@ -37,53 +38,44 @@
         <button 
           v-for="cat in categories" 
           :key="cat.id" 
-          class="px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all border shadow-sm" 
-          :class="selectedCategoryId === cat.id ? 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'"
+          class="px-5 py-2 rounded-full text-[0.85rem] font-bold whitespace-nowrap transition-all duration-300 shadow-sm snap-start" 
+          :class="selectedCategoryId === cat.id ? 'bg-indigo-600 text-white border-transparent shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
           @click="selectedCategoryId = cat.id"
         >
           {{ cat.name }}
         </button>
       </div>
 
-      <!-- Sub-categories Dropdown Bar -->
-      <div class="flex flex-wrap items-center gap-2 shrink-0 pb-2 border-b border-slate-200 dark:border-slate-700/50">
-        <div class="relative flex-1 sm:flex-none">
-          <select class="px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 outline-none focus:border-indigo-500 w-full sm:w-auto shadow-sm cursor-pointer" v-model="selectedArtist">
-            <option value="">Filter Artist</option>
-            <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
-          </select>
-        </div>
-
-        <div class="relative flex-1 sm:flex-none">
-          <select class="px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 outline-none focus:border-indigo-500 w-full sm:w-auto shadow-sm cursor-pointer" v-model="selectedProductType">
-            <option value="">Tipe Produk</option>
-            <option v-for="t in availableProductTypes" :key="t" :value="t">{{ t }}</option>
-          </select>
-        </div>
-
-        <button 
-          v-if="selectedArtist || selectedProductType" 
-          class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/50 transition-colors shadow-sm ml-auto sm:ml-0" 
-          @click="resetSubFilters"
-          title="Reset Sub-Filter"
-        >
-          Reset Filter
+      <!-- Compact Sub-categories Filter -->
+      <div class="flex items-center gap-3 shrink-0">
+        <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedArtist">
+          <option value="">Semua Artist</option>
+          <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
+        </select>
+        <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedProductType">
+          <option value="">Semua Tipe Produk</option>
+          <option v-for="t in availableProductTypes" :key="t" :value="t">{{ t }}</option>
+        </select>
+        <button v-if="selectedArtist || selectedProductType" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 rounded-xl transition-colors shadow-sm ml-auto" @click="resetSubFilters">
+          Reset
         </button>
       </div>
 
-      <!-- Products Grid -->
-      <div v-if="isLoading" class="flex flex-col items-center justify-center flex-1 min-h-[300px] gap-3">
-        <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-        <p class="text-sm font-semibold text-slate-500">Memuat katalog produk...</p>
+      <!-- Products Grid (Independent Scroll) -->
+      <div v-if="isLoading" class="flex flex-col items-center justify-center flex-1 min-h-[300px] gap-4 bg-white/40 dark:bg-slate-800/20 rounded-[32px]">
+        <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-slate-500">Memuat katalog...</p>
       </div>
 
-      <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center flex-1 min-h-[300px] p-8 text-center bg-white/50 dark:bg-slate-800/30 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
-        <MagnifyingGlassIcon class="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-        <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300">Produk tidak ditemukan</h3>
-        <p class="text-sm text-slate-500 mt-1">Coba gunakan kata kunci pencarian atau kategori lain</p>
+      <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center flex-1 min-h-[300px] p-8 text-center bg-white/60 dark:bg-slate-800/40 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[32px]">
+        <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
+          <MagnifyingGlassIcon class="w-10 h-10 text-slate-400" />
+        </div>
+        <h3 class="text-[1.1rem] font-bold text-slate-800 dark:text-slate-200">Produk tidak ditemukan</h3>
+        <p class="text-sm text-slate-500 mt-1 max-w-sm">Coba gunakan kata kunci pencarian yang lebih singkat atau pilih kategori lain.</p>
       </div>
 
-      <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 overflow-y-auto pb-24 lg:pb-4 min-h-0 pr-1 custom-scrollbar">
+      <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-5 overflow-y-auto pb-24 lg:pb-6 pr-2 -mr-2 min-h-0 custom-scrollbar content-start">
         <ProductCard 
           v-for="prod in filteredProducts" 
           :key="prod.id" 
@@ -94,7 +86,7 @@
     </div>
 
     <!-- Right Area: Cart Drawer (Desktop) -->
-    <div class="hidden lg:flex flex-col lg:col-span-1 h-full min-h-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+    <div class="hidden lg:flex flex-col lg:col-span-1 h-full min-h-0 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden relative z-20">
       <CartDrawer 
         :cart="cart"
         :discount="discount"
@@ -110,11 +102,11 @@
     </div>
 
     <!-- Floating Mobile Cart Trigger (Khusus Layar Kecil) -->
-    <div v-if="cart.length > 0" class="lg:hidden fixed bottom-20 left-4 right-4 flex items-center justify-between p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-xl font-bold cursor-pointer z-40 active:scale-95 transition-all" @click="isMobileCartOpen = true">
-      <div class="flex items-center gap-2">
+    <div v-if="cart.length > 0" class="lg:hidden fixed bottom-6 left-4 right-4 flex items-center justify-between p-4 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.15)] font-bold cursor-pointer z-[60] active:scale-[0.98] transition-all" @click="isMobileCartOpen = true">
+      <div class="flex items-center gap-3">
         <div class="relative">
           <ShoppingCartIcon class="w-6 h-6" />
-          <span class="absolute -top-2 -right-2 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[10px] font-black rounded-full border border-indigo-600">{{ totalCartItems }}</span>
+          <span class="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-indigo-600 text-white text-[10px] font-black rounded-full border-2 border-slate-900 dark:border-white">{{ totalCartItems }}</span>
         </div>
         <span class="text-sm">Keranjang</span>
       </div>

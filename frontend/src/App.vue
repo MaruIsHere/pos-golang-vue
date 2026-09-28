@@ -5,8 +5,8 @@
     <PwaInstallBanner />
 
     <main class="flex flex-1 overflow-hidden relative md:pl-20 md:pt-16 pt-12 pb-16 md:pb-0">
-      <div class="flex-1 overflow-y-auto p-5">
-        <router-view />
+      <div class="flex-1 h-full w-full overflow-y-auto overflow-x-hidden p-3 md:p-5 flex flex-col relative">
+        <router-view class="flex-1 w-full min-h-0" />
       </div>
     </main>
   </div>
