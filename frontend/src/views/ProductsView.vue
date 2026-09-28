@@ -1,4 +1,5 @@
 <template>
+  <!-- WRAPPER UTAMA -->
   <div class="flex flex-col lg:flex-row gap-5 h-full lg:max-h-[calc(100vh-100px)]">
     
     <!-- KARTU KIRI: SIDEBAR FILTER -->
@@ -53,7 +54,7 @@
           </select>
         </div>
       </div>
-    </div>
+    </div> <!-- TUTUP KARTU KIRI -->
 
     <!-- KARTU KANAN: KONTEN PRODUK (SCROLLABLE) -->
     <div class="flex-1 flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm overflow-hidden min-w-0">
@@ -124,13 +125,14 @@
                   <TrashIcon class="w-3.5 h-3.5" /> Hapus
                 </button>
               </div>
-            </div>
+            </div> <!-- TUTUP DETAILS -->
 
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+          </div> <!-- TUTUP CARD -->
+        </div> <!-- TUTUP GRID -->
+      </div> <!-- TUTUP KONTEN SCROLLABLE -->
+    </div> <!-- TUTUP KARTU KANAN -->
+    
+  </div> <!-- TUTUP WRAPPER UTAMA (INI YANG HILANG TADI) -->
 
 
   <!-- Category Modal -->
