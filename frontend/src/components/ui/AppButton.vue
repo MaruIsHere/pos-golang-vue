@@ -32,7 +32,8 @@ const variantStyles: Record<ButtonVariant, string> = {
   outline: 'bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 focus:ring-slate-500'
 }
 
-const sizeStyles: Record<ButtonSize, string> = {
+const sizeStyles: Record<ButtonSize,
+  success: 'bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:ring-emerald-500 shadow-sm', string> = {
   sm: 'h-8 px-3 text-xs rounded',
   md: 'h-10 px-4 py-2 text-sm rounded-md',
   lg: 'h-12 px-8 text-base rounded-lg',

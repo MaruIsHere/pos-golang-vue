@@ -385,7 +385,7 @@
                       <td colspan="5">
                         <form class="staff-password-form" @submit.prevent="changeStaffPassword">
                           <div class="staff-password-heading">
-                            <strong>Ganti sandi untuk {{ staffPasswordTarget.username }}</strong>
+                            <strong>Ganti sandi untuk {{ staffPasswordTarget?.username }}</strong>
                             <span class="text-xs text-slate-500">Minimal 6 karakter</span>
                           </div>
                           <div class="staff-password-fields">
