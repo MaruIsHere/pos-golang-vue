@@ -30,3 +30,5 @@ Sistem saat ini sedang dalam tahap perombakan dan optimasi. JANGAN menambahkan l
 ## 5. BAGAIMANA AI HARUS BERPIKIR (AI SKILL)
 Setiap kali user meminta fitur baru, pikirkan: "Bagaimana jika saat fungsi ini dijalankan, internet tiba-tiba mati total?"
 Jika jawaban dari fitur tersebut adalah "crash" atau "loading selamanya", maka kode Anda SALAH. Aplikasi harus tetap responsif dan menyimpan antrean pekerjaan secara lokal.
+
+6. **BACA DOKUMENTASI TERLEBIH DAHULU**: SEBELUM MENULIS KODE ATAU MEROMBAK SISTEM, BACA SELURUH DOKUMENTASI YANG ADA (seperti README.md atau folder docs/) TERLEBIH DAHULU! JANGAN pernah berasumsi atau menebak-nebak struktur folder/kode sendiri. Pahami visi arsitekturnya dulu sebelum bekerja!
