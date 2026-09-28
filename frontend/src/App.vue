@@ -4,7 +4,7 @@
 
     <PwaInstallBanner />
 
-    <main class="flex flex-1 overflow-hidden relative">
+    <main class="flex flex-1 overflow-hidden relative md:pl-20 md:pt-16 pt-12 pb-16 md:pb-0">
       <div class="flex-1 overflow-y-auto p-5">
         <router-view />
       </div>

@@ -1,80 +1,90 @@
 <template>
-  <header class="sticky top-0 z-40 w-full flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors duration-200">
-    
-    <!-- Bagian Kiri: Logo & Info Store -->
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
-        <ShoppingCartIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-      </div>
-      <div class="flex flex-col">
-        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-tight">
-          {{ storeSetting.store_name || 'POS KASIR PRO' }}
-        </h1>
-        <span 
-          class="inline-flex items-center gap-1.5 px-1.5 py-0.5 mt-0.5 rounded text-[10px] font-bold uppercase tracking-wider w-fit"
-          :class="storeSetting.db_engine === 'mysql' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'"
-        >
-          <span class="w-1.5 h-1.5 rounded-full" :class="storeSetting.db_engine === 'mysql' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'"></span> 
-          {{ (storeSetting.db_engine || 'sqlite').toUpperCase() }}
-        </span>
-      </div>
+  <!-- 1. NAVIGATION RAIL (KIRI) - Khusus Desktop/Tablet -->
+  <nav class="hidden md:flex fixed left-0 top-0 h-full w-20 flex-col items-center bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 py-4 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <!-- Logo POS -->
+    <div class="w-12 h-12 mb-6 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+      <ShoppingCartIcon class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
     </div>
 
-    <!-- Bagian Tengah: Desktop Navigation -->
-    <nav class="hidden md:flex items-center gap-1.5">
+    <!-- Menu Utama -->
+    <div class="flex flex-col gap-3 w-full px-2 flex-1 overflow-y-auto no-scrollbar items-center">
       <RouterLink
         v-for="item in navItems"
         :key="item.id"
         :to="item.to"
-        class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
-        active-class="bg-slate-100 dark:bg-slate-800 !text-indigo-600 dark:!text-indigo-400 shadow-sm"
+        class="group flex flex-col items-center justify-center w-14 h-14 rounded-2xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 relative"
+        active-class="bg-indigo-100 dark:bg-indigo-900/40 !text-indigo-700 dark:!text-indigo-400 shadow-inner"
+        :title="item.label"
       >
-        <component :is="item.iconComp" class="w-4 h-4 shrink-0" />
-        <span>{{ item.label }}</span>
+        <component :is="item.iconComp" class="w-6 h-6 shrink-0 transition-transform group-hover:scale-110" />
+        <span class="text-[9px] font-bold mt-1 tracking-tight">{{ item.label }}</span>
+        <!-- Badge Keranjang (Khusus menu Kasir) -->
+        <span v-if="item.id === 'register' && cartCount > 0" class="absolute top-0 right-0 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full border-2 border-white dark:border-slate-900 shadow-sm animate-pulse">
+          {{ cartCount }}
+        </span>
       </RouterLink>
-    </nav>
+    </div>
 
-    <!-- Bagian Kanan: Aksi & Profil -->
-    <div class="flex items-center gap-2 sm:gap-3">
-      <!-- User Profile (Hidden di HP super kecil) -->
-      <div v-if="authStore.user" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg">
-        <UserIcon class="w-4 h-4 text-indigo-500" />
-        <div class="flex flex-col leading-tight">
-          <span class="text-xs font-semibold text-slate-900 dark:text-slate-100">{{ authStore.user.username }}</span>
-          <span class="text-[9px] font-extrabold uppercase tracking-wider mt-0.5 w-fit" :class="roleBadgeClass">
+    <!-- Tombol Tema di Bawah Rel -->
+    <button 
+      class="mt-auto w-12 h-12 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
+      :title="isDarkMode ? 'Mode Terang' : 'Mode Gelap'"
+      @click="toggleTheme"
+    >
+      <SunIcon v-if="isDarkMode" class="w-5 h-5 text-amber-400" />
+      <MoonIcon v-else class="w-5 h-5 text-slate-400" />
+    </button>
+  </nav>
+
+  <!-- 2. TOP APP BAR (ATAS) - Khusus Desktop/Tablet -->
+  <header class="hidden md:flex fixed top-0 left-20 right-0 h-16 items-center justify-between px-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40">
+    <!-- Info Toko & Database -->
+    <div class="flex items-center gap-3">
+      <h1 class="text-base font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+        {{ storeSetting.store_name || 'POS KASIR PRO' }}
+      </h1>
+      <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+      <span 
+        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+        :class="storeSetting.db_engine === 'mysql' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'"
+      >
+        <span class="w-1.5 h-1.5 rounded-full" :class="storeSetting.db_engine === 'mysql' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'"></span> 
+        {{ (storeSetting.db_engine || 'sqlite').toUpperCase() }}
+      </span>
+    </div>
+
+    <!-- Profil & Jam & Logout -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <ClockIcon class="w-4 h-4 text-slate-400" />
+        <span class="text-xs font-bold text-slate-600 dark:text-slate-300 font-mono tracking-wider">{{ currentTime }}</span>
+      </div>
+      
+      <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+
+      <div v-if="authStore.user" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+          <UserIcon class="w-4 h-4 text-indigo-500" />
+        </div>
+        <div class="flex flex-col leading-none">
+          <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ authStore.user.username }}</span>
+          <span class="text-[9px] font-extrabold uppercase mt-0.5" :class="roleBadgeClass">
             {{ roleLabel }}
           </span>
         </div>
       </div>
 
-      <!-- Jam Digital (Hidden di HP) -->
-      <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-        <ClockIcon class="w-4 h-4 text-slate-400" />
-        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono">{{ currentTime }}</span>
-      </div>
-
-      <!-- Tombol Tema -->
-      <button 
-        class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" 
-        :title="isDarkMode ? 'Mode Terang' : 'Mode Gelap'"
-        @click="toggleTheme"
-      >
-        <SunIcon v-if="isDarkMode" class="w-5 h-5 text-amber-400" />
-        <MoonIcon v-else class="w-5 h-5 text-slate-400" />
-      </button>
-
-      <!-- Tombol Logout -->
       <button
         @click="logout"
-        class="px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+        class="ml-2 px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors border border-red-100 dark:border-red-900/50"
       >
-        Logout
+        Keluar
       </button>
     </div>
   </header>
 
-  <!-- Navigasi Bawah Khusus Mobile (Muncuk jika layar < md) -->
-  <nav class="md:hidden fixed bottom-0 w-full flex items-center justify-around bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe pt-1 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50">
+  <!-- 3. BOTTOM NAVIGATION (BAWAH) - Khusus Mobile/HP -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 w-full flex items-center justify-around bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe pt-1 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50">
     <RouterLink
       v-for="item in navItems"
       :key="item.id"
@@ -89,6 +99,21 @@
       </span>
     </RouterLink>
   </nav>
+
+  <!-- Mobile Top Bar Khusus HP (Untuk Jam & DB Status & Theme) -->
+  <header class="md:hidden fixed top-0 left-0 right-0 h-12 flex items-center justify-between px-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40">
+    <div class="flex items-center gap-2">
+      <ShoppingCartIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+      <span class="text-xs font-bold text-slate-800 dark:text-slate-100">{{ storeSetting.store_name || 'POS' }}</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button @click="toggleTheme" class="text-slate-500">
+        <SunIcon v-if="isDarkMode" class="w-5 h-5 text-amber-400" />
+        <MoonIcon v-else class="w-5 h-5 text-slate-400" />
+      </button>
+      <button @click="logout" class="text-xs font-bold text-red-600 dark:text-red-400">Logout</button>
+    </div>
+  </header>
 </template>
 
 <script setup lang="ts">
@@ -128,7 +153,7 @@ const logout = () => {
 const allNavItems = [
   { id: 'register', to: '/', label: 'Kasir', iconComp: BuildingStorefrontIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
   { id: 'products', to: '/products', label: 'Produk', iconComp: CubeIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
-  { id: 'inventory', to: '/inventory', label: 'Inventoris', iconComp: ArchiveBoxIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
+  { id: 'inventory', to: '/inventory', label: 'Inventori', iconComp: ArchiveBoxIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
   { id: 'customers', to: '/customers', label: 'Pelanggan', iconComp: UsersIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
   { id: 'orders', to: '/orders', label: 'Riwayat', iconComp: DocumentTextIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
   { id: 'reports', to: '/reports', label: 'Laporan', iconComp: ChartBarIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
