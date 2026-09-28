@@ -65,48 +65,48 @@
         </div>
 
         <form @submit.prevent="saveStoreSettings" class="card-body">
-          <div class="form-group">
+          <div class="flex flex-col gap-2">
             <label class="form-label">Nama Toko / Usaha *</label>
-            <input type="text" class="form-control" v-model="storeForm.store_name" required />
+            <AppInput type="text"  v-model="storeForm.store_name" required />
           </div>
 
-          <div class="form-group">
+          <div class="flex flex-col gap-2">
             <label class="form-label">Alamat Lengkap *</label>
-            <input type="text" class="form-control" v-model="storeForm.address" required />
+            <AppInput type="text"  v-model="storeForm.address" required />
           </div>
 
-          <div class="form-group">
+          <div class="flex flex-col gap-2">
             <label class="form-label">No. Telepon / WhatsApp *</label>
-            <input type="text" class="form-control" v-model="storeForm.phone" required />
+            <AppInput type="text"  v-model="storeForm.phone" required />
           </div>
 
-          <div class="form-group">
+          <div class="flex flex-col gap-2">
             <label class="form-label">Pajak % (PPN / Service Charge)</label>
-            <input type="number" class="form-control" v-model.number="storeForm.tax_percentage" min="0" max="100" />
+            <AppInput type="number"  v-model.number="storeForm.tax_percentage" min="0" max="100" />
           </div>
 
-          <div class="form-group">
+          <div class="flex flex-col gap-2">
             <label class="form-label">Potongan Diskon Pelanggan Terdaftar / Member (%)</label>
-            <input type="number" class="form-control" v-model.number="storeForm.member_discount_percentage" min="0" max="100" step="0.5" />
+            <AppInput type="number"  v-model.number="storeForm.member_discount_percentage" min="0" max="100" step="0.5" />
             <span class="input-hint">Potongan ini otomatis dihitung saat kasir memilih/menginput nama pelanggan terdaftar saat checkout.</span>
           </div>
 
-          <div class="form-group">
+          <div class="flex flex-col gap-2">
             <label class="form-label">Pesan Footer Struk</label>
-            <textarea class="form-control" rows="2" v-model="storeForm.receipt_footer"></textarea>
+            <AppInput  rows="2" v-model="storeForm.receipt_footer"></AppInput>
           </div>
 
           <!-- QRIS Image Section -->
-          <div class="form-group qris-upload-section">
+          <div class="flex flex-col gap-2 qris-upload-section">
             <label class="form-label">Foto QRIS Pembayaran Toko</label>
             <p class="input-hint">Upload foto/gambar QRIS resmi toko Anda agar muncul di layar Kasir saat pelanggan memilih metode QRIS.</p>
             
             <div class="qris-preview-box">
               <div v-if="storeForm.qris_image_url" class="qris-img-container">
                 <img :src="storeForm.qris_image_url" alt="QRIS Toko" class="qris-preview-img" />
-                <button type="button" class="btn-remove-qris" @click="storeForm.qris_image_url = ''">
+                <AppButton variant="danger"  type="button" class="remove-qris" @click="storeForm.qris_image_url = ''">
                   Hapus Foto QRIS
-                </button>
+                </AppButton>
               </div>
 
               <div v-else class="qris-empty-placeholder">
@@ -115,24 +115,24 @@
             </div>
 
             <div class="qris-upload-actions">
-              <label class="btn btn-secondary btn-upload flex items-center justify-center gap-1">
+              <label class="btn-upload flex items-center justify-center gap-1">
                 <ArrowUpTrayIcon class="w-4 h-4" />
                 <span>Upload Gambar QRIS</span>
                 <input type="file" accept="image/*" @change="onQrisFileSelected" style="display: none;" />
               </label>
               
-              <input 
+              <AppInput 
                 type="text" 
-                class="form-control code-font" 
+                 
                 v-model="storeForm.qris_image_url" 
                 placeholder="Atau paste URL Gambar QRIS..." 
               />
             </div>
           </div>
 
-          <button type="submit" class="btn btn-success btn-block" :disabled="isSavingStore">
+          <AppButton variant="success"  type="submit" class="success -block" :disabled="isSavingStore">
             {{ isSavingStore ? 'Memproses...' : 'Simpan Pengaturan Toko & QRIS' }}
-          </button>
+          </AppButton>
         </form>
       </div>
 
@@ -151,22 +151,22 @@
           </p>
 
           <!-- Add Voucher Form -->
-          <form @submit.prevent="createVoucher" class="voucher-form-box">
+          <form @submit.prevent="createVoucher" class="">
             <h4>Tambah Kode Voucher Baru</h4>
 
-            <div class="voucher-form-grid">
-              <div class="form-group">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Kode Voucher *</label>
-                <input 
+                <AppInput 
                   type="text" 
-                  class="form-control code-font" 
+                   
                   v-model="newVoucher.code" 
                   placeholder="cth: DISKON30" 
                   required 
                 />
               </div>
 
-              <div class="form-group">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Tipe Diskon</label>
                 <select class="form-control" v-model="newVoucher.type">
                   <option value="percent">Persen (%)</option>
@@ -174,11 +174,11 @@
                 </select>
               </div>
 
-              <div class="form-group">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Nilai Potongan *</label>
-                <input 
+                <AppInput 
                   type="number" 
-                  class="form-control" 
+                   
                   v-model.number="newVoucher.value" 
                   :placeholder="newVoucher.type === 'percent' ? 'cth: 15 (artinya 15%)' : 'cth: 20000 (artinya Rp 20.000)'" 
                   min="1" 
@@ -186,20 +186,20 @@
                 />
               </div>
 
-              <div class="form-group">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Deskripsi / Keterangan</label>
-                <input 
+                <AppInput 
                   type="text" 
-                  class="form-control" 
+                   
                   v-model="newVoucher.description" 
                   placeholder="cth: Promo Tanggal Kembar" 
                 />
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" :disabled="isCreatingVoucher">
+            <AppButton variant="primary"  type="submit" class="primary" :disabled="isCreatingVoucher">
               {{ isCreatingVoucher ? 'Menambahkan...' : 'Simpan Voucher Baru' }}
-            </button>
+            </AppButton>
           </form>
 
           <!-- Vouchers Table List -->
@@ -236,9 +236,9 @@
                     </td>
                     <td class="voucher-desc-col">{{ v.description || '-' }}</td>
                     <td class="text-right">
-                      <button class="btn-icon btn-delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
+                      <AppButton variant="primary"  class="icon -delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
                         <TrashIcon class="w-3.5 h-3.5 text-red-600 inline-block mr-1" /> Hapus
-                      </button>
+                      </AppButton>
                     </td>
                   </tr>
                 </tbody>
@@ -266,39 +266,40 @@
           </p>
 
           <!-- Register User Form -->
-          <form @submit.prevent="createUser" class="voucher-form-box mb-6">
+          <form @submit.prevent="createUser" class="mb-6">
             <h4>Tambah Pengguna / Registrasi Staf Baru</h4>
 
-            <div class="voucher-form-grid">
-              <div class="form-group">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Username *</label>
-                <input 
+                <AppInput 
                   type="text" 
-                  class="form-control" 
+                   
                   v-model="newUser.username" 
                   placeholder="Masukkan username" 
                   required 
                 />
               </div>
 
-              <div class="form-group">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Password *</label>
-                <input 
+                <AppInput 
                   type="password" 
-                  class="form-control" 
+                   
                   v-model="newUser.password" 
                   placeholder="Minimal 6 karakter" 
                   required 
                 />
               </div>
 
-              <div class="form-group">
+              <div class="flex flex-col gap-2">
                 <label class="form-label">Role / Peran Akses *</label>
                 <select class="form-control" v-model="newUser.role">
-                  <option value="kasir">Kasir (Transaksi & Struk)</option>
-                  <option value="kepala_kasir">Kepala Kasir (Kelola Produk, Stok, Pelanggan, Diskon & Laporan)</option>
-                  <option value="admin">Admin (Full Akses Sistem)</option>
-                  <option value="owner">Owner (Full Akses & Pengaturan Toko)</option>
+                  <option value="owner">Owner</option>
+                  <option value="administrator">Administrator</option>
+                  <option value="admin">Admin</option>
+                  <option value="kepala_kasir">Kepala Kasir</option>
+                  <option value="kasir">Kasir</option>
                 </select>
               </div>
             </div>
@@ -310,9 +311,9 @@
               {{ userErrorMsg }}
             </div>
 
-            <button type="submit" class="btn btn-primary" :disabled="isCreatingUser">
+            <AppButton variant="primary"  type="submit" class="primary" :disabled="isCreatingUser">
               {{ isCreatingUser ? 'Menambahkan...' : 'Tambah Pengguna Baru' }}
-            </button>
+            </AppButton>
           </form>
 
           <!-- Users List Table -->
@@ -328,7 +329,7 @@
 
             <div v-else-if="usersLoadError" class="empty-vouchers">
               <p>{{ usersLoadError }}</p>
-              <button type="button" class="btn btn-secondary" @click="loadUsers">Coba Lagi</button>
+              <AppButton variant="secondary"  type="button" class="secondary" @click="loadUsers">Coba Lagi</AppButton>
             </div>
 
             <div v-else-if="users.length === 0" class="empty-vouchers">
@@ -361,22 +362,22 @@
                     <td class="text-xs text-slate-500">{{ formatDate(u.created_at) }}</td>
                     <td class="text-right">
                       <div class="user-actions">
-                        <button
+                        <AppButton variant="primary" 
                           type="button"
-                          class="btn-icon btn-change-password"
+                          class="icon -change-password"
                           :disabled="isChangingStaffPassword"
                           @click="openStaffPasswordForm(u)"
                         >
                           Ganti Sandi
-                        </button>
-                        <button
+                        </AppButton>
+                        <AppButton variant="primary" 
                           type="button"
-                          class="btn-icon btn-delete-voucher"
+                          class="icon -delete-voucher"
                           title="Hapus Pengguna"
                           @click="deleteUserAccount(u.id, u.username)"
                         >
                           <TrashIcon class="w-3.5 h-3.5 text-red-600 inline-block mr-1" /> Hapus
-                        </button>
+                        </AppButton>
                       </div>
                     </td>
                   </tr>
@@ -388,24 +389,24 @@
                             <span class="text-xs text-slate-500">Minimal 6 karakter</span>
                           </div>
                           <div class="staff-password-fields">
-                            <div class="form-group">
+                            <div class="flex flex-col gap-2">
                               <label class="form-label" :for="`new-password-${u.id}`">Sandi baru</label>
-                              <input
+                              <AppInput
                                 :id="`new-password-${u.id}`"
                                 v-model="newStaffPassword"
-                                class="form-control"
+                                
                                 type="password"
                                 autocomplete="new-password"
                                 minlength="6"
                                 required
                               />
                             </div>
-                            <div class="form-group">
+                            <div class="flex flex-col gap-2">
                               <label class="form-label" :for="`confirm-password-${u.id}`">Konfirmasi sandi baru</label>
-                              <input
+                              <AppInput
                                 :id="`confirm-password-${u.id}`"
                                 v-model="confirmStaffPassword"
-                                class="form-control"
+                                
                                 type="password"
                                 autocomplete="new-password"
                                 minlength="6"
@@ -416,12 +417,12 @@
                           <p v-if="staffPasswordSuccessMsg" class="staff-password-success">{{ staffPasswordSuccessMsg }}</p>
                           <p v-if="staffPasswordErrorMsg" class="staff-password-error">{{ staffPasswordErrorMsg }}</p>
                           <div class="user-actions">
-                            <button type="button" class="btn btn-secondary" :disabled="isChangingStaffPassword" @click="cancelStaffPasswordChange">
+                            <AppButton variant="secondary"  type="button" class="secondary" :disabled="isChangingStaffPassword" @click="cancelStaffPasswordChange">
                               Batal
-                            </button>
-                            <button type="submit" class="btn btn-primary" :disabled="isChangingStaffPassword">
+                            </AppButton>
+                            <AppButton variant="primary"  type="submit" class="primary" :disabled="isChangingStaffPassword">
                               {{ isChangingStaffPassword ? 'Menyimpan...' : 'Simpan Sandi Baru' }}
-                            </button>
+                            </AppButton>
                           </div>
                         </form>
                       </td>
@@ -483,11 +484,11 @@
 
           <!-- MySQL DSN Config Form -->
           <div v-if="selectedEngine === 'mysql'" class="mysql-config-box">
-            <div class="form-group">
+            <div class="flex flex-col gap-2">
               <label class="form-label">MySQL Connection String (DSN)</label>
-              <input 
+              <AppInput 
                 type="text" 
-                class="form-control code-font" 
+                 
                 v-model="mysqlDsn" 
                 placeholder="root:password@tcp(127.0.0.1:3306)/pos_db?charset=utf8mb4&parseTime=True&loc=Local" 
               />
@@ -499,14 +500,14 @@
             {{ dbMessage }}
           </div>
 
-          <button 
-            class="btn btn-primary btn-switch-db" 
+          <AppButton variant="primary"  
+            class="primary -switch-db" 
             :disabled="isSwitchingDb"
             @click="switchDatabaseEngine"
           >
             <span v-if="isSwitchingDb">Mengubah Engine & Migrasi Data...</span>
             <span v-else>Terapkan & Switch Database</span>
-          </button>
+          </AppButton>
         </div>
       </div>
     </div>
@@ -514,6 +515,8 @@
 </template>
 
 <script setup lang="ts">
+import AppButton from '@/components/ui/AppButton.vue';
+import AppInput from '@/components/ui/AppInput.vue';
 import { ref, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Voucher } from '../types';

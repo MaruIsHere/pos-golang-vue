@@ -1,5 +1,5 @@
 <template>
-  <div class="reports-page">
+  <div class="flex flex-col gap-5">
     <!-- Top Page Header with Export Controls -->
     <div class="page-header glass-panel">
       <div class="header-title">
@@ -8,25 +8,25 @@
       </div>
 
       <div class="header-actions">
-        <button class="btn btn-secondary flex items-center gap-1.5" @click="fetchStats">
+        <AppButton variant="secondary"  class="secondary flex items-center gap-1.5" @click="fetchStats">
           <ArrowPathIcon class="w-4 h-4" />
           <span>Refresh</span>
-        </button>
+        </AppButton>
 
-        <button class="btn btn-excel flex items-center gap-1.5" @click="handleExportExcel" :disabled="isLoading">
+        <AppButton variant="success"  class="excel flex items-center gap-1.5" @click="handleExportExcel" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export Excel</span>
-        </button>
+        </AppButton>
 
-        <button class="btn btn-pdf flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
+        <AppButton variant="danger"  class="pdf flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export PDF</span>
-        </button>
+        </AppButton>
       </div>
     </div>
 
     <!-- Stat Cards Grid -->
-    <div class="stats-grid">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       <div class="stat-card glass-panel">
         <div class="stat-icon icon-revenue">
           <BanknotesIcon class="w-6 h-6 text-emerald-600" />
@@ -89,7 +89,7 @@
     </div>
 
     <!-- Section 2: Barang Paling Laku & Barang Kurang Laku Tables -->
-    <div class="dashboard-columns">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <!-- Barang Paling Laku (Top Sellers) -->
       <div class="dash-card glass-panel">
         <div class="dash-card-header">
@@ -244,6 +244,8 @@
 </template>
 
 <script setup lang="ts">
+import AppButton from '@/components/ui/AppButton.vue';
+import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { DashboardStats } from '../types';
