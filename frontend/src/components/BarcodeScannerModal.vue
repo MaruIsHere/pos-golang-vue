@@ -1,9 +1,9 @@
 <template>
   <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[28px] shadow-2xl w-full max-w-[500px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[28px] shadow-2xl w-full max-w-[420px] max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
       
       <!-- Header -->
-      <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 z-10">
+      <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 z-10 shrink-0">
         <h2 class="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <QrCodeIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           Scanner Produk
@@ -14,7 +14,7 @@
       </div>
 
       <!-- Segmented Control (iOS Style Tabs) -->
-      <div class="px-6 pt-5 pb-2 bg-slate-50/50 dark:bg-slate-900/30">
+      <div class="px-6 pt-5 pb-2 bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
         <div class="relative flex items-center bg-slate-200/60 dark:bg-slate-800 p-1.5 rounded-[18px] w-full mx-auto">
           <!-- Sliding Indicator -->
           <div 
@@ -42,9 +42,12 @@
         </div>
       </div>
 
+      <!-- Area Scrollable -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
+
       <!-- Camera Scanner View -->
-      <div v-show="activeTab === 'camera'" class="flex flex-col gap-4 px-6 pb-6 pt-3 bg-slate-50/50 dark:bg-slate-900/30">
-        <div id="barcode-reader-view" class="w-full aspect-[4/3] bg-slate-900 rounded-[20px] overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-inner relative flex items-center justify-center">
+      <div v-show="activeTab === 'camera'" class="flex flex-col gap-4 px-6 pb-6 pt-3 bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
+        <div id="barcode-reader-view" class="w-full h-[220px] sm:h-[250px] bg-slate-900 rounded-[20px] overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-inner relative flex items-center justify-center">
            <!-- Placeholder while camera loads -->
            <div class="absolute flex flex-col items-center justify-center text-slate-500 z-0">
               <CameraIcon class="w-10 h-10 mb-2 opacity-50 animate-pulse" />
@@ -65,7 +68,7 @@
       </div>
 
       <!-- Manual / Barcode Gun Input View -->
-      <div v-show="activeTab === 'manual'" class="flex flex-col gap-5 px-6 pb-6 pt-3 bg-slate-50/50 dark:bg-slate-900/30">
+      <div v-show="activeTab === 'manual'" class="flex flex-col gap-5 px-6 pb-6 pt-3 bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
         <div class="flex flex-col gap-2">
           <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ketik / Tembak Kode Barcode</label>
           <div class="flex items-center gap-2">
@@ -107,8 +110,10 @@
         <span class="text-sm font-bold leading-tight">{{ lastScannedMessage }}</span>
       </div>
 
+      </div>
+
       <!-- Footer -->
-      <div class="flex justify-between items-center px-6 py-5 border-t border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 z-10">
+      <div class="flex justify-between items-center px-6 py-5 shrink-0 border-t border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 z-10 shrink-0">
         <label class="flex items-center gap-2.5 cursor-pointer group">
           <input type="checkbox" v-model="keepScanningMode" class="w-4 h-4 text-indigo-600 rounded-[4px] border-slate-300 focus:ring-indigo-600 dark:border-slate-600 dark:bg-slate-800 transition-colors" />
           <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors">Mode Beruntun</span>

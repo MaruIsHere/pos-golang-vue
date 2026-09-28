@@ -114,10 +114,10 @@
             <td class="text-right">
               <div class="action-buttons">
                 <AppButton variant="secondary" class="" title="Edit Produk" @click="openEditModal(prod)">
-                  <PencilSquareIcon class="w-4 h-4 text-indigo-600" />
+                  <PencilIcon class="w-4 h-4 text-indigo-600" />
                 </AppButton>
                 <AppButton variant="secondary" class="" title="Hapus Produk" @click="deleteProduct(prod)">
-                  <TrashIcon class="w-4 h-4 text-red-600" />
+                  <TrashIcon, PencilIcon class="w-4 h-4 text-red-600" />
                 </AppButton>
               </div>
             </td>
@@ -235,7 +235,7 @@ import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Category, Product } from '../types';
-import { PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { PencilIcon, TrashIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
