@@ -1,106 +1,123 @@
 <template>
-  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-full max-w-xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+  <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 transition-opacity">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[28px] shadow-2xl w-full max-w-[500px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
       
       <!-- Header -->
-      <div class="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-700/50">
-        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <CameraIcon class="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-          Scanner Barcode Produk
+      <div class="flex justify-between items-center px-6 py-5 border-b border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 z-10">
+        <h2 class="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <QrCodeIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          Scanner Produk
         </h2>
-        <button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400" @click="closeModal">
+        <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400" @click="closeModal">
           <XMarkIcon class="w-5 h-5" />
         </button>
       </div>
 
-      <!-- Tabs -->
-      <div class="flex items-center gap-2 p-5 pb-0">
-        <AppButton 
-          :variant="activeTab === 'camera' ? 'primary' : 'secondary'"
-          class="flex-1 flex items-center justify-center gap-2"
-          @click="switchTab('camera')"
-        >
-          <CameraIcon class="w-4 h-4" />
-          <span>Kamera Scanner</span>
-        </AppButton>
-        <AppButton 
-          :variant="activeTab === 'manual' ? 'primary' : 'secondary'"
-          class="flex-1 flex items-center justify-center gap-2"
-          @click="switchTab('manual')"
-        >
-          <QrCodeIcon class="w-4 h-4" />
-          <span>Alat Tembak USB</span>
-        </AppButton>
+      <!-- Segmented Control (iOS Style Tabs) -->
+      <div class="px-6 pt-5 pb-2 bg-slate-50/50 dark:bg-slate-900/30">
+        <div class="relative flex items-center bg-slate-200/60 dark:bg-slate-800 p-1.5 rounded-[18px] w-full mx-auto">
+          <!-- Sliding Indicator -->
+          <div 
+            class="absolute inset-y-1.5 left-1.5 w-[calc(50%-6px)] bg-white dark:bg-slate-700 shadow-sm rounded-2xl transition-transform duration-300 ease-out" 
+            :class="activeTab === 'manual' ? 'translate-x-full' : 'translate-x-0'"
+          ></div>
+          
+          <!-- Mode Kamera -->
+          <button 
+            class="relative flex-1 flex justify-center items-center gap-2 py-2.5 text-sm font-bold z-10 transition-colors duration-300 rounded-2xl outline-none" 
+            :class="activeTab === 'camera' ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'" 
+            @click="switchTab('camera')"
+          >
+            <CameraIcon class="w-4 h-4" /> Kamera
+          </button>
+          
+          <!-- Mode Alat Tembak -->
+          <button 
+            class="relative flex-1 flex justify-center items-center gap-2 py-2.5 text-sm font-bold z-10 transition-colors duration-300 rounded-2xl outline-none" 
+            :class="activeTab === 'manual' ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'" 
+            @click="switchTab('manual')"
+          >
+            <QrCodeIcon class="w-4 h-4" /> Alat USB
+          </button>
+        </div>
       </div>
 
       <!-- Camera Scanner View -->
-      <div v-show="activeTab === 'camera'" class="flex flex-col gap-4 p-5">
-        <div id="barcode-reader-view" class="w-full min-h-[250px] bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700"></div>
+      <div v-show="activeTab === 'camera'" class="flex flex-col gap-4 px-6 pb-6 pt-3 bg-slate-50/50 dark:bg-slate-900/30">
+        <div id="barcode-reader-view" class="w-full aspect-[4/3] bg-slate-900 rounded-[20px] overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-inner relative flex items-center justify-center">
+           <!-- Placeholder while camera loads -->
+           <div class="absolute flex flex-col items-center justify-center text-slate-500 z-0">
+              <CameraIcon class="w-10 h-10 mb-2 opacity-50 animate-pulse" />
+           </div>
+        </div>
         
-        <div v-if="cameraError" class="flex flex-col items-center justify-center gap-3 p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-center">
-          <ExclamationTriangleIcon class="w-8 h-8 text-amber-500" />
-          <p class="text-sm font-semibold text-amber-800 dark:text-amber-400">{{ cameraError }}</p>
-          <AppButton variant="warning" size="sm" @click="initCameraScanner">
+        <div v-if="cameraError" class="flex flex-col items-center justify-center gap-3 p-5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-[18px] text-center shadow-sm">
+          <ExclamationTriangleIcon class="w-7 h-7 text-amber-500" />
+          <p class="text-xs font-bold text-amber-800 dark:text-amber-400 leading-relaxed">{{ cameraError }}</p>
+          <button class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs transition-colors shadow-sm" @click="initCameraScanner">
             Coba Kamera Lagi
-          </AppButton>
+          </button>
         </div>
 
-        <div class="text-sm text-slate-500 text-center font-medium bg-slate-50 dark:bg-slate-900/50 py-2 rounded-lg">
-          Arahkan kamera ke kode barcode / QR code pada produk
+        <div class="text-xs text-slate-500 text-center font-semibold bg-white dark:bg-slate-800 py-2.5 rounded-xl border border-slate-100 dark:border-slate-700">
+          Arahkan kamera ke area kode barcode produk
         </div>
       </div>
 
       <!-- Manual / Barcode Gun Input View -->
-      <div v-show="activeTab === 'manual'" class="flex flex-col gap-6 p-5">
+      <div v-show="activeTab === 'manual'" class="flex flex-col gap-5 px-6 pb-6 pt-3 bg-slate-50/50 dark:bg-slate-900/30">
         <div class="flex flex-col gap-2">
-          <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Ketik atau Scan dengan Alat USB/Bluetooth:</label>
+          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ketik / Tembak Kode Barcode</label>
           <div class="flex items-center gap-2">
-            <AppInput 
+            <input 
               ref="manualInputRef"
               type="text" 
-              class="flex-1"
+              class="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[16px] text-sm font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
               v-model="manualCode"
               placeholder="Contoh: 8991001"
               @keyup.enter="handleManualSubmit"
             />
-            <AppButton variant="primary" @click="handleManualSubmit">
-              Cari & Tambah
-            </AppButton>
+            <button class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-[16px] shadow-sm shadow-indigo-600/20 transition-all active:scale-95" @click="handleManualSubmit">
+              Cari
+            </button>
           </div>
         </div>
 
         <!-- Quick Test Barcodes Grid -->
-        <div class="flex flex-col gap-3">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Simulasi Produk Tersedia (Klik untuk scan):</span>
-          <div class="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto pr-1">
+        <div class="flex flex-col gap-2.5 mt-2">
+          <span class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Simulasi Scan Produk:</span>
+          <div class="grid grid-cols-2 gap-2 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
             <button 
               v-for="prod in productsWithBarcodes" 
               :key="prod.id"
-              class="px-3 py-2 bg-slate-50 hover:bg-indigo-50 dark:bg-slate-900 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-start gap-1 transition-colors text-left"
+              class="p-3 bg-white hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-2xl flex flex-col items-start gap-1 transition-colors text-left shadow-sm"
               @click="simulateScanBarcode(prod.barcode!)"
             >
-              <span class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate w-full">{{ prod.name }}</span>
-              <span class="text-xs font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-1.5 rounded">{{ prod.barcode }}</span>
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-200 line-clamp-1 w-full">{{ prod.name }}</span>
+              <span class="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-1.5 py-0.5 rounded">{{ prod.barcode }}</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- Last Scanned Feedback Alert -->
-      <div v-if="lastScannedMessage" class="mx-5 mb-5 p-3 rounded-xl border flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2" :class="lastScannedSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'">
+      <div v-if="lastScannedMessage" class="mx-6 mb-5 p-3.5 rounded-[16px] border flex items-center gap-3 shadow-sm animate-in fade-in slide-in-from-bottom-2" :class="lastScannedSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' : 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'">
         <CheckCircleIcon v-if="lastScannedSuccess" class="w-6 h-6 shrink-0" />
         <ExclamationCircleIcon v-else class="w-6 h-6 shrink-0" />
-        <span class="text-sm font-bold">{{ lastScannedMessage }}</span>
+        <span class="text-sm font-bold leading-tight">{{ lastScannedMessage }}</span>
       </div>
 
       <!-- Footer -->
-      <div class="flex justify-between items-center p-5 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/30">
-        <label class="flex items-center gap-2 cursor-pointer group">
-          <input type="checkbox" v-model="keepScanningMode" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 dark:border-slate-600 dark:bg-slate-800 dark:checked:bg-indigo-500" />
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Mode Beruntun (Tetap buka scanner)</span>
+      <div class="flex justify-between items-center px-6 py-5 border-t border-slate-100 dark:border-slate-800/60 bg-white dark:bg-slate-900 z-10">
+        <label class="flex items-center gap-2.5 cursor-pointer group">
+          <input type="checkbox" v-model="keepScanningMode" class="w-4 h-4 text-indigo-600 rounded-[4px] border-slate-300 focus:ring-indigo-600 dark:border-slate-600 dark:bg-slate-800 transition-colors" />
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors">Mode Beruntun</span>
         </label>
-        <AppButton variant="secondary" @click="closeModal">Selesai</AppButton>
+        <button class="px-6 py-2.5 bg-slate-900 hover:bg-black dark:bg-white dark:hover:bg-slate-200 text-white dark:text-slate-900 font-bold rounded-xl shadow-md transition-transform active:scale-95 text-sm" @click="closeModal">
+          Selesai
+        </button>
       </div>
+      
     </div>
   </div>
 </template>
