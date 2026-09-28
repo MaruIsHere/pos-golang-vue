@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-screen flex flex-col bg-slate-50 dark:bg-slate-900 overflow-hidden">
+  <div class="h-screen w-screen flex flex-col bg-slate-100/70 dark:bg-slate-950 overflow-hidden">
     <Navbar v-if="authStore.isAuthenticated" />
 
     <PwaInstallBanner />

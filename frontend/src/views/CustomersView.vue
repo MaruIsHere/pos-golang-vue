@@ -1,17 +1,17 @@
 <template>
   <div class="flex flex-col gap-5">
-    <div class="flex justify-between items-center p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+    <div class="flex justify-between items-center p-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
       <div class="flex flex-col gap-1">
-        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Master Data Pelanggan & Member</h2>
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Master Data Pelanggan & Member</h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">Kelola profil data pelanggan, nomor telepon/WhatsApp, dan poin member toko</p>
       </div>
     </div>
 
-    <div class="customers-grid">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Add / Edit Customer Form -->
-      <div class="customers-card backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
-        <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-900 dark:text-slate-100">
-          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">
+      <div class="col-span-1 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+        <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-800 dark:text-slate-100">
+          <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">
             <template v-if="editingId">
               <span class="flex items-center gap-1.5"><PencilSquareIcon class="w-4 h-4 text-indigo-600" /> Edit Data Pelanggan</span>
             </template>
@@ -21,53 +21,53 @@
           </h3>
         </div>
 
-        <form @submit.prevent="saveCustomer" class="card-body">
-          <div class="form-group">
-            <label class="form-label">Nama Pelanggan *</label>
+        <form @submit.prevent="saveCustomer" class="flex flex-col gap-4 mt-2">
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Pelanggan *</label>
             <AppInput
               type="text"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
               v-model="custForm.name"
               placeholder="cth: Budi Santoso"
               required
             />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">No. Telepon / WhatsApp</label>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">No. Telepon / WhatsApp</label>
             <AppInput
               type="text"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
               v-model="custForm.phone"
               placeholder="cth: 081234567890"
             />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Email</label>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
             <AppInput
               type="email"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
               v-model="custForm.email"
               placeholder="cth: budi@gmail.com"
             />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Alamat Lengkap</label>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat Lengkap</label>
             <textarea
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
               rows="2"
               v-model="custForm.address"
               placeholder="Alamat rumah / kantor pelanggan..."
             ></textarea>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Poin Loyalty</label>
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Poin Loyalty</label>
             <AppInput
               type="number"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
               v-model.number="custForm.points"
               min="0"
             />
@@ -98,8 +98,8 @@
 
       <!-- Customers Table List -->
       <div class="customers-card backdrop-blur-md bg-white/90 dark:bg-slate-900/90 main-list-card">
-        <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-900 dark:text-slate-100">
-          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
+        <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-800 dark:text-slate-100">
+          <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
 
           <div class="search-box">
             <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
@@ -112,7 +112,7 @@
           </div>
         </div>
 
-        <div class="card-body">
+        <div class="flex flex-col gap-4 mt-2">
           <div v-if="isLoading" class="p-12 text-center text-slate-500">
             <div class="w-8 h-8 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-600 rounded-full animate-spin mx-auto mb-2"></div>
             <p class="text-sm text-slate-500 dark:text-slate-400">Memuat data pelanggan...</p>
@@ -136,13 +136,13 @@
               </thead>
               <tbody>
                 <tr v-for="c in filteredCustomers" :key="c.id">
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
                     <strong class="cust-name">{{ c.name }}</strong>
                   </td>
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">{{ c.phone ||"-" }}</td>
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">{{ c.email ||"-" }}</td>
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ c.phone ||"-" }}</td>
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ c.email ||"-" }}</td>
                   <td class="addr-col">{{ c.address ||"-" }}</td>
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
+                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
                     <span class="points-badge">{{ c.points }} Poin</span>
                   </td>
                   <td class="text-right">

@@ -1,16 +1,16 @@
 <template>
-  <div class="settings-page">
-    <div class="page-header glass-panel">
-      <div class="header-title">
+  <div class="flex flex-col gap-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+      <div class="flex flex-col gap-1">
         <h2>Pengaturan Toko, QRIS, Tema & Voucher</h2>
         <p>Konfigurasi profil toko, gambar QRIS pembayaran, tema mode terang/gelap, voucher diskon, dan database engine</p>
       </div>
     </div>
 
-    <div class="settings-grid">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <!-- 0. Theme Selection Card -->
-      <div class="settings-card glass-panel full-width-card">
-        <div class="card-header">
+      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5">
             <SunIcon class="w-5 h-5 text-amber-500" />
             <span>Tema Tampilan (Mode Terang / Mode Gelap)</span>
@@ -20,33 +20,33 @@
           </span>
         </div>
 
-        <div class="card-body">
-          <p class="section-desc">Pilih tema warna tampilan antarmuka aplikasi kasir.</p>
+        <div class="flex flex-col gap-4 mt-2">
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Pilih tema warna tampilan antarmuka aplikasi kasir.</p>
 
-          <div class="db-options-grid">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div 
-              class="db-option-card" 
+              class="flex flex-col gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden" 
               :class="{ selected: !isDarkMode }"
               @click="setDark(false)"
             >
-              <div class="db-icon">
+              <div class="w-7 h-7 text-indigo-600 dark:text-indigo-400">
                 <SunIcon class="w-7 h-7 text-amber-500" />
               </div>
-              <div class="db-info">
+              <div class="flex flex-col mt-1">
                 <h4>Mode Terang (Light Mode)</h4>
                 <p>Tampilan serba putih yang bersih, minimalis, dan terang.</p>
               </div>
             </div>
 
             <div 
-              class="db-option-card" 
+              class="flex flex-col gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden" 
               :class="{ selected: isDarkMode }"
               @click="setDark(true)"
             >
-              <div class="db-icon">
+              <div class="w-7 h-7 text-indigo-600 dark:text-indigo-400">
                 <MoonIcon class="w-7 h-7 text-indigo-400" />
               </div>
-              <div class="db-info">
+              <div class="flex flex-col mt-1">
                 <h4>Mode Gelap (Dark Mode)</h4>
                 <p>Tampilan gelap modern yang nyaman di mata untuk kondisi pencahayaan redup.</p>
               </div>
@@ -56,49 +56,49 @@
       </div>
 
       <!-- 1. Store Profile & QRIS Settings -->
-      <div class="settings-card glass-panel">
-        <div class="card-header">
+      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5">
             <BuildingStorefrontIcon class="w-5 h-5 text-indigo-600" />
             <span>Profil Toko & Foto QRIS Pembayaran</span>
           </h3>
         </div>
 
-        <form @submit.prevent="saveStoreSettings" class="card-body">
+        <form @submit.prevent="saveStoreSettings" class="flex flex-col gap-4 mt-2">
           <div class="flex flex-col gap-2">
-            <label class="form-label">Nama Toko / Usaha *</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Toko / Usaha *</label>
             <AppInput type="text"  v-model="storeForm.store_name" required />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="form-label">Alamat Lengkap *</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat Lengkap *</label>
             <AppInput type="text"  v-model="storeForm.address" required />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="form-label">No. Telepon / WhatsApp *</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">No. Telepon / WhatsApp *</label>
             <AppInput type="text"  v-model="storeForm.phone" required />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="form-label">Pajak % (PPN / Service Charge)</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Pajak % (PPN / Service Charge)</label>
             <AppInput type="number"  v-model.number="storeForm.tax_percentage" min="0" max="100" />
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="form-label">Potongan Diskon Pelanggan Terdaftar / Member (%)</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Potongan Diskon Pelanggan Terdaftar / Member (%)</label>
             <AppInput type="number"  v-model.number="storeForm.member_discount_percentage" min="0" max="100" step="0.5" />
             <span class="input-hint">Potongan ini otomatis dihitung saat kasir memilih/menginput nama pelanggan terdaftar saat checkout.</span>
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="form-label">Pesan Footer Struk</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Pesan Footer Struk</label>
             <AppInput  rows="2" v-model="storeForm.receipt_footer"></AppInput>
           </div>
 
           <!-- QRIS Image Section -->
           <div class="flex flex-col gap-2 qris-upload-section">
-            <label class="form-label">Foto QRIS Pembayaran Toko</label>
+            <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Foto QRIS Pembayaran Toko</label>
             <p class="input-hint">Upload foto/gambar QRIS resmi toko Anda agar muncul di layar Kasir saat pelanggan memilih metode QRIS.</p>
             
             <div class="qris-preview-box">
@@ -137,16 +137,16 @@
       </div>
 
       <!-- 2. Manage Voucher Codes -->
-      <div class="settings-card glass-panel">
-        <div class="card-header">
+      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5">
             <TicketIcon class="w-5 h-5 text-indigo-600" />
             <span>Manajemen Kode Voucher Diskon</span>
           </h3>
         </div>
 
-        <div class="card-body">
-          <p class="section-desc">
+        <div class="flex flex-col gap-4 mt-2">
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
             Tambah dan kelola kode voucher diskon yang bisa digunakan oleh kasir pada halaman transaksi.
           </p>
 
@@ -156,7 +156,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex flex-col gap-2">
-                <label class="form-label">Kode Voucher *</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Kode Voucher *</label>
                 <AppInput 
                   type="text" 
                    
@@ -167,7 +167,7 @@
               </div>
 
               <div class="flex flex-col gap-2">
-                <label class="form-label">Tipe Diskon</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Tipe Diskon</label>
                 <select class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" v-model="newVoucher.type">
                   <option value="percent">Persen (%)</option>
                   <option value="flat">Potongan Nominal (Rp)</option>
@@ -175,7 +175,7 @@
               </div>
 
               <div class="flex flex-col gap-2">
-                <label class="form-label">Nilai Potongan *</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nilai Potongan *</label>
                 <AppInput 
                   type="number" 
                    
@@ -187,7 +187,7 @@
               </div>
 
               <div class="flex flex-col gap-2">
-                <label class="form-label">Deskripsi / Keterangan</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Deskripsi / Keterangan</label>
                 <AppInput 
                   type="text" 
                    
@@ -249,8 +249,8 @@
       </div>
 
       <!-- 3. User Management & Registration (Owner & Admin Only) -->
-      <div class="settings-card glass-panel full-width-card">
-        <div class="card-header">
+      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5">
             <UserGroupIcon class="w-5 h-5 text-indigo-600" />
             <span>Manajemen Pengguna & Registrasi Akun Staf</span>
@@ -260,8 +260,8 @@
           </span>
         </div>
 
-        <div class="card-body">
-          <p class="section-desc">
+        <div class="flex flex-col gap-4 mt-2">
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
             Tambah akun pengguna baru (Kasir, Kepala Kasir, Admin, atau Owner) dan kelola daftar staf kasir yang memiliki akses ke sistem POS.
           </p>
 
@@ -271,7 +271,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="flex flex-col gap-2">
-                <label class="form-label">Username *</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Username *</label>
                 <AppInput 
                   type="text" 
                    
@@ -282,7 +282,7 @@
               </div>
 
               <div class="flex flex-col gap-2">
-                <label class="form-label">Password *</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Password *</label>
                 <AppInput 
                   type="password" 
                    
@@ -293,7 +293,7 @@
               </div>
 
               <div class="flex flex-col gap-2">
-                <label class="form-label">Role / Peran Akses *</label>
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Role / Peran Akses *</label>
                 <select class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" v-model="newUser.role">
                   <option value="owner">Owner</option>
                   <option value="administrator">Administrator</option>
@@ -390,7 +390,7 @@
                           </div>
                           <div class="staff-password-fields">
                             <div class="flex flex-col gap-2">
-                              <label class="form-label" :for="`new-password-${u.id}`">Sandi baru</label>
+                              <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" :for="`new-password-${u.id}`">Sandi baru</label>
                               <AppInput
                                 :id="`new-password-${u.id}`"
                                 v-model="newStaffPassword"
@@ -402,7 +402,7 @@
                               />
                             </div>
                             <div class="flex flex-col gap-2">
-                              <label class="form-label" :for="`confirm-password-${u.id}`">Konfirmasi sandi baru</label>
+                              <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" :for="`confirm-password-${u.id}`">Konfirmasi sandi baru</label>
                               <AppInput
                                 :id="`confirm-password-${u.id}`"
                                 v-model="confirmStaffPassword"
@@ -437,7 +437,7 @@
 
       <!-- 4. Database Engine Switcher Panel -->
       <div class="settings-card glass-panel highlight-card full-width-card">
-        <div class="card-header">
+        <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5">
             <CircleStackIcon class="w-5 h-5 text-indigo-600" />
             <span>Engine Basis Data (Database Switcher)</span>
@@ -447,35 +447,35 @@
           </span>
         </div>
 
-        <div class="card-body">
-          <p class="section-desc">
+        <div class="flex flex-col gap-4 mt-2">
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
             Pilih engine basis data yang ingin digunakan oleh backend Golang.
           </p>
 
-          <div class="db-options-grid">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div 
-              class="db-option-card" 
+              class="flex flex-col gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden" 
               :class="{ selected: selectedEngine === 'sqlite' }"
               @click="selectedEngine = 'sqlite'"
             >
-              <div class="db-icon">
+              <div class="w-7 h-7 text-indigo-600 dark:text-indigo-400">
                 <FolderIcon class="w-7 h-7 text-indigo-600" />
               </div>
-              <div class="db-info">
+              <div class="flex flex-col mt-1">
                 <h4>SQLite (Embedded File)</h4>
                 <p>Offline-first, tanpa butuh server MySQL. Data disimpan di file <code>pos.db</code>.</p>
               </div>
             </div>
 
             <div 
-              class="db-option-card" 
+              class="flex flex-col gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden" 
               :class="{ selected: selectedEngine === 'mysql' }"
               @click="selectedEngine = 'mysql'"
             >
-              <div class="db-icon">
+              <div class="w-7 h-7 text-indigo-600 dark:text-indigo-400">
                 <ServerIcon class="w-7 h-7 text-indigo-600" />
               </div>
-              <div class="db-info">
+              <div class="flex flex-col mt-1">
                 <h4>MySQL Server</h4>
                 <p>Terpusat, cocok untuk multi-kasir di jaringan lokal/server cloud.</p>
               </div>
@@ -485,7 +485,7 @@
           <!-- MySQL DSN Config Form -->
           <div v-if="selectedEngine === 'mysql'" class="mysql-config-box">
             <div class="flex flex-col gap-2">
-              <label class="form-label">MySQL Connection String (DSN)</label>
+              <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">MySQL Connection String (DSN)</label>
               <AppInput 
                 type="text" 
                  

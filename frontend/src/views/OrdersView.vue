@@ -5,7 +5,7 @@
     >
       <!-- <div class="flex flex-col gap-1"> -->
       <div class="">
-        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Riwayat Transaksi & Retur Penjualan</h2>
+        <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Riwayat Transaksi & Retur Penjualan</h2>
         <p class="text-base text-slate-500 dark:text-slate-400">
           Daftar transaksi penjualan, cetak ulang struk, dan proses retur/refund barang
         </p>
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Orders Table -->
-    <div class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
+    <div class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
       <table class="w-full text-left text-sm">
         <thead>
           <tr>
@@ -39,18 +39,18 @@
             <td colspan="7" class="text-center">Belum ada transaksi recorded</td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <code class="invoice-code">{{ order.invoice_no }}</code>
             </td>
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">{{ formatDate(order.created_at) }}</td>
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">{{ order.customer_name ||"Umum" }}</td>
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ formatDate(order.created_at) }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ order.customer_name ||"Umum" }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <AppBadge variant="neutral">
                 {{ (order.payment_method ||"cash").toUpperCase() }}
               </AppBadge>
             </td>
             <td class="font-bold price-text">Rp {{ formatPrice(order.grand_total) }}</td>
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <span
                 class="badge"
                 :class="order.status === 'refunded' ? 'badge-refunded' : 'badge'"
