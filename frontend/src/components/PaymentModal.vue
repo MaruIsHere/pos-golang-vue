@@ -335,7 +335,7 @@ import {
 } from '@heroicons/vue/24/outline';
 import AppButton from './ui/AppButton.vue';
 import AppInput from './ui/AppInput.vue';
-import AppBadge from './ui/appBadge.vue';
+import AppBadge from './ui/AppBadge.vue';
 
 const props = defineProps({
   grandTotal: { type: Number, required: true },

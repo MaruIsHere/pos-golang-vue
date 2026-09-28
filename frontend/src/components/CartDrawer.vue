@@ -157,7 +157,7 @@ import api from '@/utils/api';
 import type { CartItem, Voucher } from '../types';
 import AppButton from './ui/AppButton.vue';
 import AppInput from './ui/AppInput.vue';
-import AppBadge from './ui/appBadge.vue';
+import AppBadge from './ui/AppBadge.vue';
 import {
   ShoppingCartIcon,
   ShoppingBagIcon,

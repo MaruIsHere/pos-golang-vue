@@ -96,7 +96,7 @@ import ReceiptModal from"../components/ReceiptModal.vue";
 import type { Order } from"../types";
 import appButton from"../components/ui/AppButton.vue";
 import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from"@heroicons/vue/24/outline";
-import AppBadge from"@/components/ui/appBadge.vue";
+import AppBadge from"@/components/ui/AppBadge.vue";
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
