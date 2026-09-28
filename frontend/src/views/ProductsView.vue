@@ -235,7 +235,7 @@ import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Category, Product } from '../types';
-import { PencilIcon, TrashIcon, PencilIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { PencilIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
