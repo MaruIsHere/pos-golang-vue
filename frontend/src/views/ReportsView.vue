@@ -8,17 +8,17 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <AppButton variant="secondary"  class="secondary flex items-center gap-1.5" @click="fetchStats">
+        <AppButton variant="secondary"  class="flex items-center gap-1.5" @click="fetchStats">
           <ArrowPathIcon class="w-4 h-4" />
           <span>Refresh</span>
         </AppButton>
 
-        <AppButton variant="success"  class="excel flex items-center gap-1.5" @click="handleExportExcel" :disabled="isLoading">
+        <AppButton variant="success"  class="flex items-center gap-1.5" @click="handleExportExcel" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export Excel</span>
         </AppButton>
 
-        <AppButton variant="danger"  class="pdf flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
+        <AppButton variant="danger"  class="flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export PDF</span>
         </AppButton>
@@ -59,31 +59,31 @@
     </div>
 
     <!-- Section 1: Visual Charts (Grafik Penjualan) -->
-    <div class="section-title">
+    <div class="flex flex-col gap-1 mt-6 mb-4">
       <h3>Grafik Penjualan & Distribusi Produk</h3>
       <p class="text-xs text-secondary">Visualisasi visual tren produk terlaris, kurang laku, dan tipe barang</p>
     </div>
 
-    <div class="charts-grid">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <!-- Chart 1: Top vs Slow Moving Products -->
       <AppCard>
-        <div class="chart-header">
+        <div class="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
           <h4>5 Barang Paling Laku vs 5 Barang Kurang Laku</h4>
         </div>
-        <div class="chart-body">
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm min-h-[300px]">
           <Bar v-if="topVsSlowChartData.labels.length > 0" :data="topVsSlowChartData" :options="chartOptions" />
-          <div v-else class="empty-chart">Belum ada data grafik penjualan</div>
+          <div v-else class="text-slate-400 text-sm italic flex h-full items-center justify-center">Belum ada data grafik penjualan</div>
         </div>
       </AppCard>
 
       <!-- Chart 2: Sales Distribution per Product Type -->
       <AppCard>
-        <div class="chart-header">
+        <div class="font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
           <h4>Distribusi Omset Per Tipe Produk</h4>
         </div>
-        <div class="chart-body chart-body-doughnut">
+        <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center min-h-[300px]">
           <Doughnut v-if="typeChartData.labels.length > 0" :data="typeChartData" :options="doughnutOptions" />
-          <div v-else class="empty-chart">Belum ada data tipe produk</div>
+          <div v-else class="text-slate-400 text-sm italic flex h-full items-center justify-center">Belum ada data tipe produk</div>
         </div>
       </AppCard>
     </div>
@@ -92,25 +92,25 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <!-- Barang Paling Laku (Top Sellers) -->
       <AppCard>
-        <div class="dash-card-header">
+        <div class="flex flex-col gap-1 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5 text-emerald-600">
             <FireIcon class="w-5 h-5 text-amber-500" /> Barang Paling Laku (Top Sellers)
           </h3>
           <span class="text-xs text-secondary">Produk dengan tingkat penjualan tertinggi</span>
         </div>
-        <div class="dash-card-body">
-          <div v-if="!stats.top_products || stats.top_products.length === 0" class="empty-text">
+        <div class="flex flex-col">
+          <div v-if="!stats.top_products || stats.top_products.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
             Belum ada data penjualan produk
           </div>
-          <div v-else class="top-list">
-            <div v-for="(p, index) in stats.top_products" :key="index" class="top-item">
-              <div class="rank-badge" :class="'rank-' + (index + 1)">#{{ index + 1 }}</div>
-              <div class="item-name-box">
-                <span class="top-name font-bold">{{ p.product_name }}</span>
-                <span class="top-qty text-xs text-secondary">{{ p.artist }} • {{ p.product_type }}</span>
+          <div v-else class="flex flex-col gap-3">
+            <div v-for="(p, index) in stats.top_products" :key="index" class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-700/50">
+              <div class="w-8 h-8 flex shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-slate-400 text-xs"">#{{ index + 1 }}</div>
+              <div class="flex flex-col flex-1 min-w-0">
+                <span class="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">{{ p.product_name }}</span>
+                <span class="text-xs text-slate-500 truncate mt-0.5">{{ p.artist }} • {{ p.product_type }}</span>
               </div>
               <div class="text-right">
-                <div class="top-sales font-extrabold text-emerald-600">Rp {{ formatPrice(p.total_sales) }}</div>
+                <div class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">Rp {{ formatPrice(p.total_sales) }}</div>
                 <div class="text-xs font-semibold text-slate-500">{{ p.total_qty }} pcs terjual</div>
               </div>
             </div>
@@ -120,20 +120,20 @@
 
       <!-- Barang Kurang Laku (Slow Moving / Evaluasi Stok) -->
       <AppCard>
-        <div class="dash-card-header">
+        <div class="flex flex-col gap-1 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5 text-rose-600">
             <ExclamationTriangleIcon class="w-5 h-5 text-rose-500" /> Barang Kurang Laku (Slow Moving)
           </h3>
           <span class="text-xs text-secondary">Produk dengan penjualan paling rendah / perlu promo</span>
         </div>
-        <div class="dash-card-body">
-          <div v-if="!stats.least_products || stats.least_products.length === 0" class="empty-text">
+        <div class="flex flex-col">
+          <div v-if="!stats.least_products || stats.least_products.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
             Belum ada data evaluasi stok produk
           </div>
-          <div v-else class="top-list">
-            <div v-for="(p, index) in stats.least_products" :key="index" class="least-item">
-              <div class="least-badge">#{{ index + 1 }}</div>
-              <div class="item-name-box">
+          <div v-else class="flex flex-col gap-3">
+            <div v-for="(p, index) in stats.least_products" :key="index" class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-700/50">
+              <div class="w-8 h-8 flex shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-slate-400 text-xs">#{{ index + 1 }}</div>
+              <div class="flex flex-col flex-1 min-w-0">
                 <span class="top-name font-bold text-slate-800">{{ p.product_name }}</span>
                 <span class="top-qty text-xs text-rose-500 font-medium">Sisa Stok: {{ p.stock ?? 0 }} unit</span>
               </div>
@@ -148,21 +148,21 @@
     </div>
 
     <!-- Section 3: List Seluruh Barang Laku (Full Detailed Table) -->
-    <AppCard class="full-width-card">
-      <div class="dash-card-header flex justify-between items-center">
+    <AppCard class="col-span-1 lg:col-span-2 mt-6">
+      <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
         <div>
           <h3 class="flex items-center gap-1.5">
             <ListBulletIcon class="w-5 h-5 text-indigo-600" /> List Seluruh Barang Laku
           </h3>
           <span class="text-xs text-secondary">Rincian lengkap kinerjaper barang yang telah terjual</span>
         </div>
-        <span class="badge badge-info" v-if="stats.all_sold_products">
+        <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 rounded-lg text-[10px] uppercase tracking-wider font-bold border border-indigo-200 dark:border-indigo-800/50" v-if="stats.all_sold_products">
           Total {{ stats.all_sold_products.length }} Jenis Produk
         </span>
       </div>
 
-      <div class="table-container">
-        <table class="data-table">
+      <div class="overflow-x-auto w-full mt-2">
+        <table class="w-full text-left text-sm whitespace-nowrap">
           <thead>
             <tr>
               <th>No</th>
@@ -181,10 +181,10 @@
             <tr v-else v-for="(p, idx) in stats.all_sold_products" :key="idx">
               <td>{{ idx + 1 }}</td>
               <td class="font-bold">{{ p.product_name }}</td>
-              <td><span class="sub-tag artist-tag">{{ p.artist }}</span></td>
-              <td><span class="sub-tag type-tag">{{ p.product_type }}</span></td>
+              <td><span class="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-[10px] font-bold border border-purple-200 dark:border-purple-800/50">{{ p.artist }}</span></td>
+              <td><span class="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md text-[10px] font-bold border border-amber-200 dark:border-amber-800/50">{{ p.product_type }}</span></td>
               <td>Rp {{ formatPrice(p.price || 0) }}</td>
-              <td><span class="qty-pill">{{ p.total_qty }} Pcs</span></td>
+              <td><span class="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">{{ p.total_qty }} Pcs</span></td>
               <td class="text-right font-bold text-emerald-600">Rp {{ formatPrice(p.total_sales) }}</td>
             </tr>
           </tbody>
@@ -193,25 +193,25 @@
     </AppCard>
 
     <!-- Section 4: Breakdown Sales Per Artist & Tipe Produk -->
-    <div class="sub-analytics-grid">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
       <!-- Sales by Artist -->
       <AppCard>
-        <div class="dash-card-header">
+        <div class="flex flex-col gap-1 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5 text-amber-600">
             <UserIcon class="w-5 h-5" /> Penjualan Per Artist
           </h3>
         </div>
-        <div class="dash-card-body">
-          <div v-if="!stats.sales_by_artist || stats.sales_by_artist.length === 0" class="empty-text">
+        <div class="flex flex-col">
+          <div v-if="!stats.sales_by_artist || stats.sales_by_artist.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
             Belum ada data artist
           </div>
-          <div v-else class="sub-stat-list">
-            <div v-for="(item, idx) in stats.sales_by_artist" :key="idx" class="sub-stat-item">
-              <div class="item-name-box">
-                <span class="sub-stat-name font-bold">{{ item.name }}</span>
-                <span class="sub-stat-qty">{{ item.total_qty }} pcs terjual</span>
+          <div v-else class="flex flex-col gap-3">
+            <div v-for="(item, idx) in stats.sales_by_artist" :key="idx" class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex flex-col flex-1 min-w-0">
+                <span class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.name }}</span>
+                <span class="text-xs text-slate-500 mt-0.5">{{ item.total_qty }} pcs terjual</span>
               </div>
-              <div class="sub-stat-sales">Rp {{ formatPrice(item.total_sales) }}</div>
+              <div class="font-bold text-slate-700 dark:text-slate-300">Rp {{ formatPrice(item.total_sales) }}</div>
             </div>
           </div>
         </div>
@@ -219,22 +219,22 @@
 
       <!-- Sales by Product Type -->
       <AppCard>
-        <div class="dash-card-header">
+        <div class="flex flex-col gap-1 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5 text-pink-600">
             <TagIcon class="w-5 h-5" /> Penjualan Per Tipe Produk
           </h3>
         </div>
-        <div class="dash-card-body">
-          <div v-if="!stats.sales_by_type || stats.sales_by_type.length === 0" class="empty-text">
+        <div class="flex flex-col">
+          <div v-if="!stats.sales_by_type || stats.sales_by_type.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
             Belum ada data tipe produk
           </div>
-          <div v-else class="sub-stat-list">
-            <div v-for="(item, idx) in stats.sales_by_type" :key="idx" class="sub-stat-item">
-              <div class="item-name-box">
-                <span class="sub-stat-name font-bold">{{ item.name }}</span>
-                <span class="sub-stat-qty">{{ item.total_qty }} pcs terjual</span>
+          <div v-else class="flex flex-col gap-3">
+            <div v-for="(item, idx) in stats.sales_by_type" :key="idx" class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex flex-col flex-1 min-w-0">
+                <span class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.name }}</span>
+                <span class="text-xs text-slate-500 mt-0.5">{{ item.total_qty }} pcs terjual</span>
               </div>
-              <div class="sub-stat-sales">Rp {{ formatPrice(item.total_sales) }}</div>
+              <div class="font-bold text-slate-700 dark:text-slate-300">Rp {{ formatPrice(item.total_sales) }}</div>
             </div>
           </div>
         </div>

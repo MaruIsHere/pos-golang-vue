@@ -26,7 +26,7 @@
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama Pelanggan *</label>
             <AppInput
               type="text"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+              class="w-full"
               v-model="custForm.name"
               placeholder="cth: Budi Santoso"
               required
@@ -37,7 +37,7 @@
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">No. Telepon / WhatsApp</label>
             <AppInput
               type="text"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+              class="w-full"
               v-model="custForm.phone"
               placeholder="cth: 081234567890"
             />
@@ -47,7 +47,7 @@
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
             <AppInput
               type="email"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+              class="w-full"
               v-model="custForm.email"
               placeholder="cth: budi@gmail.com"
             />
@@ -56,7 +56,7 @@
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat Lengkap</label>
             <textarea
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+              class="w-full"
               rows="2"
               v-model="custForm.address"
               placeholder="Alamat rumah / kantor pelanggan..."
@@ -67,13 +67,13 @@
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Poin Loyalty</label>
             <AppInput
               type="number"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100"
+              class="w-full"
               v-model.number="custForm.points"
               min="0"
             />
           </div>
 
-          <div class="form-actions">
+          <div class="flex gap-3 mt-4">
             <AppButton variant="secondary"
               v-if="editingId"
               type="button"
@@ -97,11 +97,11 @@
       </div>
 
       <!-- Customers Table List -->
-      <div class="customers-card backdrop-blur-md bg-white/90 dark:bg-slate-900/90 main-list-card">
+      <div class="col-span-1 lg:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
         <div class="border-b border-slate-200 dark:border-slate-700 pb-3 text-lg font-bold text-slate-800 dark:text-slate-100">
           <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Daftar Master Pelanggan ({{ filteredCustomers.length }})</h3>
 
-          <div class="search-box">
+          <div class="flex items-center gap-3 mb-5">
             <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
             <AppInput
               type="text"
@@ -123,7 +123,7 @@
           </div>
 
           <div v-else class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-            <table class="cust-table">
+            <table class="w-full text-left text-sm whitespace-nowrap">
               <thead>
                 <tr>
                   <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Nama</th>
@@ -137,16 +137,16 @@
               <tbody>
                 <tr v-for="c in filteredCustomers" :key="c.id">
                   <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
-                    <strong class="cust-name">{{ c.name }}</strong>
+                    <strong class="text-slate-800 dark:text-slate-100 font-bold">{{ c.name }}</strong>
                   </td>
                   <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ c.phone ||"-" }}</td>
                   <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ c.email ||"-" }}</td>
-                  <td class="addr-col">{{ c.address ||"-" }}</td>
+                  <td class="text-slate-500 max-w-[150px] truncate">{{ c.address ||"-" }}</td>
                   <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
-                    <span class="points-badge">{{ c.points }} Poin</span>
+                    <span class="px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 rounded-full font-bold text-[10px] uppercase tracking-wider border border-amber-200 dark:border-amber-800/50">{{ c.points }} Poin</span>
                   </td>
                   <td class="text-right">
-                    <div class="action-btns">
+                    <div class="flex items-center gap-2">
                       <AppButton variant="secondary"
                         class=""
                         title="Edit"
