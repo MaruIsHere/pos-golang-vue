@@ -1,22 +1,22 @@
 <template>
   <div class="flex flex-col gap-6">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
       <div class="flex flex-col gap-1">
-        <h2>Pengaturan Toko, QRIS, Tema & Voucher</h2>
-        <p>Konfigurasi profil toko, gambar QRIS pembayaran, tema mode terang/gelap, voucher diskon, dan database engine</p>
+        <h2 class="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Pengaturan Sistem</h2>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Konfigurasi profil toko, gambar QRIS pembayaran, tema mode terang/gelap, voucher diskon, dan manajemen staf.</p>
       </div>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <!-- 0. Theme Selection Card -->
-      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
-          <h3 class="flex items-center gap-1.5">
+          <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <SunIcon class="w-5 h-5 text-amber-500" />
             <span>Tema Tampilan (Mode Terang / Mode Gelap)</span>
           </h3>
-          <span class="px-3 py-1 text-xs font-bold rounded-full" :class="dbEngine === 'mysql' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'">
-            {{ isDarkMode ? 'Mode Gelap (Dark)' : 'Mode Terang (Light)' }}
+          <span class="px-3 py-1 text-xs font-black rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400">
+            {{ isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode' }}
           </span>
         </div>
 
@@ -26,29 +26,29 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div 
               class="flex flex-col gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden" 
-              :class="{ selected: !isDarkMode }"
+              :class="!isDarkMode ? 'border-indigo-500 ring-4 ring-indigo-500/10 shadow-md bg-white dark:bg-slate-800 scale-[1.02]' : 'opacity-60 hover:opacity-100'"
               @click="setDark(false)"
             >
               <div class="w-7 h-7 text-indigo-600 dark:text-indigo-400">
                 <SunIcon class="w-7 h-7 text-amber-500" />
               </div>
               <div class="flex flex-col mt-1">
-                <h4>Mode Terang (Light Mode)</h4>
-                <p>Tampilan serba putih yang bersih, minimalis, dan terang.</p>
+                <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">Mode Terang (Light Mode)</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">Tampilan serba putih yang bersih, minimalis, dan terang.</p>
               </div>
             </div>
 
             <div 
               class="flex flex-col gap-3 p-5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all relative overflow-hidden" 
-              :class="{ selected: isDarkMode }"
+              :class="isDarkMode ? 'border-indigo-500 ring-4 ring-indigo-500/10 shadow-md bg-white dark:bg-slate-800 scale-[1.02]' : 'opacity-60 hover:opacity-100'"
               @click="setDark(true)"
             >
               <div class="w-7 h-7 text-indigo-600 dark:text-indigo-400">
                 <MoonIcon class="w-7 h-7 text-indigo-400" />
               </div>
               <div class="flex flex-col mt-1">
-                <h4>Mode Gelap (Dark Mode)</h4>
-                <p>Tampilan gelap modern yang nyaman di mata untuk kondisi pencahayaan redup.</p>
+                <h4 class="text-base font-bold text-slate-800 dark:text-slate-100">Mode Gelap (Dark Mode)</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">Tampilan gelap modern yang nyaman di mata untuk kondisi pencahayaan redup.</p>
               </div>
             </div>
           </div>
@@ -56,9 +56,9 @@
       </div>
 
       <!-- 1. Store Profile & QRIS Settings -->
-      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
-          <h3 class="flex items-center gap-1.5">
+          <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <BuildingStorefrontIcon class="w-5 h-5 text-indigo-600" />
             <span>Profil Toko & Foto QRIS Pembayaran</span>
           </h3>
@@ -137,9 +137,9 @@
       </div>
 
       <!-- 2. Manage Voucher Codes -->
-      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
-          <h3 class="flex items-center gap-1.5">
+          <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <TicketIcon class="w-5 h-5 text-indigo-600" />
             <span>Manajemen Kode Voucher Diskon</span>
           </h3>
@@ -249,9 +249,9 @@
       </div>
 
       <!-- 3. User Management & Registration (Owner & Admin Only) -->
-      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm">
+      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
-          <h3 class="flex items-center gap-1.5">
+          <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <UserGroupIcon class="w-5 h-5 text-indigo-600" />
             <span>Manajemen Pengguna & Registrasi Akun Staf</span>
           </h3>
@@ -438,7 +438,7 @@
       <!-- 4. Database Engine Switcher Panel -->
       <div class="flex flex-col p-6 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 rounded-[24px] shadow-sm mt-6">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
-          <h3 class="flex items-center gap-1.5">
+          <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <CircleStackIcon class="w-5 h-5 text-indigo-600" />
             <span>Engine Basis Data (Database Switcher)</span>
           </h3>
