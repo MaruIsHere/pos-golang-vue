@@ -389,7 +389,7 @@ const onReceiptClose = () => {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  flex-shrink: 0;
+  shrink: 0;
 }
 
 .search-input-wrapper {
@@ -444,7 +444,7 @@ const onReceiptClose = () => {
   gap: 0.5rem;
   overflow-x: auto;
   padding: 0.25rem 0.25rem 0.5rem 0.25rem;
-  flex-shrink: 0;
+  shrink: 0;
   min-height: 48px;
   align-items: center;
 }
@@ -454,7 +454,7 @@ const onReceiptClose = () => {
 }
 
 .cat-pill {
-  flex-shrink: 0;
+  shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -494,7 +494,7 @@ const onReceiptClose = () => {
   padding: 0.55rem 0.85rem;
   background: #345c4f;
   border-radius: 10px;
-  flex-shrink: 0;
+  shrink: 0;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 

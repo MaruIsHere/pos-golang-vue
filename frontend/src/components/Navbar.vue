@@ -174,7 +174,7 @@ onUnmounted(() => {
   padding: 0.75rem 1.5rem;
   z-index: 50;
   height: 64px;
-  flex-shrink: 0;
+  shrink: 0;
   background: var(--bg-glass);
   border-bottom: 1px solid var(--border-color);
 }

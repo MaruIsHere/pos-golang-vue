@@ -87,8 +87,8 @@
 
         <!-- Last Scanned Feedback Alert -->
         <div v-if="lastScannedMessage" class="scan-alert" :class="lastScannedSuccess ? 'success' : 'error'">
-          <CheckCircleIcon v-if="lastScannedSuccess" class="w-5 h-5 text-emerald-500 flex-shrink-0" />
-          <ExclamationCircleIcon v-else class="w-5 h-5 text-red-500 flex-shrink-0" />
+          <CheckCircleIcon v-if="lastScannedSuccess" class="w-5 h-5 text-emerald-500 shrink-0" />
+          <ExclamationCircleIcon v-else class="w-5 h-5 text-red-500 shrink-0" />
           <span>{{ lastScannedMessage }}</span>
         </div>
       </div>

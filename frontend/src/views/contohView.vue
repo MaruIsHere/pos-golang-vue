@@ -10,7 +10,7 @@
         <input 
           type="text" 
           placeholder="Cari produk atau pindai barcode..." 
-          class="flex-grow px-4 py-3 bg-md-surface rounded-md-full border border-md-outline focus:outline-none focus:border-md-primary text-md-body-large"
+          class="grow px-4 py-3 bg-md-surface rounded-md-full border border-md-outline focus:outline-none focus:border-md-primary text-md-body-large"
         />
         <button class="bg-md-secondary-container text-md-on-secondary-container p-3 rounded-md-full">
           🔍
