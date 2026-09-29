@@ -4,7 +4,6 @@
 
     <PwaInstallBanner />
 
-<<<<<<< HEAD
     <main
       class="flex flex-1 min-h-0 overflow-hidden relative"
       :class="authStore.isAuthenticated ? 'md:pl-20 md:pt-16 pt-12 pb-16 md:pb-0' : ''"
@@ -13,10 +12,6 @@
         class="flex-1 h-full w-full overflow-y-auto overflow-x-hidden flex flex-col relative"
         :class="authStore.isAuthenticated ? 'p-3 md:p-5' : ''"
       >
-=======
-    <main class="flex flex-1 overflow-hidden relative" :class="{ 'md:pl-20 md:pt-16 pt-12 pb-16 md:pb-0': authStore.isAuthenticated }">
-      <div class="flex-1 h-full w-full overflow-y-auto overflow-x-hidden flex flex-col relative" :class="{ 'p-3 md:p-5': authStore.isAuthenticated }">
->>>>>>> 9014a46523b945cdafe66acb0a0a95ecf0650ff4
         <router-view class="flex-1 w-full min-h-0" />
       </div>
     </main>
