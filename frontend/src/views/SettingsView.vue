@@ -246,7 +246,7 @@
               </div>
             </div>
 
-            <AppButton variant="primary"  type="submit"  :disabled="isCreatingVoucher">
+            <AppButton variant="primary" type="submit" class="mt-2" :disabled="isCreatingVoucher">
               {{ isCreatingVoucher ? 'Menambahkan...' : 'Simpan Voucher Baru' }}
             </AppButton>
           </form>
@@ -285,8 +285,8 @@
                     </td>
                     <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">{{ v.description || '-' }}</td>
                     <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-right">
-                      <AppButton variant="danger" size="sm" class="flex items-center gap-1.5 ml-auto" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
-                        <TrashIcon class="w-3.5 h-3.5" /> <span>Hapus</span>
+                      <AppButton variant="danger" size="icon" class="ml-auto" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
+                        <TrashIcon class="w-4 h-4" />
                       </AppButton>
                     </td>
                   </tr>
@@ -434,7 +434,7 @@
                           title="Hapus Pengguna"
                           @click="deleteUserAccount(u.id, u.username)"
                         >
-                          <TrashIcon class="w-3.5 h-3.5" /> <span>Hapus</span>
+                          <TrashIcon class="w-4 h-4" />
                         </AppButton>
                       </div>
                     </td>
