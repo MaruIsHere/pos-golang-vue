@@ -4,10 +4,15 @@ import router from '../router'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
-  const user = ref<any>(JSON.parse(localStorage.getItem('user') || 'null'))
+  let savedUser = null
+  try {
+    const raw = localStorage.getItem('user')
+    if (raw && raw !== 'undefined') savedUser = JSON.parse(raw)
+  } catch (e) {}
+  const user = ref<any>(savedUser)
 
   const isAuthenticated = computed(() => !!token.value)
-  const userRole = computed(() => user.value?.role || null)
+  const userRole = computed(() => { const r = user.value?.role || user.value?.Role; return r ? String(r).toLowerCase() : null })
 
   const setAuth = (newToken: string, newUser: any) => {
     token.value = newToken
