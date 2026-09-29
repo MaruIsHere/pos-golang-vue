@@ -4,9 +4,44 @@ import (
 	"net/http"
 	"pos-backend/database"
 	"pos-backend/models"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+type productInput struct {
+	CategoryID  uint    `json:"category_id"`
+	Name        string  `json:"name"`
+	Artist      string  `json:"artist"`
+	ProductType string  `json:"product_type"`
+	Price       float64 `json:"price"`
+	CostPrice   float64 `json:"cost_price"`
+	Stock       int     `json:"stock"`
+	Barcode     string  `json:"barcode"`
+	ImageURL    string  `json:"image_url"`
+	IsActive    *bool   `json:"is_active"`
+}
+
+func validateProductInput(input *productInput) (string, error) {
+	input.Name = strings.TrimSpace(input.Name)
+	if input.Name == "" {
+		return "Nama produk wajib diisi", nil
+	}
+	if input.CategoryID == 0 {
+		return "Kategori produk wajib dipilih", nil
+	}
+	if input.Price < 0 || input.CostPrice < 0 || input.Stock < 0 {
+		return "Harga dan stok tidak boleh negatif", nil
+	}
+	var categoryCount int64
+	if err := database.DB.Model(&models.Category{}).Where("id = ?", input.CategoryID).Count(&categoryCount).Error; err != nil {
+		return "", err
+	}
+	if categoryCount == 0 {
+		return "Kategori produk tidak ditemukan", nil
+	}
+	return "", nil
+}
 
 // === PRODUCT HANDLERS ===
 
@@ -54,16 +89,40 @@ func GetProductFilters(c *gin.Context) {
 }
 
 func CreateProduct(c *gin.Context) {
-	var product models.Product
-	if err := c.ShouldBindJSON(&product); err != nil {
+	var input productInput
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := database.DB.Create(&product).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if message, err := validateProductInput(&input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa kategori produk"})
+		return
+	} else if message != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": message})
 		return
 	}
-	database.DB.Preload("Category").First(&product, product.ID)
+	product := models.Product{
+		CategoryID: input.CategoryID,
+		Name:       input.Name,
+		Artist:     input.Artist,
+		ProductType: input.ProductType,
+		Price:      input.Price,
+		CostPrice:  input.CostPrice,
+		Stock:      input.Stock,
+		Barcode:    input.Barcode,
+		ImageURL:   input.ImageURL,
+	}
+	if input.IsActive != nil {
+		product.IsActive = *input.IsActive
+	}
+	if err := database.DB.Create(&product).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk"})
+		return
+	}
+	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat kategorinya"})
+		return
+	}
 	c.JSON(http.StatusCreated, product)
 }
 
@@ -75,13 +134,40 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&product); err != nil {
+	var input productInput
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	database.DB.Save(&product)
-	database.DB.Preload("Category").First(&product, product.ID)
+	if message, err := validateProductInput(&input); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa kategori produk"})
+		return
+	} else if message != "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": message})
+		return
+	}
+	updates := map[string]interface{}{
+		"category_id":  input.CategoryID,
+		"name":         input.Name,
+		"artist":       input.Artist,
+		"product_type": input.ProductType,
+		"price":        input.Price,
+		"cost_price":   input.CostPrice,
+		"stock":        input.Stock,
+		"barcode":      input.Barcode,
+		"image_url":    input.ImageURL,
+	}
+	if input.IsActive != nil {
+		updates["is_active"] = *input.IsActive
+	}
+	if err := database.DB.Model(&product).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui produk"})
+		return
+	}
+	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk diperbarui, tetapi gagal memuat kategorinya"})
+		return
+	}
 	c.JSON(http.StatusOK, product)
 }
 

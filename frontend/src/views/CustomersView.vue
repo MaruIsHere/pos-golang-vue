@@ -56,7 +56,7 @@
           <div class="flex flex-col gap-2">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Alamat Lengkap</label>
             <textarea
-              class="w-full"
+              class="w-full text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
               rows="2"
               v-model="custForm.address"
               placeholder="Alamat rumah / kantor pelanggan..."
@@ -123,30 +123,30 @@
           </div>
 
           <div v-else class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
-            <table class="w-full text-left text-sm whitespace-nowrap">
+            <table class="data-table min-w-[780px] table-fixed text-sm">
               <thead>
                 <tr>
-                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Nama</th>
-                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">No. Telepon</th>
-                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Email</th>
-                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Alamat</th>
-                  <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Poin</th>
-                  <th class="text-right">Aksi</th>
+                  <th class="w-[18%]">Nama</th>
+                  <th class="w-[15%]">No. Telepon</th>
+                  <th class="w-[21%]">Email</th>
+                  <th class="w-[18%]">Alamat</th>
+                  <th class="w-[13%]">Poin</th>
+                  <th class="w-[15%] text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="c in filteredCustomers" :key="c.id">
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
+                  <td class="font-semibold text-slate-800 dark:text-slate-100">
                     <strong class="text-slate-800 dark:text-slate-100 font-bold">{{ c.name }}</strong>
                   </td>
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ c.phone ||"-" }}</td>
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ c.email ||"-" }}</td>
-                  <td class="text-slate-500 max-w-[150px] truncate">{{ c.address ||"-" }}</td>
-                  <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
+                  <td class="text-slate-700 dark:text-slate-200">{{ c.phone ||"-" }}</td>
+                  <td class="text-slate-700 dark:text-slate-200">{{ c.email ||"-" }}</td>
+                  <td class="max-w-[150px] truncate text-slate-600 dark:text-slate-300">{{ c.address ||"-" }}</td>
+                  <td class="text-slate-800 dark:text-slate-100">
                     <span class="px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 rounded-full font-bold text-[10px] uppercase tracking-wider border border-amber-200 dark:border-amber-800/50">{{ c.points }} Poin</span>
                   </td>
                   <td class="text-right">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center justify-end gap-2">
                       <AppButton variant="secondary"
                         class=""
                         title="Edit"

@@ -89,7 +89,7 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 		{"owner", "owner123", "owner"},
 		{"kepalakasir", "kepala123", "kepala_kasir"},
 		{"kasir", "kasir123", "kasir"},
-		{"admin", "admin123", "owner"},
+		{"admin", "admin123", "admin"},
 	}
 
 	for _, u := range defaultUsers {
@@ -100,8 +100,13 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 			db.Create(&models.User{
 				Username: u.username,
 				Password: string(hashed),
-				Role: models.UserRole(u.role),
+				Role:     models.UserRole(u.role),
 			})
+		} else if strings.EqualFold(u.username, "admin") {
+			var existing models.User
+			if err := db.Where("LOWER(username) = LOWER(?)", u.username).First(&existing).Error; err == nil && strings.EqualFold(string(existing.Role), "owner") {
+				db.Model(&existing).Update("role", models.UserRole("admin"))
+			}
 		}
 	}
 

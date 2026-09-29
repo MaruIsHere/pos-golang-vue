@@ -32,9 +32,13 @@ func RegisterAPIRoutes(router *gin.Engine) {
 		protected := api.Group("/")
 		protected.Use(middleware.AuthMiddleware())
 		{
+			protected.GET("/profile", middleware.RoleMiddleware("owner", "admin"), handlers.GetProfile)
+			protected.PUT("/profile", middleware.RoleMiddleware("owner", "admin"), handlers.UpdateProfile)
+
 			// Categories
 			protected.GET("/categories", handlers.GetCategories)
 			protected.POST("/categories", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateCategory)
+			protected.PUT("/categories/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateCategory)
 			protected.DELETE("/categories/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteCategory)
 
 			// Products
@@ -74,6 +78,8 @@ func RegisterAPIRoutes(router *gin.Engine) {
 
 			// User Management (Khusus Owner & Admin)
 			protected.GET("/users", middleware.RoleMiddleware("admin", "owner"), handlers.GetUsers)
+			protected.GET("/users/:id", middleware.RoleMiddleware("admin", "owner"), handlers.GetUserProfile)
+			protected.PUT("/users/:id", middleware.RoleMiddleware("admin", "owner"), handlers.UpdateUserProfile)
 			protected.POST("/users", middleware.RoleMiddleware("administrator", "owner"), handlers.Register)
 			protected.PUT("/users/:id/password", middleware.RoleMiddleware("admin", "owner"), handlers.ChangeUserPassword)
 			protected.DELETE("/users/:id", middleware.RoleMiddleware("admin", "owner"), handlers.DeleteUser)

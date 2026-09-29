@@ -131,6 +131,8 @@ Alasan cross-compile works: SQLite driver yang dipakai (`glebarez/sqlite` / `mod
 
 ## Konfigurasi (`backend/config.json`)
 
+`backend/config.json` berisi konfigurasi awal yang dilacak Git. Saat backend pertama kali dijalankan, konfigurasinya disalin ke `backend/config.local.json` yang diabaikan Git; file lokal ini menjadi sumber konfigurasi utama berikutnya. Perubahan database dari halaman Settings juga disimpan di sana, jadi pull atau pergantian branch tidak mengganti pilihan database lokal.
+
 ```json
 {
   "port": "8080",
@@ -140,8 +142,9 @@ Alasan cross-compile works: SQLite driver yang dipakai (`glebarez/sqlite` / `mod
 }
 ```
 
-* `POST /api/settings/switch-db` akan update file ini + row `store_settings` otomatis.
-* Backend harus dijalankan dari folder `backend/` karena path `config.json` dan `../frontend/dist` relatif terhadap working directory (`main.go:92-94`, `config/config.go:18`).
+* `POST /api/settings/switch-db` akan memperbarui `config.local.json` + row `store_settings` otomatis.
+* Path SQLite relatif ditambatkan ke folder konfigurasi backend, bukan working directory.
+* Backend dapat dijalankan dari root repo atau folder `backend/`; konfigurasi lokal yang ada akan diprioritaskan.
 
 ## Database
 

@@ -7,11 +7,11 @@ import (
 type UserRole string
 
 const (
-	RoleOwner UserRole = "OWNER"
+	RoleOwner         UserRole = "OWNER"
 	RoleAdministrator UserRole = "ADMINISTRATOR"
-	RoleKepalaKasir UserRole = "KEPALA_KASIR"
-	RoleAdmin UserRole = "ADMIN"
-	RoleKasir UserRole = "KASIR"
+	RoleKepalaKasir   UserRole = "KEPALA_KASIR"
+	RoleAdmin         UserRole = "ADMIN"
+	RoleKasir         UserRole = "KASIR"
 )
 
 func (r UserRole) IsValid() bool {
@@ -23,12 +23,14 @@ func (r UserRole) IsValid() bool {
 }
 
 type User struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	Username  string    `gorm:"size:100;not null;unique" json:"username"`
-	Password  string    `gorm:"size:255;not null" json:"-"`
-	Role      UserRole  `gorm:"type:varchar(20);default:\'KASIR\'" json:"role"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	Username     string    `gorm:"size:100;not null;unique" json:"username"`
+	Name         string    `gorm:"size:100" json:"name"`
+	ProfilePhoto string    `gorm:"type:longtext" json:"profile_photo"`
+	Password     string    `gorm:"size:255;not null" json:"-"`
+	Role         UserRole  `gorm:"type:varchar(20);default:'KASIR'" json:"role"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type Category struct {
@@ -65,7 +67,7 @@ type Order struct {
 	PaidAmount    float64     `gorm:"type:decimal(12,2);not null" json:"paid_amount"`
 	ChangeAmount  float64     `gorm:"type:decimal(12,2);default:0" json:"change_amount"`
 	PaymentMethod string      `gorm:"size:50;default:'cash'" json:"payment_method"` // cash, qris, debit, credit
-	Status        string      `gorm:"size:30;default:'completed'" json:"status"`   // completed, refunded, cancelled
+	Status        string      `gorm:"size:30;default:'completed'" json:"status"`    // completed, refunded, cancelled
 	CashierName   string      `gorm:"size:100;default:'Kasir Utama'" json:"cashier_name"`
 	CustomerName  string      `gorm:"size:100;default:'Umum'" json:"customer_name"`
 	CreatedAt     time.Time   `json:"created_at"`

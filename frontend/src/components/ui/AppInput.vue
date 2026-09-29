@@ -25,8 +25,8 @@ defineEmits(['update:modelValue'])
 
 const inputClasses = computed(() => cn(
   'w-full px-3.5 py-2.5 text-[0.9rem] rounded-[10px] transition-all duration-150 ease-in-out focus:outline-none focus:ring-[3px]',
-  'bg-white dark:bg-slate-800 text-tx-primary border',
-  'dark:bg-slate-900 dark:border-slate-700 dark:text-slate-50',
+  'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 border',
+  'dark:border-slate-700',
   props.error 
     ? 'border-accent-danger focus:border-accent-danger focus:ring-accent-danger/20' 
     : 'border-slate-200 dark:border-slate-700 focus:border-accent-primary focus:ring-accent-primary/12',

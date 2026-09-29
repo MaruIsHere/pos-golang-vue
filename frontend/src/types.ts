@@ -13,6 +13,14 @@ export interface StoreSetting {
   qris_image_url?: string;
 }
 
+export interface UserProfile {
+  id: number;
+  username: string;
+  name: string;
+  profile_photo?: string;
+  role: string;
+}
+
 export interface Category {
   id: number;
   name: string;

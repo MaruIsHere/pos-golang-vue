@@ -64,10 +64,11 @@
 
       <div v-if="authStore.user" class="flex items-center gap-2">
         <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
-          <UserIcon class="w-4 h-4 text-indigo-500" />
+          <img v-if="authStore.user.profile_photo" :src="authStore.user.profile_photo" alt="Foto profil" class="w-full h-full rounded-full object-cover" />
+          <UserIcon v-else class="w-4 h-4 text-indigo-500" />
         </div>
         <div class="flex flex-col leading-none">
-          <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ authStore.user.username }}</span>
+          <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ authStore.user.name || authStore.user.username }}</span>
           <span class="text-[9px] font-extrabold uppercase mt-0.5" :class="roleBadgeClass">
             {{ roleLabel }}
           </span>
@@ -122,6 +123,7 @@ import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import { useAuthStore } from '../stores/auth';
 import { useTheme } from '../composables/useTheme';
+import api from '../utils/api';
 import {
   ShoppingCartIcon,
   BuildingStorefrontIcon,
@@ -148,6 +150,16 @@ const { isDarkMode, toggleTheme } = useTheme();
 
 const logout = () => {
   authStore.logout();
+};
+
+const syncProfile = async (): Promise<void> => {
+  if (!['owner', 'admin'].includes(String(authStore.userRole || '').toLowerCase())) return;
+  try {
+    const { data } = await api.get('/profile');
+    authStore.updateUser(data.user);
+  } catch {
+    // Keep the locally cached profile available when the API is temporarily unreachable.
+  }
 };
 
 const allNavItems = [
@@ -193,6 +205,7 @@ const updateTime = (): void => {
 
 let timer: ReturnType<typeof setInterval> | null = null;
 onMounted(() => {
+  void syncProfile();
   updateTime();
   timer = setInterval(updateTime, 1000);
 });

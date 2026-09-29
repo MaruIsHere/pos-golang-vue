@@ -43,6 +43,7 @@ logs/
 .env.production
 .config/
 secrets/
+backend/config.local.json
 
 # ========== IDE / EDITOR ==========
 .vscode/

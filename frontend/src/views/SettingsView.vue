@@ -55,6 +55,55 @@
         </div>
       </div>
 
+      <div v-if="canEditProfile" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
+        <div class="border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
+          <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Profil Akun</h3>
+        </div>
+
+        <form class="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6" @submit.prevent="saveOwnProfile">
+          <div class="flex flex-col items-center gap-3">
+            <img v-if="profileForm.profile_photo" :src="profileForm.profile_photo" alt="Foto profil" class="w-24 h-24 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+            <div v-else class="w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400">
+              <UserGroupIcon class="w-10 h-10" />
+            </div>
+            <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-900/30 rounded-lg">
+              <ArrowUpTrayIcon class="w-4 h-4" />
+              Pilih Foto
+              <input type="file" accept="image/*" class="sr-only" @change="onProfilePhotoSelected" />
+            </label>
+            <button v-if="profileForm.profile_photo" type="button" class="text-xs font-semibold text-rose-600 hover:text-rose-700" @click="profileForm.profile_photo = ''">
+              Hapus foto
+            </button>
+            <span class="text-xs text-slate-500">Format gambar, maksimal 2MB</span>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama tampilan *</label>
+                <AppInput v-model="profileForm.name" type="text" maxlength="100" required />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Username *</label>
+                <AppInput v-model="profileForm.username" type="text" minlength="3" maxlength="100" required />
+              </div>
+              <div class="flex flex-col gap-2 md:col-span-2">
+                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Sandi baru</label>
+                <AppInput v-model="profileForm.password" type="password" minlength="6" autocomplete="new-password" placeholder="Kosongkan jika tidak ingin mengganti" />
+              </div>
+            </div>
+
+            <p v-if="profileError" class="text-sm font-semibold text-rose-600">{{ profileError }}</p>
+            <p v-if="profileSuccess" class="text-sm font-semibold text-emerald-600">{{ profileSuccess }}</p>
+            <div>
+              <AppButton variant="primary" type="submit" :disabled="isSavingProfile">
+                {{ isSavingProfile ? 'Menyimpan...' : 'Simpan Profil' }}
+              </AppButton>
+            </div>
+          </div>
+        </form>
+      </div>
+
       <!-- 1. Store Profile & QRIS Settings -->
       <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
@@ -341,7 +390,7 @@
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Username</th>
+                    <th>Nama / Username</th>
                     <th>Role / Akses</th>
                     <th>Tanggal Dibuat</th>
                     <th class="text-right">Aksi</th>
@@ -352,7 +401,8 @@
                     <tr>
                     <td>#{{ u.id }}</td>
                     <td>
-                      <strong class="text-slate-800 dark:text-slate-100 font-bold">{{ u.username }}</strong>
+                      <strong class="text-slate-800 dark:text-slate-100 font-bold">{{ u.name || u.username }}</strong>
+                      <span v-if="u.name && u.name !== u.username" class="block text-xs text-slate-500">{{ u.username }}</span>
                     </td>
                     <td>
                       <span class="badge" :class="getUserRoleBadgeClass(u.role)">
@@ -362,6 +412,14 @@
                     <td class="text-xs text-slate-500">{{ formatDate(u.created_at) }}</td>
                     <td class="text-right">
                       <div class="user-actions">
+                        <AppButton v-if="u.id !== Number(authStore.user?.id)" variant="primary"
+                          type="button"
+                          class="icon -edit-user"
+                          :disabled="isLoadingStaffProfile || isSavingStaffProfile"
+                          @click="openStaffProfileForm(u)"
+                        >
+                          <PencilSquareIcon class="w-3.5 h-3.5 inline-block mr-1" /> Edit Profil
+                        </AppButton>
                         <AppButton variant="primary" 
                           type="button"
                           class="icon -change-password"
@@ -381,6 +439,53 @@
                       </div>
                     </td>
                   </tr>
+                    <tr v-if="staffProfileTarget?.id === u.id">
+                      <td colspan="5">
+                        <form class="staff-password-form" @submit.prevent="saveStaffProfile">
+                          <div class="staff-password-heading">
+                            <strong>Edit profil {{ u.username }}</strong>
+                            <span class="text-xs text-slate-500">Nama, username, dan foto profil</span>
+                          </div>
+                          <div v-if="isLoadingStaffProfile" class="vouchers-loading">Memuat profil pengguna...</div>
+                          <div v-else class="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4">
+                            <div class="flex flex-col items-center gap-2">
+                              <img v-if="staffProfileForm.profile_photo" :src="staffProfileForm.profile_photo" alt="Foto profil pengguna" class="w-20 h-20 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+                              <div v-else class="w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400">
+                                <UserGroupIcon class="w-8 h-8" />
+                              </div>
+                              <label class="cursor-pointer text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                                Pilih foto
+                                <input type="file" accept="image/*" class="sr-only" @change="onStaffProfilePhotoSelected" />
+                              </label>
+                              <button v-if="staffProfileForm.profile_photo" type="button" class="text-xs font-semibold text-rose-600" @click="staffProfileForm.profile_photo = ''">
+                                Hapus foto
+                              </button>
+                              <span class="text-[11px] text-slate-500">Maksimal 2MB</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div class="flex flex-col gap-2">
+                                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Nama tampilan *</label>
+                                <AppInput v-model="staffProfileForm.name" type="text" maxlength="100" required />
+                              </div>
+                              <div class="flex flex-col gap-2">
+                                <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Username *</label>
+                                <AppInput v-model="staffProfileForm.username" type="text" minlength="3" maxlength="100" required />
+                              </div>
+                            </div>
+                          </div>
+                          <p v-if="staffProfileError" class="staff-password-error">{{ staffProfileError }}</p>
+                          <p v-if="staffProfileSuccess" class="staff-password-success">{{ staffProfileSuccess }}</p>
+                          <div class="user-actions">
+                            <AppButton variant="secondary" type="button" class="secondary" :disabled="isSavingStaffProfile" @click="cancelStaffProfileForm">
+                              Batal
+                            </AppButton>
+                            <AppButton variant="primary" type="submit" class="primary" :disabled="isLoadingStaffProfile || isSavingStaffProfile">
+                              {{ isSavingStaffProfile ? 'Menyimpan...' : 'Simpan Profil' }}
+                            </AppButton>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
                     <tr v-if="staffPasswordTarget?.id === u.id">
                       <td colspan="5">
                         <form class="staff-password-form" @submit.prevent="changeStaffPassword">
@@ -517,10 +622,11 @@
 <script setup lang="ts">
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Voucher } from '../types';
 import { useTheme } from '../composables/useTheme';
+import { useAuthStore } from '../stores/auth';
 import { 
   BuildingStorefrontIcon, 
   TicketIcon, 
@@ -528,6 +634,7 @@ import {
   FolderIcon, 
   ServerIcon, 
   TrashIcon, 
+  PencilSquareIcon,
   ArrowUpTrayIcon,
   SunIcon,
   MoonIcon,
@@ -537,8 +644,62 @@ import {
 const emit = defineEmits(['refresh-settings']);
 
 const { isDarkMode, setDark } = useTheme();
+const authStore = useAuthStore();
+const canEditProfile = computed(() => ['owner', 'admin'].includes(String(authStore.userRole || '').toLowerCase()));
+const profileForm = ref({
+  username: authStore.user?.username || '',
+  name: authStore.user?.name || authStore.user?.username || '',
+  profile_photo: authStore.user?.profile_photo || '',
+  password: ''
+});
+const isSavingProfile = ref(false);
+const profileError = ref('');
+const profileSuccess = ref('');
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+
+const onProfilePhotoSelected = (event: Event): void => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    profileError.value = 'File harus berupa gambar.';
+    input.value = '';
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    profileError.value = 'Ukuran foto maksimal 2MB.';
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    profileForm.value.profile_photo = String(reader.result || '');
+    profileError.value = '';
+  };
+  reader.onerror = () => {
+    profileError.value = 'Gagal membaca file foto.';
+  };
+  reader.readAsDataURL(file);
+};
+
+const saveOwnProfile = async (): Promise<void> => {
+  profileError.value = '';
+  profileSuccess.value = '';
+  isSavingProfile.value = true;
+  try {
+    const { data } = await api.put('/profile', profileForm.value);
+    authStore.updateProfile(data.token, data.user);
+    profileForm.value.password = '';
+    profileSuccess.value = data.message || 'Profil berhasil diperbarui.';
+  } catch (err: any) {
+    profileError.value = err.response?.data?.error || err.message || 'Gagal menyimpan profil.';
+  } finally {
+    isSavingProfile.value = false;
+  }
+};
 
 const dbEngine = ref('sqlite');
 const selectedEngine = ref('sqlite');
@@ -589,6 +750,12 @@ const confirmStaffPassword = ref('');
 const isChangingStaffPassword = ref(false);
 const staffPasswordSuccessMsg = ref('');
 const staffPasswordErrorMsg = ref('');
+const staffProfileTarget = ref<{ id: number; username: string } | null>(null);
+const staffProfileForm = ref({ username: '', name: '', profile_photo: '' });
+const isLoadingStaffProfile = ref(false);
+const isSavingStaffProfile = ref(false);
+const staffProfileError = ref('');
+const staffProfileSuccess = ref('');
 
 const loadSettings = async () => {
   try {
@@ -655,6 +822,77 @@ const createUser = async () => {
     userErrorMsg.value = err.response?.data?.error || err.message || 'Gagal menambahkan pengguna';
   } finally {
     isCreatingUser.value = false;
+  }
+};
+
+const openStaffProfileForm = async (user: { id: number; username: string }) => {
+  cancelStaffProfileForm();
+  staffProfileTarget.value = user;
+  isLoadingStaffProfile.value = true;
+  try {
+    const { data } = await api.get(`/users/${user.id}`);
+    staffProfileForm.value = {
+      username: data.username || '',
+      name: data.name || data.username || '',
+      profile_photo: data.profile_photo || ''
+    };
+  } catch (err: any) {
+    staffProfileError.value = err.response?.data?.error || err.message || 'Gagal memuat profil pengguna.';
+  } finally {
+    isLoadingStaffProfile.value = false;
+  }
+};
+
+const cancelStaffProfileForm = () => {
+  staffProfileTarget.value = null;
+  staffProfileForm.value = { username: '', name: '', profile_photo: '' };
+  staffProfileError.value = '';
+  staffProfileSuccess.value = '';
+};
+
+const onStaffProfilePhotoSelected = (event: Event): void => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    staffProfileError.value = 'File harus berupa gambar.';
+    input.value = '';
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    staffProfileError.value = 'Ukuran foto maksimal 2MB.';
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    staffProfileForm.value.profile_photo = String(reader.result || '');
+    staffProfileError.value = '';
+  };
+  reader.onerror = () => {
+    staffProfileError.value = 'Gagal membaca file foto.';
+  };
+  reader.readAsDataURL(file);
+};
+
+const saveStaffProfile = async () => {
+  const target = staffProfileTarget.value;
+  if (!target) return;
+  staffProfileError.value = '';
+  staffProfileSuccess.value = '';
+  isSavingStaffProfile.value = true;
+  try {
+    const { data } = await api.put(`/users/${target.id}`, staffProfileForm.value);
+    users.value = users.value.map(user => user.id === target.id
+      ? { ...user, username: data.user.username, name: data.user.name }
+      : user);
+    staffProfileTarget.value = { id: data.user.id, username: data.user.username };
+    staffProfileSuccess.value = data.message || 'Profil pengguna berhasil diperbarui.';
+  } catch (err: any) {
+    staffProfileError.value = err.response?.data?.error || err.message || 'Gagal menyimpan profil pengguna.';
+  } finally {
+    isSavingStaffProfile.value = false;
   }
 };
 

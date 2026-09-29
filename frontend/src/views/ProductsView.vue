@@ -1,4 +1,5 @@
 <template>
+  <div class="flex min-h-0 flex-1 flex-col">
   <div class="flex flex-col lg:flex-row gap-5 h-full lg:max-h-[calc(100vh-100px)]">
     
     <!-- KARTU KIRI: SIDEBAR FILTER -->
@@ -49,11 +50,11 @@
           <span class="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-xs font-black">{{ filteredProducts.length }}</span>
         </h3>
         <div class="flex items-center gap-2 w-full sm:w-auto">
-          <AppButton variant="secondary" class="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-600 dark:text-slate-300" @click="isCategoryModalOpen = true">
+          <AppButton variant="secondary" class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-700 dark:text-slate-200" @click="isCategoryModalOpen = true">
             <PlusIcon class="w-4 h-4" />
             <span>Kategori</span>
           </AppButton>
-          <AppButton variant="primary" class="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl font-bold shadow-indigo-600/20 shadow-lg active:scale-95" @click="openAddModal">
+          <AppButton variant="primary" class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl font-bold shadow-indigo-600/20 shadow-lg active:scale-95" @click="openAddModal">
             <PlusIcon class="w-4 h-4 text-indigo-50" />
             <span>Produk Baru</span>
           </AppButton>
@@ -64,6 +65,11 @@
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 bg-white/40 dark:bg-slate-800/40 rounded-[24px]">
           <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
           <p class="text-sm font-semibold text-slate-500">Memuat katalog...</p>
+        </div>
+        <div v-else-if="productsError" class="p-6 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" role="alert">
+          <p class="font-semibold">Katalog gagal dimuat</p>
+          <p class="mt-1 text-sm">{{ productsError }}</p>
+          <AppButton variant="secondary" class="mt-4" @click="fetchProducts">Coba Lagi</AppButton>
         </div>
         <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center py-24 px-6 text-center bg-white/60 dark:bg-slate-800/40 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[24px]">
           <div class="p-4 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
@@ -117,6 +123,7 @@
         </div>
 
         <form @submit.prevent="saveProduct" class="modal-body">
+          <p v-if="productError" class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" role="alert">{{ productError }}</p>
           <div class="form-group">
             <label class="form-label">Nama Produk *</label>
             <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.name" required placeholder="Contoh: Keyring Chibi Character" />
@@ -125,9 +132,10 @@
           <div class="form-group">
             <label class="form-label">Kategori Utama *</label>
             <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.category_id" required>
-              <option value="" disabled>Pilih Kategori</option>
+              <option value="" disabled>{{ categories.length ? 'Pilih Kategori' : 'Buat kategori terlebih dahulu' }}</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
+            <button v-if="categories.length === 0" type="button" class="self-start text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400" @click="isCategoryModalOpen = true">Tambah kategori</button>
           </div>
 
           <div class="form-row">
@@ -189,32 +197,63 @@
       <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90">
         <div class="modal-header">
           <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Tambah Kategori Utama</h3>
-          <AppButton variant="primary" class="" @click="isCategoryModalOpen = false">
+          <AppButton variant="secondary" type="button" @click="isCategoryModalOpen = false">
             <XMarkIcon class="w-5 h-5 text-slate-500" />
           </AppButton>
         </div>
         <form @submit.prevent="saveCategory" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Kategori</label>
-            <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="catForm.name" required placeholder="Contoh: Merchandise" />
+            <AppInput type="text" v-model="catForm.name" required maxlength="100" placeholder="Contoh: Merchandise" />
           </div>
+          <p v-if="categoryError" class="text-sm font-medium text-rose-600 dark:text-rose-400" role="alert">{{ categoryError }}</p>
           <div class="modal-footer">
-            <AppButton variant="secondary" type="button" class="" @click="isCategoryModalOpen = false">Batal</AppButton>
-            <AppButton variant="primary" type="submit" class="">Simpan Kategori</AppButton>
+            <AppButton variant="secondary" type="button" @click="isCategoryModalOpen = false">Tutup</AppButton>
+            <AppButton variant="primary" type="submit" :disabled="isSavingCategory">
+              {{ isSavingCategory ? 'Menyimpan...' : 'Tambah Kategori' }}
+            </AppButton>
           </div>
         </form>
+        <div class="px-5 pb-5">
+          <h4 class="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Kategori Terdaftar ({{ categories.length }})</h4>
+          <p v-if="categories.length === 0" class="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">Belum ada kategori.</p>
+          <ul v-else class="divide-y divide-slate-200 rounded-lg border border-slate-200 dark:divide-slate-700 dark:border-slate-700">
+            <li v-for="cat in categories" :key="cat.id" class="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
+              <form v-if="editingCategoryId === cat.id" class="flex min-w-[240px] flex-1 items-center gap-2" @submit.prevent="updateCategory(cat.id)">
+                <AppInput v-model="editingCategoryName" type="text" required maxlength="100" aria-label="Nama kategori baru" />
+                <AppButton variant="primary" type="submit" size="sm" :disabled="isSavingCategory">Simpan</AppButton>
+                <AppButton variant="secondary" type="button" size="sm" @click="cancelCategoryEdit">Batal</AppButton>
+              </form>
+              <template v-else>
+                <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ cat.name }}</span>
+                <div class="flex shrink-0 items-center gap-2">
+                  <AppButton variant="secondary" size="sm" title="Ubah kategori" @click="startCategoryEdit(cat)">
+                    <PencilIcon class="h-4 w-4" />
+                    <span class="sr-only">Ubah kategori</span>
+                  </AppButton>
+                  <AppButton variant="danger" size="sm" title="Hapus kategori" @click="deleteCategory(cat)">
+                    <TrashIcon class="h-4 w-4" />
+                    <span class="sr-only">Hapus kategori</span>
+                  </AppButton>
+                </div>
+              </template>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
+import AppBadge from '@/components/ui/AppBadge.vue';
 
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Category, Product } from '../types';
-import { PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { MagnifyingGlassIcon, PencilIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
@@ -228,7 +267,13 @@ const selectedProductType = ref<string>('');
 const isProductModalOpen = ref(false);
 const isCategoryModalOpen = ref(false);
 const isSaving = ref(false);
+const isSavingCategory = ref(false);
 const editingId = ref<number | null>(null);
+const editingCategoryId = ref<number | null>(null);
+const editingCategoryName = ref('');
+const productsError = ref('');
+const categoryError = ref('');
+const productError = ref('');
 
 const form = ref({
   name: '',
@@ -260,11 +305,12 @@ const availableProductTypes = computed(() => {
 
 const fetchProducts = async () => {
   isLoading.value = true;
+  productsError.value = '';
   try {
     const res = await api.get('/products');
     products.value = res.data;
   } catch (err: any) {
-    console.error('Fetch products error:', err.response?.data?.error || err.message || 'Error occurred');
+    productsError.value = err.response?.data?.error || err.message || 'Gagal mengambil produk.';
   } finally {
     isLoading.value = false;
   }
@@ -275,7 +321,7 @@ const fetchCategories = async () => {
     const res = await api.get('/categories');
     categories.value = res.data;
   } catch (err: any) {
-    console.error('Fetch categories error:', err.response?.data?.error || err.message || 'Error occurred');
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal mengambil kategori.';
   }
 };
 
@@ -348,6 +394,7 @@ const openEditModal = (prod: Product): void => {
 
 const saveProduct = async () => {
   isSaving.value = true;
+  productError.value = '';
   try {
     const url = editingId.value ? `/products/${editingId.value}` : '/products';
     
@@ -360,8 +407,7 @@ const saveProduct = async () => {
     isProductModalOpen.value = false;
     fetchProducts();
   } catch (err: any) {
-    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Gagal menyimpan produk: ' + errMsg);
+    productError.value = err.response?.data?.error || err.message || 'Gagal menyimpan produk.';
   } finally {
     isSaving.value = false;
   }
@@ -380,15 +426,56 @@ const deleteProduct = async (prod: Product): Promise<void> => {
 };
 
 const saveCategory = async () => {
-  if (!catForm.value.name) return;
+  categoryError.value = '';
+  if (!catForm.value.name.trim()) return;
+  isSavingCategory.value = true;
   try {
-    await api.post('/categories', catForm.value);
+    const { data: createdCategory } = await api.post('/categories', { name: catForm.value.name.trim() });
     catForm.value.name = '';
-    isCategoryModalOpen.value = false;
-    fetchCategories();
+    await fetchCategories();
+    if (categoryError.value) return;
+    form.value.category_id = createdCategory.id;
   } catch (err: any) {
-    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Gagal menyimpan kategori: ' + errMsg);
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal menyimpan kategori.';
+  } finally {
+    isSavingCategory.value = false;
+  }
+};
+
+const startCategoryEdit = (category: Category): void => {
+  categoryError.value = '';
+  editingCategoryId.value = category.id;
+  editingCategoryName.value = category.name;
+};
+
+const cancelCategoryEdit = (): void => {
+  editingCategoryId.value = null;
+  editingCategoryName.value = '';
+};
+
+const updateCategory = async (id: number): Promise<void> => {
+  categoryError.value = '';
+  isSavingCategory.value = true;
+  try {
+    await api.put(`/categories/${id}`, { name: editingCategoryName.value.trim() });
+    cancelCategoryEdit();
+    await Promise.all([fetchCategories(), fetchProducts()]);
+  } catch (err: any) {
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal memperbarui kategori.';
+  } finally {
+    isSavingCategory.value = false;
+  }
+};
+
+const deleteCategory = async (category: Category): Promise<void> => {
+  if (!confirm(`Hapus kategori "${category.name}"?`)) return;
+  categoryError.value = '';
+  try {
+    await api.delete(`/categories/${category.id}`);
+    if (selectedCatId.value === category.id) selectedCatId.value = null;
+    await fetchCategories();
+  } catch (err: any) {
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal menghapus kategori.';
   }
 };
 </script>

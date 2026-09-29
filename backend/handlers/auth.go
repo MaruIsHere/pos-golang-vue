@@ -21,13 +21,190 @@ type RegisterInput struct {
 	Role     string `json:"role"`
 }
 
+type UpdateProfileInput struct {
+	Username     string `json:"username"`
+	Name         string `json:"name"`
+	ProfilePhoto string `json:"profile_photo"`
+	Password     string `json:"password"`
+}
+
+func GetProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Sesi pengguna tidak valid"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, fmt.Sprintf("%v", userID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"user": user})
+}
+
+func UpdateProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Sesi pengguna tidak valid"})
+		return
+	}
+
+	var input UpdateProfileInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Data profil tidak valid"})
+		return
+	}
+
+	input.Username = strings.TrimSpace(input.Username)
+	input.Name = strings.TrimSpace(input.Name)
+	if len(input.Username) < 3 || len(input.Username) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username harus berisi 3 sampai 100 karakter"})
+		return
+	}
+	if len(input.Name) == 0 || len(input.Name) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama harus diisi dan maksimal 100 karakter"})
+		return
+	}
+	if len(input.ProfilePhoto) > 3*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Foto profil maksimal 2MB"})
+		return
+	}
+	if input.Password != "" && len(input.Password) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Password minimal 6 karakter"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, fmt.Sprintf("%v", userID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
+		return
+	}
+
+	var duplicateCount int64
+	database.DB.Model(&models.User{}).Where("LOWER(username) = LOWER(?) AND id <> ?", input.Username, user.ID).Count(&duplicateCount)
+	if duplicateCount > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Username sudah digunakan"})
+		return
+	}
+
+	updates := map[string]interface{}{
+		"username":      input.Username,
+		"name":          input.Name,
+		"profile_photo": input.ProfilePhoto,
+	}
+	if input.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memproses enkripsi password"})
+			return
+		}
+		updates["password"] = string(hashedPassword)
+	}
+	if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan profil"})
+		return
+	}
+	if err := database.DB.First(&user, user.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memuat profil terbaru"})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":  user.ID,
+		"username": user.Username,
+		"role":     user.Role,
+		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(),
+	})
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui sesi"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Profil berhasil diperbarui",
+		"token":   tokenString,
+		"user":    user,
+	})
+}
+
 func GetUsers(c *gin.Context) {
 	var users []models.User
-	if err := database.DB.Order("created_at desc").Find(&users).Error; err != nil {
+	if err := database.DB.Select("id", "username", "name", "role", "created_at").Order("created_at desc").Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pengguna"})
 		return
 	}
 	c.JSON(http.StatusOK, users)
+}
+
+func GetUserProfile(c *gin.Context) {
+	var user models.User
+	if err := database.DB.First(&user, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+func UpdateUserProfile(c *gin.Context) {
+	currentUserID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Sesi pengguna tidak valid"})
+		return
+	}
+	if strings.TrimSpace(c.Param("id")) == strings.TrimSpace(fmt.Sprintf("%v", currentUserID)) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Gunakan menu Profil Akun untuk mengubah akun sendiri"})
+		return
+	}
+
+	var input UpdateProfileInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Data profil tidak valid"})
+		return
+	}
+	input.Username = strings.TrimSpace(input.Username)
+	input.Name = strings.TrimSpace(input.Name)
+	if len(input.Username) < 3 || len(input.Username) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username harus berisi 3 sampai 100 karakter"})
+		return
+	}
+	if len(input.Name) == 0 || len(input.Name) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama harus diisi dan maksimal 100 karakter"})
+		return
+	}
+	if len(input.ProfilePhoto) > 3*1024*1024 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Foto profil maksimal 2MB"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, c.Param("id")).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
+		return
+	}
+	var duplicateCount int64
+	database.DB.Model(&models.User{}).Where("LOWER(username) = LOWER(?) AND id <> ?", input.Username, user.ID).Count(&duplicateCount)
+	if duplicateCount > 0 {
+		c.JSON(http.StatusConflict, gin.H{"error": "Username sudah digunakan"})
+		return
+	}
+
+	updates := map[string]interface{}{
+		"username":      input.Username,
+		"name":          input.Name,
+		"profile_photo": input.ProfilePhoto,
+	}
+	if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan profil pengguna"})
+		return
+	}
+	if err := database.DB.First(&user, user.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memuat profil terbaru"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Profil pengguna berhasil diperbarui", "user": user})
 }
 
 func Register(c *gin.Context) {
@@ -174,9 +351,11 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"token": tokenString,
 		"user": gin.H{
-			"id":       user.ID,
-			"username": user.Username,
-			"role":     user.Role,
+			"id":            user.ID,
+			"username":      user.Username,
+			"name":          user.Name,
+			"profile_photo": user.ProfilePhoto,
+			"role":          user.Role,
 		},
 	})
 }

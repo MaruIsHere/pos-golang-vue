@@ -15,6 +15,8 @@ servers:
 security: []
 tags:
   - name: Health
+  - name: Profile
+  - name: Users
   - name: Categories
   - name: Products
   - name: Orders
@@ -72,6 +74,30 @@ paths:
         '400': { $ref: '#/components/responses/Error400' }
         '500': { $ref: '#/components/responses/Error500' }
   /categories/{id}:
+    put:
+      tags: [Categories]
+      summary: Ubah nama kategori
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, maxLength: 100 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+        '409': { description: Nama kategori sudah digunakan }
+        '500': { $ref: '#/components/responses/Error500' }
     delete:
       tags: [Categories]
       summary: Hapus kategori
@@ -86,6 +112,97 @@ paths:
                 type: object
                 properties:
                   message: { type: string, example: Kategori berhasil dihapus }
+        '404': { $ref: '#/components/responses/Error404' }
+        '409': { description: Kategori masih digunakan oleh produk }
+        '500': { $ref: '#/components/responses/Error500' }
+  /profile:
+    get:
+      tags: [Profile]
+      summary: Ambil profil akun sendiri (owner/admin)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/UserProfile' }
+        '401': { description: Sesi tidak valid }
+        '403': { description: Hanya owner/admin }
+    put:
+      tags: [Profile]
+      summary: Ubah nama, username, foto, atau sandi akun sendiri (owner/admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, name]
+              properties:
+                username: { type: string, minLength: 3, maxLength: 100 }
+                name: { type: string, maxLength: 100 }
+                profile_photo: { type: string, description: Data URL gambar atau string kosong untuk menghapus foto; maksimal 2MB sebelum encoding }
+                password: { type: string, minLength: 6, description: Opsional; kosongkan jika tidak diganti }
+      responses:
+        '200':
+          description: Profil berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  token: { type: string }
+                  user: { $ref: '#/components/schemas/UserProfile' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '401': { description: Sesi tidak valid }
+        '403': { description: Hanya owner/admin }
+        '409': { description: Username sudah digunakan }
+        '500': { $ref: '#/components/responses/Error500' }
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Users]
+      summary: Ambil profil pengguna untuk diedit (owner/admin)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserProfile' }
+        '403': { description: Hanya owner/admin }
+        '404': { $ref: '#/components/responses/Error404' }
+    put:
+      tags: [Users]
+      summary: Ubah nama, username, atau foto pengguna lain (owner/admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, name]
+              properties:
+                username: { type: string, minLength: 3, maxLength: 100 }
+                name: { type: string, maxLength: 100 }
+                profile_photo: { type: string, description: Data URL gambar atau string kosong untuk menghapus foto; maksimal 2MB sebelum encoding }
+      responses:
+        '200':
+          description: Profil pengguna berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: '#/components/schemas/UserProfile' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '403': { description: Hanya owner/admin }
+        '404': { $ref: '#/components/responses/Error404' }
+        '409': { description: Username sudah digunakan }
         '500': { $ref: '#/components/responses/Error500' }
   /products:
     get:
@@ -497,6 +614,14 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
   schemas:
+    UserProfile:
+      type: object
+      properties:
+        id: { type: integer }
+        username: { type: string }
+        name: { type: string }
+        profile_photo: { type: string, description: Data URL gambar }
+        role: { type: string, enum: [owner, admin, kepala_kasir, kasir] }
     Error:
       type: object
       required: [error]

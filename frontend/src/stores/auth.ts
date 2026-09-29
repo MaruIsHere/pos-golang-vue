@@ -16,6 +16,18 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('user', JSON.stringify(newUser))
   }
 
+  const updateProfile = (newToken: string, newUser: any) => {
+    token.value = newToken
+    user.value = newUser
+    localStorage.setItem('token', newToken)
+    localStorage.setItem('user', JSON.stringify(newUser))
+  }
+
+  const updateUser = (newUser: any) => {
+    user.value = newUser
+    localStorage.setItem('user', JSON.stringify(newUser))
+  }
+
   const logout = () => {
     token.value = null
     user.value = null
@@ -32,6 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     userRole,
     setAuth,
+    updateProfile,
+    updateUser,
     logout
   }
 })
