@@ -35,6 +35,16 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.GET("/profile", middleware.RoleMiddleware("owner", "admin"), handlers.GetProfile)
 			protected.PUT("/profile", middleware.RoleMiddleware("owner", "admin"), handlers.UpdateProfile)
 
+			// Reusable product catalogs
+			protected.GET("/artists", handlers.GetArtists)
+			protected.POST("/artists", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateArtist)
+			protected.PUT("/artists/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateArtist)
+			protected.DELETE("/artists/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteArtist)
+			protected.GET("/product-types", handlers.GetProductTypes)
+			protected.POST("/product-types", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateProductType)
+			protected.PUT("/product-types/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateProductType)
+			protected.DELETE("/product-types/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteProductType)
+
 			// Categories
 			protected.GET("/categories", handlers.GetCategories)
 			protected.POST("/categories", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateCategory)

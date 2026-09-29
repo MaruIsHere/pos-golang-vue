@@ -1,10 +1,12 @@
 package main
 
 import (
+	"net/http"
 	"log"
 	"pos-backend/config"
 	"pos-backend/database"
 	"pos-backend/routes"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -38,6 +40,10 @@ func main() {
 	// Serve frontend static files if dist folder exists
 	router.Static("/assets", "../frontend/dist/assets")
 	router.NoRoute(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "API tidak ditemukan. Pastikan backend memakai versi terbaru."})
+			return
+		}
 		c.File("../frontend/dist/index.html")
 	})
 

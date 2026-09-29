@@ -15,9 +15,6 @@
             <SunIcon class="w-5 h-5 text-amber-500" />
             <span>Tema Tampilan (Mode Terang / Mode Gelap)</span>
           </h3>
-          <span class="px-3 py-1 text-xs font-black rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400">
-            {{ isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode' }}
-          </span>
         </div>
 
         <div class="flex flex-col gap-4 mt-2">
@@ -179,7 +176,7 @@
             </div>
           </div>
 
-          <AppButton variant="success"  type="submit" class="success -block" :disabled="isSavingStore">
+          <AppButton variant="primary" type="submit" class="w-full" :disabled="isSavingStore">
             {{ isSavingStore ? 'Memproses...' : 'Simpan Pengaturan Toko & QRIS' }}
           </AppButton>
         </form>
@@ -200,7 +197,7 @@
           </p>
 
           <!-- Add Voucher Form -->
-          <form @submit.prevent="createVoucher" class="">
+          <form @submit.prevent="createVoucher" class="flex flex-col gap-4">
             <h4>Tambah Kode Voucher Baru</h4>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -315,7 +312,7 @@
           </p>
 
           <!-- Register User Form -->
-          <form @submit.prevent="createUser" class="mb-6">
+          <form @submit.prevent="createUser" class="mb-6 flex flex-col gap-4">
             <h4>Tambah Pengguna / Registrasi Staf Baru</h4>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

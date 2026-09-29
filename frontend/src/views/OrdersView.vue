@@ -18,8 +18,17 @@
     </div>
 
     <!-- Orders Table -->
-    <div class="overflow-x-auto bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm">
-      <table class="w-full text-left text-sm">
+    <div class="w-full min-w-0 overflow-x-auto bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm">
+      <table class="w-full min-w-[1200px] table-fixed text-left text-sm">
+        <colgroup>
+          <col class="w-[160px]" />
+          <col class="w-[220px]" />
+          <col class="w-[180px]" />
+          <col class="w-[150px]" />
+          <col class="w-[180px]" />
+          <col class="w-[120px]" />
+          <col class="w-[190px]" />
+        </colgroup>
         <thead>
           <tr>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">No. Invoice</th>
@@ -28,15 +37,15 @@
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Metode Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Total Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Status</th>
-            <th class="text-right">Aksi</th>
+            <th class="p-3 text-right font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="isLoading">
-            <td colspan="7" class="text-center">Memuat riwayat transaksi...</td>
+          <tr v-if="isLoading" class="border-b border-slate-200 dark:border-slate-700">
+            <td colspan="7" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Memuat riwayat transaksi...</td>
           </tr>
-          <tr v-else-if="orders.length === 0">
-            <td colspan="7" class="text-center">Belum ada transaksi recorded</td>
+          <tr v-else-if="orders.length === 0" class="border-b border-slate-200 dark:border-slate-700">
+            <td colspan="7" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Belum ada transaksi.</td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
@@ -49,7 +58,7 @@
                 {{ (order.payment_method ||"cash").toUpperCase() }}
               </AppBadge>
             </td>
-            <td class="font-bold price-text">Rp {{ formatPrice(order.grand_total) }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">Rp {{ formatPrice(order.grand_total) }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <span
                 class="badge"
@@ -58,8 +67,8 @@
                 {{ order.status ==="refunded" ?"Diretur" :"Selesai" }}
               </span>
             </td>
-            <td class="text-right">
-              <div class="action-flex">
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-right">
+              <div class="flex justify-end gap-2 whitespace-nowrap">
                 <AppButton @click="openReceipt(order)" variant="secondary" size="sm">
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>

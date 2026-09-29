@@ -8,7 +8,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <AppButton variant="secondary"  class="flex items-center gap-1.5" @click="fetchStats">
+        <AppButton variant="primary" class="flex items-center gap-1.5" @click="fetchStats">
           <ArrowPathIcon class="w-4 h-4" />
           <span>Refresh</span>
         </AppButton>

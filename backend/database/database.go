@@ -62,6 +62,8 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 	err = db.AutoMigrate(
 		&models.User{},
 		&models.Category{},
+		&models.Artist{},
+		&models.ProductType{},
 		&models.Product{},
 		&models.Order{},
 		&models.OrderItem{},
@@ -73,10 +75,121 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to auto migrate models: %w", err)
 	}
+	if err := migrateLegacyCategoryCatalogs(db); err != nil {
+		return nil, fmt.Errorf("failed to migrate category catalogs: %w", err)
+	}
 
 	DB = db
 	SeedInitialData(db, engine, mysqlDsn)
 	return db, nil
+}
+
+func migrateLegacyCategoryCatalogs(db *gorm.DB) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		ensureArtist := func(name string) error {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				return nil
+			}
+			var count int64
+			if err := tx.Model(&models.Artist{}).Where("LOWER(name) = LOWER(?)", name).Count(&count).Error; err != nil {
+				return err
+			}
+			if count == 0 {
+				return tx.Create(&models.Artist{Name: name}).Error
+			}
+			return nil
+		}
+		ensureProductType := func(name string) error {
+			name = strings.TrimSpace(name)
+			if name == "" {
+				return nil
+			}
+			var count int64
+			if err := tx.Model(&models.ProductType{}).Where("LOWER(name) = LOWER(?)", name).Count(&count).Error; err != nil {
+				return err
+			}
+			if count == 0 {
+				return tx.Create(&models.ProductType{Name: name}).Error
+			}
+			return nil
+		}
+
+		var products []models.Product
+		if err := tx.Find(&products).Error; err != nil {
+			return err
+		}
+		for _, product := range products {
+			if err := ensureArtist(product.Artist); err != nil {
+				return err
+			}
+			if err := ensureProductType(product.ProductType); err != nil {
+				return err
+			}
+		}
+
+		var categories []models.Category
+		if err := tx.Order("id").Find(&categories).Error; err != nil {
+			return err
+		}
+		categoriesByID := make(map[uint]models.Category, len(categories))
+		for _, category := range categories {
+			categoriesByID[category.ID] = category
+		}
+
+		for _, category := range categories {
+			if category.ParentID == nil {
+				continue
+			}
+			chain := []models.Category{category}
+			visited := map[uint]struct{}{category.ID: {}}
+			parentID := *category.ParentID
+			for parentID != 0 {
+				parent, exists := categoriesByID[parentID]
+				if !exists {
+					break
+				}
+				if _, exists := visited[parent.ID]; exists {
+					break
+				}
+				visited[parent.ID] = struct{}{}
+				chain = append(chain, parent)
+				if parent.ParentID == nil {
+					break
+				}
+				parentID = *parent.ParentID
+			}
+			for left, right := 0, len(chain)-1; left < right; left, right = left+1, right-1 {
+				chain[left], chain[right] = chain[right], chain[left]
+			}
+			if len(chain) < 2 {
+				continue
+			}
+
+			root := chain[0]
+			artistName := chain[1].Name
+			productTypeName := ""
+			if len(chain) > 2 {
+				productTypeName = chain[len(chain)-1].Name
+			}
+			if err := ensureArtist(artistName); err != nil {
+				return err
+			}
+			if err := ensureProductType(productTypeName); err != nil {
+				return err
+			}
+
+			if err := tx.Model(&models.Product{}).Where("category_id = ?", category.ID).Updates(map[string]interface{}{
+				"category_id":  root.ID,
+				"artist":       gorm.Expr("CASE WHEN artist IS NULL OR artist = '' THEN ? ELSE artist END", artistName),
+				"product_type": gorm.Expr("CASE WHEN product_type IS NULL OR product_type = '' THEN ? ELSE product_type END", productTypeName),
+			}).Error; err != nil {
+				return err
+			}
+		}
+
+		return tx.Where("parent_id IS NOT NULL").Delete(&models.Category{}).Error
+	})
 }
 
 func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {

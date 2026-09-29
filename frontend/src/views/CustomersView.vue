@@ -83,7 +83,7 @@
               Batal Edit
             </AppButton>
 
-            <AppButton variant="success" type="submit" class="" :disabled="isSaving">
+            <AppButton variant="primary" type="submit" class="" :disabled="isSaving">
               {{
                 isSaving
                   ?"Memproses..."

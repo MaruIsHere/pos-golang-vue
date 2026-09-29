@@ -37,6 +37,19 @@ type Category struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Name      string    `gorm:"size:100;not null;unique" json:"name"`
 	Icon      string    `gorm:"size:50;default:'utensils'" json:"icon"`
+	ParentID  *uint     `gorm:"index" json:"parent_id,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type Artist struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Name      string    `gorm:"size:100;not null;uniqueIndex" json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type ProductType struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Name      string    `gorm:"size:100;not null;uniqueIndex" json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

@@ -25,6 +25,19 @@ export interface Category {
   id: number;
   name: string;
   icon?: string;
+  parent_id?: number | null;
+  created_at?: string;
+}
+
+export interface Artist {
+  id: number;
+  name: string;
+  created_at?: string;
+}
+
+export interface ProductType {
+  id: number;
+  name: string;
   created_at?: string;
 }
 

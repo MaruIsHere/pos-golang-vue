@@ -24,6 +24,8 @@ type productInput struct {
 
 func validateProductInput(input *productInput) (string, error) {
 	input.Name = strings.TrimSpace(input.Name)
+	input.Artist = strings.TrimSpace(input.Artist)
+	input.ProductType = strings.TrimSpace(input.ProductType)
 	if input.Name == "" {
 		return "Nama produk wajib diisi", nil
 	}
@@ -39,6 +41,24 @@ func validateProductInput(input *productInput) (string, error) {
 	}
 	if categoryCount == 0 {
 		return "Kategori produk tidak ditemukan", nil
+	}
+	if input.Artist != "" {
+		var artistCount int64
+		if err := database.DB.Model(&models.Artist{}).Where("LOWER(name) = LOWER(?)", input.Artist).Count(&artistCount).Error; err != nil {
+			return "", err
+		}
+		if artistCount == 0 {
+			return "Artist tidak ditemukan. Tambahkan artist melalui master artist terlebih dahulu", nil
+		}
+	}
+	if input.ProductType != "" {
+		var typeCount int64
+		if err := database.DB.Model(&models.ProductType{}).Where("LOWER(name) = LOWER(?)", input.ProductType).Count(&typeCount).Error; err != nil {
+			return "", err
+		}
+		if typeCount == 0 {
+			return "Tipe produk tidak ditemukan. Tambahkan tipe produk melalui master terlebih dahulu", nil
+		}
 	}
 	return "", nil
 }
@@ -79,8 +99,8 @@ func GetProductFilters(c *gin.Context) {
 	var artists []string
 	var productTypes []string
 
-	database.DB.Model(&models.Product{}).Where("artist IS NOT NULL AND artist != ''").Distinct("artist").Pluck("artist", &artists)
-	database.DB.Model(&models.Product{}).Where("product_type IS NOT NULL AND product_type != ''").Distinct("product_type").Pluck("product_type", &productTypes)
+	database.DB.Model(&models.Artist{}).Order("name").Pluck("name", &artists)
+	database.DB.Model(&models.ProductType{}).Order("name").Pluck("name", &productTypes)
 
 	c.JSON(http.StatusOK, gin.H{
 		"artists":       artists,

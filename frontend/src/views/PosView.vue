@@ -31,34 +31,40 @@
         <button 
           class="px-5 py-2 rounded-full text-[0.85rem] font-bold whitespace-nowrap transition-all duration-300 shadow-sm snap-start" 
           :class="selectedCategoryId === null ? 'bg-indigo-600 text-white border-transparent shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-          @click="selectedCategoryId = null"
+          @click="selectCategory(null)"
         >
           Semua Produk
         </button>
         <button 
-          v-for="cat in categories" 
+          v-for="cat in rootCategories" 
           :key="cat.id" 
           class="px-5 py-2 rounded-full text-[0.85rem] font-bold whitespace-nowrap transition-all duration-300 shadow-sm snap-start" 
           :class="selectedCategoryId === cat.id ? 'bg-indigo-600 text-white border-transparent shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-          @click="selectedCategoryId = cat.id"
+          @click="selectCategory(cat.id)"
         >
-          {{ cat.name }}
+          {{ categoryLabel(cat) }}
         </button>
       </div>
 
       <!-- Compact Sub-categories Filter -->
       <div class="flex items-center gap-3 shrink-0">
         <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedArtist">
-          <option value="">Semua Artist</option>
-          <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
+          <option :value="null">Semua Artist</option>
+          <option v-if="availableArtists.length === 0" disabled value="">Belum ada data artist</option>
+          <option v-for="artist in availableArtists" :key="artist.id" :value="artist.name">{{ artist.name }}</option>
         </select>
         <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedProductType">
-          <option value="">Semua Tipe Produk</option>
-          <option v-for="t in availableProductTypes" :key="t" :value="t">{{ t }}</option>
+          <option :value="null">Semua Tipe</option>
+          <option v-if="availableProductTypes.length === 0" disabled value="">Belum ada data tipe produk</option>
+          <option v-for="type in availableProductTypes" :key="type.id" :value="type.name">{{ type.name }}</option>
         </select>
         <button v-if="selectedArtist || selectedProductType" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 rounded-xl transition-colors shadow-sm ml-auto" @click="resetSubFilters">
           Reset
         </button>
+      </div>
+      <div v-if="catalogError" class="flex items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" role="alert">
+        <span>{{ catalogError }}</span>
+        <button type="button" class="shrink-0 font-bold underline" @click="fetchCatalogs">Coba lagi</button>
       </div>
 
       <!-- Products Grid (Independent Scroll) -->
@@ -150,7 +156,7 @@ import PaymentModal from '../components/PaymentModal.vue';
 import ReceiptModal from '../components/ReceiptModal.vue';
 import BarcodeScannerModal from '../components/BarcodeScannerModal.vue';
 import { useSettingsStore } from '../stores/settings';
-import type { Category, Product, CartItem, Order, CreateOrderPayload } from '../types';
+import type { Artist, Category, Product, ProductType, CartItem, Order, CreateOrderPayload } from '../types';
 import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon } from '@heroicons/vue/24/outline';
 
 defineEmits(['refresh-products']);
@@ -159,29 +165,43 @@ const settingsStore = useSettingsStore();
 const { settings: storeSetting } = storeToRefs(settingsStore);
 
 const categories = ref<Category[]>([]);
+const artists = ref<Artist[]>([]);
+const productTypes = ref<ProductType[]>([]);
 const products = ref<Product[]>([]);
 const isLoading = ref(true);
+const catalogError = ref('');
 
 const searchQuery = ref('');
 const selectedCategoryId = ref<number | null>(null);
-const selectedArtist = ref<string>('');
-const selectedProductType = ref<string>('');
+const selectedArtist = ref<string | null>(null);
+const selectedProductType = ref<string | null>(null);
 
-const availableArtists = computed(() => {
-  const set = new Set<string>();
-  products.value.forEach(p => { if (p.artist) set.add(p.artist); });
-  return Array.from(set).sort();
-});
+const rootCategories = computed(() => categories.value.filter(category => !category.parent_id));
+const availableArtists = computed(() => artists.value);
+const availableProductTypes = computed(() => productTypes.value);
 
-const availableProductTypes = computed(() => {
-  const set = new Set<string>();
-  products.value.forEach(p => { if (p.product_type) set.add(p.product_type); });
-  return Array.from(set).sort();
-});
+const categoryLabel = (category: Category): string => {
+  const names = [category.name];
+  const visited = new Set([category.id]);
+  let parentId = category.parent_id ?? null;
+  while (parentId) {
+    const parent = categories.value.find(item => item.id === parentId);
+    if (!parent || visited.has(parent.id)) break;
+    names.unshift(parent.name);
+    visited.add(parent.id);
+    parentId = parent.parent_id ?? null;
+  }
+  return names.join(' / ');
+};
 
 const resetSubFilters = () => {
-  selectedArtist.value = '';
-  selectedProductType.value = '';
+  selectedArtist.value = null;
+  selectedProductType.value = null;
+};
+
+const selectCategory = (categoryId: number | null): void => {
+  selectedCategoryId.value = categoryId;
+  resetSubFilters();
 };
 
 // Cart State
@@ -210,6 +230,25 @@ const fetchCategories = async () => {
   }
 };
 
+const fetchCatalogs = async () => {
+  catalogError.value = '';
+  try {
+    const [artistResponse, typeResponse] = await Promise.all([
+      api.get('/artists'),
+      api.get('/product-types')
+    ]);
+    if (!Array.isArray(artistResponse.data) || !Array.isArray(typeResponse.data)) {
+      throw new Error('Server API belum menyediakan master Artist dan Tipe Produk. Mulai ulang backend dengan versi terbaru.');
+    }
+    artists.value = artistResponse.data.filter((item: Artist) => item && item.id && item.name?.trim());
+    productTypes.value = typeResponse.data.filter((item: ProductType) => item && item.id && item.name?.trim());
+  } catch (err: any) {
+    artists.value = [];
+    productTypes.value = [];
+    catalogError.value = err.response?.data?.error || err.message || 'Gagal mengambil master Artist dan Tipe Produk.';
+  }
+};
+
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
@@ -224,6 +263,7 @@ const fetchProducts = async () => {
 
 onMounted(() => {
   fetchCategories();
+  fetchCatalogs();
   fetchProducts();
 });
 

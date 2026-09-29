@@ -87,7 +87,7 @@
           </div>
         </div>
 
-        <AppButton variant="success" type="submit" class="" :disabled="isSubmitting">
+        <AppButton variant="primary" type="submit" class="" :disabled="isSubmitting">
           {{ isSubmitting ? 'Memproses...' : 'Simpan Penerimaan Barang & Tambah Stok' }}
         </AppButton>
       </form>
