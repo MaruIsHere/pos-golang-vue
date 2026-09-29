@@ -246,47 +246,47 @@
               </div>
             </div>
 
-            <AppButton variant="primary"  type="submit" class="primary" :disabled="isCreatingVoucher">
+            <AppButton variant="primary"  type="submit"  :disabled="isCreatingVoucher">
               {{ isCreatingVoucher ? 'Menambahkan...' : 'Simpan Voucher Baru' }}
             </AppButton>
           </form>
 
           <!-- Vouchers Table List -->
-          <div class="vouchers-list-container">
+          <div class="flex flex-col gap-3">
             <h4>Daftar Voucher Aktif ({{ vouchers.length }})</h4>
 
-            <div v-if="isLoadingVouchers" class="vouchers-loading">
+            <div v-if="isLoadingVouchers" class="text-center py-6 text-sm font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
               <span>Memuat data voucher...</span>
             </div>
 
-            <div v-else-if="vouchers.length === 0" class="empty-vouchers">
+            <div v-else-if="vouchers.length === 0" class="text-center py-6 text-sm font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
               <p>Belum ada kode voucher yang dibuat.</p>
             </div>
 
-            <div v-else class="vouchers-table-wrapper">
-              <table class="vouchers-table">
+            <div v-else class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+              <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead>
                   <tr>
-                    <th>Kode</th>
-                    <th>Tipe / Nilai</th>
-                    <th>Deskripsi</th>
-                    <th class="text-right">Aksi</th>
+                    <th class="p-4 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">Kode</th>
+                    <th class="p-4 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">Tipe / Nilai</th>
+                    <th class="p-4 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">Deskripsi</th>
+                    <th class="p-4 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="v in vouchers" :key="v.id">
-                    <td>
-                      <span class="voucher-code-badge">{{ v.code }}</span>
+                    <td class="p-4 border-b border-slate-100 dark:border-slate-800">
+                      <span class="px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg">{{ v.code }}</span>
                     </td>
-                    <td>
-                      <strong class="voucher-value">
+                    <td class="p-4 border-b border-slate-100 dark:border-slate-800">
+                      <strong class="text-indigo-600 dark:text-indigo-400 font-black">
                         {{ v.type === 'percent' ? v.value + '%' : 'Rp ' + formatPrice(v.value) }}
                       </strong>
                     </td>
-                    <td class="voucher-desc-col">{{ v.description || '-' }}</td>
-                    <td class="text-right">
-                      <AppButton variant="primary"  class="icon -delete-voucher" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
-                        <TrashIcon class="w-3.5 h-3.5 text-red-600 inline-block mr-1" /> Hapus
+                    <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">{{ v.description || '-' }}</td>
+                    <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-right">
+                      <AppButton variant="danger" size="sm" class="flex items-center gap-1.5 ml-auto" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
+                        <TrashIcon class="w-3.5 h-3.5" /> <span>Hapus</span>
                       </AppButton>
                     </td>
                   </tr>
@@ -360,40 +360,40 @@
               {{ userErrorMsg }}
             </div>
 
-            <AppButton variant="primary"  type="submit" class="primary" :disabled="isCreatingUser">
+            <AppButton variant="primary"  type="submit"  :disabled="isCreatingUser">
               {{ isCreatingUser ? 'Menambahkan...' : 'Tambah Pengguna Baru' }}
             </AppButton>
           </form>
 
           <!-- Users List Table -->
-          <div class="vouchers-list-container">
+          <div class="flex flex-col gap-3">
             <h4>
               Daftar Pengguna Terdaftar
               <span v-if="!isLoadingUsers && !usersLoadError">({{ users.length }})</span>
             </h4>
 
-            <div v-if="isLoadingUsers" class="vouchers-loading">
+            <div v-if="isLoadingUsers" class="text-center py-6 text-sm font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
               <span>Memuat data pengguna...</span>
             </div>
 
-            <div v-else-if="usersLoadError" class="empty-vouchers">
+            <div v-else-if="usersLoadError" class="text-center py-6 text-sm font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
               <p>{{ usersLoadError }}</p>
-              <AppButton variant="secondary"  type="button" class="secondary" @click="loadUsers">Coba Lagi</AppButton>
+              <AppButton variant="secondary"  type="button"  @click="loadUsers">Coba Lagi</AppButton>
             </div>
 
-            <div v-else-if="users.length === 0" class="empty-vouchers">
+            <div v-else-if="users.length === 0" class="text-center py-6 text-sm font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
               <p>Belum ada pengguna terdaftar.</p>
             </div>
 
-            <div v-else class="vouchers-table-wrapper">
-              <table class="vouchers-table">
+            <div v-else class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+              <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Nama / Username</th>
                     <th>Role / Akses</th>
                     <th>Tanggal Dibuat</th>
-                    <th class="text-right">Aksi</th>
+                    <th class="p-4 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -409,9 +409,9 @@
                         {{ formatUserRoleLabel(u.role) }}
                       </span>
                     </td>
-                    <td class="text-xs text-slate-500">{{ formatDate(u.created_at) }}</td>
-                    <td class="text-right">
-                      <div class="user-actions">
+                    <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-xs text-slate-500">{{ formatDate(u.created_at) }}</td>
+                    <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-right">
+                      <div class="flex justify-end items-center gap-3 mt-2">
                         <AppButton v-if="u.id !== Number(authStore.user?.id)" variant="primary"
                           type="button"
                           class="icon -edit-user"
@@ -434,19 +434,19 @@
                           title="Hapus Pengguna"
                           @click="deleteUserAccount(u.id, u.username)"
                         >
-                          <TrashIcon class="w-3.5 h-3.5 text-red-600 inline-block mr-1" /> Hapus
+                          <TrashIcon class="w-3.5 h-3.5" /> <span>Hapus</span>
                         </AppButton>
                       </div>
                     </td>
                   </tr>
                     <tr v-if="staffProfileTarget?.id === u.id">
                       <td colspan="5">
-                        <form class="staff-password-form" @submit.prevent="saveStaffProfile">
-                          <div class="staff-password-heading">
+                        <form class="flex flex-col gap-4 mt-3 bg-slate-50 dark:bg-slate-900/30 p-5 rounded-xl border border-slate-100 dark:border-slate-800" @submit.prevent="saveStaffProfile">
+                          <div class="flex flex-col gap-1 mb-2">
                             <strong>Edit profil {{ u.username }}</strong>
                             <span class="text-xs text-slate-500">Nama, username, dan foto profil</span>
                           </div>
-                          <div v-if="isLoadingStaffProfile" class="vouchers-loading">Memuat profil pengguna...</div>
+                          <div v-if="isLoadingStaffProfile" class="text-center py-6 text-sm font-bold text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">Memuat profil pengguna...</div>
                           <div v-else class="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4">
                             <div class="flex flex-col items-center gap-2">
                               <img v-if="staffProfileForm.profile_photo" :src="staffProfileForm.profile_photo" alt="Foto profil pengguna" class="w-20 h-20 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
@@ -473,13 +473,13 @@
                               </div>
                             </div>
                           </div>
-                          <p v-if="staffProfileError" class="staff-password-error">{{ staffProfileError }}</p>
-                          <p v-if="staffProfileSuccess" class="staff-password-success">{{ staffProfileSuccess }}</p>
-                          <div class="user-actions">
-                            <AppButton variant="secondary" type="button" class="secondary" :disabled="isSavingStaffProfile" @click="cancelStaffProfileForm">
+                          <p v-if="staffProfileError" class="text-sm font-semibold text-rose-600 bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg border border-rose-100 dark:border-rose-900">{{ staffProfileError }}</p>
+                          <p v-if="staffProfileSuccess" class="text-sm font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900">{{ staffProfileSuccess }}</p>
+                          <div class="flex justify-end items-center gap-3 mt-2">
+                            <AppButton variant="secondary" type="button"  :disabled="isSavingStaffProfile" @click="cancelStaffProfileForm">
                               Batal
                             </AppButton>
-                            <AppButton variant="primary" type="submit" class="primary" :disabled="isLoadingStaffProfile || isSavingStaffProfile">
+                            <AppButton variant="primary" type="submit"  :disabled="isLoadingStaffProfile || isSavingStaffProfile">
                               {{ isSavingStaffProfile ? 'Menyimpan...' : 'Simpan Profil' }}
                             </AppButton>
                           </div>
@@ -488,12 +488,12 @@
                     </tr>
                     <tr v-if="staffPasswordTarget?.id === u.id">
                       <td colspan="5">
-                        <form class="staff-password-form" @submit.prevent="changeStaffPassword">
-                          <div class="staff-password-heading">
+                        <form class="flex flex-col gap-4 mt-3 bg-slate-50 dark:bg-slate-900/30 p-5 rounded-xl border border-slate-100 dark:border-slate-800" @submit.prevent="changeStaffPassword">
+                          <div class="flex flex-col gap-1 mb-2">
                             <strong>Ganti sandi untuk {{ staffPasswordTarget?.username }}</strong>
                             <span class="text-xs text-slate-500">Minimal 6 karakter</span>
                           </div>
-                          <div class="staff-password-fields">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="flex flex-col gap-2">
                               <label class="text-sm font-semibold text-slate-700 dark:text-slate-300" :for="`new-password-${u.id}`">Sandi baru</label>
                               <AppInput
@@ -519,13 +519,13 @@
                               />
                             </div>
                           </div>
-                          <p v-if="staffPasswordSuccessMsg" class="staff-password-success">{{ staffPasswordSuccessMsg }}</p>
-                          <p v-if="staffPasswordErrorMsg" class="staff-password-error">{{ staffPasswordErrorMsg }}</p>
-                          <div class="user-actions">
-                            <AppButton variant="secondary"  type="button" class="secondary" :disabled="isChangingStaffPassword" @click="cancelStaffPasswordChange">
+                          <p v-if="staffPasswordSuccessMsg" class="text-sm font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg border border-emerald-100 dark:border-emerald-900">{{ staffPasswordSuccessMsg }}</p>
+                          <p v-if="staffPasswordErrorMsg" class="text-sm font-semibold text-rose-600 bg-rose-50 dark:bg-rose-900/30 p-3 rounded-lg border border-rose-100 dark:border-rose-900">{{ staffPasswordErrorMsg }}</p>
+                          <div class="flex justify-end items-center gap-3 mt-2">
+                            <AppButton variant="secondary"  type="button"  :disabled="isChangingStaffPassword" @click="cancelStaffPasswordChange">
                               Batal
                             </AppButton>
-                            <AppButton variant="primary"  type="submit" class="primary" :disabled="isChangingStaffPassword">
+                            <AppButton variant="primary"  type="submit"  :disabled="isChangingStaffPassword">
                               {{ isChangingStaffPassword ? 'Menyimpan...' : 'Simpan Sandi Baru' }}
                             </AppButton>
                           </div>
