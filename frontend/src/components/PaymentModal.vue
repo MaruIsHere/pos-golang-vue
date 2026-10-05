@@ -219,7 +219,7 @@
           <!-- Select Bank -->
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Pilih Bank Tujuan</label>
-            <div class="grid grid-cols-4 gap-2">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button 
                 v-for="(acc, code) in bankAccounts" 
                 :key="code" 

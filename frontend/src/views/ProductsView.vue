@@ -10,7 +10,7 @@
       </div>
       <div class="h-px w-full bg-slate-100 dark:bg-slate-700/50"></div>
       
-      <div class="flex flex-col gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Pencarian</label>
           <div class="relative w-full">
@@ -43,7 +43,7 @@
     </div>
 
     <!-- KARTU KANAN: KONTEN PRODUK (SCROLLABLE) -->
-    <div class="flex-1 flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm overflow-hidden min-w-0">
+    <div class="flex-1 flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm lg:overflow-hidden min-w-0">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 border-b border-slate-100 dark:border-slate-700/50 shrink-0 bg-white dark:bg-slate-800 z-10">
         <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
           Daftar Produk 
@@ -61,7 +61,7 @@
         </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-5 lg:p-6 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/20">
+      <div class="flex-1 lg:overflow-y-auto p-4 sm:p-5 lg:p-6 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/20">
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 bg-white/40 dark:bg-slate-800/40 rounded-[24px]">
           <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
           <p class="text-sm font-semibold text-slate-500">Memuat katalog...</p>
@@ -78,9 +78,9 @@
           <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Tidak ada produk</h3>
           <p class="text-sm text-slate-500 mt-1 max-w-sm">Produk yang dicari tidak ditemukan.</p>
         </div>
-        <div v-else class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        <div v-else class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
           <div v-for="prod in filteredProducts" :key="prod.id" class="group flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[20px] overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400/50 transition-all h-full">
-            <div class="relative w-full h-[150px] shrink-0 p-2 pb-0">
+            <div class="relative w-full h-[120px] sm:h-[150px] shrink-0 p-2 pb-0">
               <div class="w-full h-full overflow-hidden rounded-[14px] bg-slate-100 dark:bg-slate-900 relative">
                 <img :src="prod.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" :alt="prod.name" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
@@ -88,21 +88,21 @@
                 {{ prod.stock }} unit
               </AppBadge>
             </div>
-            <div class="flex flex-col px-4 pt-3 pb-4 flex-1">
+            <div class="flex flex-col px-3 sm:px-4 pt-3 pb-4 flex-1">
               <div class="flex items-center gap-1.5 mb-1.5 shrink-0">
                 <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider line-clamp-1">{{ prod.category ? prod.category.name : 'Umum' }}</span>
               </div>
               <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight line-clamp-2 h-[2.5rem] shrink-0">{{ prod.name }}</h3>
-              <div class="flex flex-col gap-0.5 mt-3 mb-4">
-                <span class="text-[0.7rem] font-semibold text-slate-400 line-through">M: Rp {{ formatPrice(prod.cost_price ?? 0) }}</span>
-                <span class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400">J: Rp {{ formatPrice(prod.price) }}</span>
+              <div class="flex flex-col gap-0.5 mt-2 sm:mt-3 mb-3 sm:mb-4">
+                <span class="text-[0.65rem] sm:text-[0.7rem] font-semibold text-slate-400 line-through">M: Rp {{ formatPrice(prod.cost_price ?? 0) }}</span>
+                <span class="text-[0.85rem] sm:text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400">J: Rp {{ formatPrice(prod.price) }}</span>
               </div>
-              <div class="flex items-center gap-2 mt-auto pt-3 border-t border-slate-100 dark:border-slate-700/60">
-                <button class="flex-1 py-1.5 flex justify-center items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-600 rounded-[10px] transition-colors" @click="openEditModal(prod)">
-                  <PencilIcon class="w-3.5 h-3.5" /> Edit
+              <div class="flex sm:flex-row flex-col items-center gap-2 mt-auto pt-3 border-t border-slate-100 dark:border-slate-700/60">
+                <button class="w-full sm:flex-1 py-1.5 flex justify-center items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-600 rounded-[10px] transition-colors" @click="openEditModal(prod)">
+                  <PencilIcon class="w-3.5 h-3.5" /> <span class="sm:hidden lg:inline">Edit</span>
                 </button>
-                <button class="flex-1 py-1.5 flex justify-center items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 rounded-[10px] transition-colors" @click="deleteProduct(prod)">
-                  <TrashIcon class="w-3.5 h-3.5" /> Hapus
+                <button class="w-full sm:flex-1 py-1.5 flex justify-center items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 rounded-[10px] transition-colors" @click="deleteProduct(prod)">
+                  <TrashIcon class="w-3.5 h-3.5" /> <span class="sm:hidden lg:inline">Hapus</span>
                 </button>
               </div>
             </div>

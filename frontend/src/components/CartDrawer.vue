@@ -7,7 +7,7 @@
   ></div>
 
   <aside 
-    class="flex flex-col h-full w-full rounded-[24px] lg:rounded-none lg:border-none border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 max-md:fixed max-md:bottom-[80px] max-md:left-4 max-md:right-4 max-md:w-auto max-md:h-[75vh] max-md:z-[90] max-md:shadow-2xl max-md:translate-y-[120%] max-md:transition-transform max-md:duration-300 max-md:ease-out" 
+    class="lg:col-span-1 h-full min-h-0 relative z-20 flex flex-col w-full bg-white dark:bg-slate-800 lg:border lg:border-slate-200/60 lg:dark:border-slate-700/60 lg:rounded-[32px] lg:shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:overflow-hidden max-md:fixed max-md:bottom-[5.5rem] max-md:left-4 max-md:right-4 max-md:w-auto max-md:h-[75vh] max-md:z-[90] max-md:shadow-2xl max-md:rounded-[24px] max-md:border max-md:border-slate-200 max-md:dark:border-slate-700 max-md:translate-y-[120%] max-md:transition-transform max-md:duration-300 max-md:ease-out max-md:overflow-hidden" 
     :class="{ 'max-md:translate-y-0': isOpenMobile }"
   >
     <!-- Header -->
@@ -39,7 +39,7 @@
     <div v-else class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/10">
       
       <!-- Items List -->
-      <div class="flex flex-col gap-3">
+      <TransitionGroup name="list" tag="div" class="flex flex-col gap-3">
         <div v-for="(item, index) in cart" :key="item.product.id" class="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 shadow-sm rounded-[20px] p-3 flex flex-col gap-3 relative group transition-all hover:border-indigo-300 dark:hover:border-indigo-700">
           
 
@@ -66,7 +66,7 @@
           </div>
           </div>
         </div>
-      </div>
+      </TransitionGroup>
 
       <!-- Voucher Section Moved INSIDE Scrollable Area -->
       <div class="bg-white dark:bg-slate-800 border border-dashed border-slate-300 dark:border-slate-700 rounded-[20px] p-4 mt-2">
@@ -270,3 +270,23 @@ const handleClearCart = () => {
   emit('clear-cart');
 };
 </script>
+
+<style scoped>
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.3s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+/* Ensure smooth moving of other elements when one is deleted */
+.list-leave-active {
+  position: absolute;
+  width: calc(100% - 2rem);
+}
+</style>

@@ -85,24 +85,22 @@
       </div>
     </div>
 
-    <!-- Right Area: Cart Drawer (Desktop) -->
-    <div class="hidden lg:flex flex-col lg:col-span-1 h-full min-h-0 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden relative z-20">
-      <CartDrawer 
-        :cart="cart"
-        :discount="discount"
-        :tax-percentage="taxPercentage"
-        :is-open-mobile="isMobileCartOpen"
-        @update-qty="updateCartQty"
-        @remove-item="removeCartItem"
-        @clear-cart="clearCart"
-        @update-discount="discount = $event"
-        @open-payment="isPaymentModalOpen = true"
-        @toggle-mobile="isMobileCartOpen = !isMobileCartOpen"
-      />
-    </div>
+    <!-- Cart Drawer (Handles both Desktop and Mobile) -->
+    <CartDrawer 
+      :cart="cart"
+      :discount="discount"
+      :tax-percentage="taxPercentage"
+      :is-open-mobile="isMobileCartOpen"
+      @update-qty="updateCartQty"
+      @remove-item="removeCartItem"
+      @clear-cart="clearCart"
+      @update-discount="discount = $event"
+      @open-payment="isPaymentModalOpen = true"
+      @toggle-mobile="isMobileCartOpen = !isMobileCartOpen"
+    />
 
     <!-- Floating Mobile Cart Trigger (Khusus Layar Kecil) -->
-    <div v-if="cart.length > 0" class="lg:hidden fixed bottom-6 left-4 right-4 flex items-center justify-between p-4 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.15)] font-bold cursor-pointer z-[60] active:scale-[0.98] transition-all" @click="isMobileCartOpen = true">
+    <div v-if="cart.length > 0" class="lg:hidden fixed bottom-[5.5rem] left-4 right-4 flex items-center justify-between p-4 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.15)] font-bold cursor-pointer z-[60] active:scale-[0.98] transition-all" @click="isMobileCartOpen = true">
       <div class="flex items-center gap-3">
         <div class="relative">
           <ShoppingCartIcon class="w-6 h-6" />

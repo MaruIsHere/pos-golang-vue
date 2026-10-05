@@ -183,7 +183,10 @@
               <tr v-for="m in movements" :key="m.id">
                 <td class="text-xs text-slate-500">{{ formatDate(m.created_at) }}</td>
                 <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold" :class="m.type">
+                  <span 
+                    class="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-extrabold" 
+                    :class="m.type === 'in' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'"
+                  >
                     {{ m.type === 'in' ? 'Masuk (In)' : 'Keluar (Out)' }}
                   </span>
                 </td>

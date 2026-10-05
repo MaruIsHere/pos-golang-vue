@@ -28,19 +28,19 @@
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Metode Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Total Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Status</th>
-            <th class="text-right">Aksi</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-right whitespace-nowrap">Aksi</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="isLoading">
-            <td colspan="7" class="text-center">Memuat riwayat transaksi...</td>
+            <td colspan="7" class="text-center p-4 text-slate-500">Memuat riwayat transaksi...</td>
           </tr>
           <tr v-else-if="orders.length === 0">
-            <td colspan="7" class="text-center">Belum ada transaksi recorded</td>
+            <td colspan="7" class="text-center p-4 text-slate-500">Belum ada transaksi recorded</td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
-              <code class="invoice-code">{{ order.invoice_no }}</code>
+              <code class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-md text-xs font-mono font-bold text-slate-600 dark:text-slate-400">{{ order.invoice_no }}</code>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ formatDate(order.created_at) }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ order.customer_name ||"Umum" }}</td>
@@ -49,17 +49,17 @@
                 {{ (order.payment_method ||"cash").toUpperCase() }}
               </AppBadge>
             </td>
-            <td class="font-bold price-text">Rp {{ formatPrice(order.grand_total) }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(order.grand_total) }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <span
-                class="badge"
-                :class="order.status === 'refunded' ? 'badge-refunded' : 'badge'"
+                class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                :class="order.status === 'refunded' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'"
               >
                 {{ order.status ==="refunded" ?"Diretur" :"Selesai" }}
               </span>
             </td>
-            <td class="text-right">
-              <div class="action-flex">
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-right">
+              <div class="flex items-center justify-end gap-2">
                 <AppButton @click="openReceipt(order)" variant="secondary" size="sm">
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>
