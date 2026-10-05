@@ -47,24 +47,120 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="form-group">
             <label class="form-label">Pilih Produk</label>
-            <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="receiveForm.product_id" required>
+            <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-medium" v-model.number="receiveForm.product_id" @change="onProductSelect('in')" required>
               <option value="" disabled>-- Pilih Produk --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }}{{ p.artist ? ' (' + p.artist + ')' : '' }} (Stok Saat Ini: {{ p.stock }})
+                {{ p.name }}{{ p.artist ? ' [Merk: ' + p.artist + ']' : '' }} (Stok Saat Ini: {{ formatQuantity(p.stock) }} {{ unitLabel(p.unit) }})
               </option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Kuantitas Masuk (+)</label>
-            <AppInput 
+            <div class="flex justify-between items-center">
+              <label class="form-label">Kuantitas Masuk (+)</label>
+              <button type="button" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1" @click="toggleCalc('in')">
+                <CalculatorIcon class="w-3.5 h-3.5" />
+                {{ showCalcIn ? 'Tutup Kalkulator' : 'Kalkulator Gram & Liter' }}
+              </button>
+            </div>
+            <input
               type="number" 
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" 
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-bold" 
               v-model.number="receiveForm.quantity" 
-              min="1" 
+              :min="selectedUnit(receiveForm.product_id) === 'pcs' ? 1 : 0.001"
+              :step="selectedUnit(receiveForm.product_id) === 'pcs' ? 1 : 0.001"
               placeholder="cth: 50" 
               required 
             />
+            <span class="text-xs text-slate-500 font-semibold">Satuan: {{ unitLabel(selectedUnit(receiveForm.product_id)) }}</span>
+          </div>
+
+          <!-- Kalkulator Konversi Stok Khusus Gram & Liter (Receive) -->
+          <div v-if="showCalcIn" class="col-span-1 sm:col-span-2 p-4 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl flex flex-col gap-3">
+            <div class="flex items-center justify-between border-b border-indigo-200/60 dark:border-indigo-800/60 pb-2">
+              <span class="text-xs font-black uppercase text-indigo-800 dark:text-indigo-300 tracking-wider flex items-center gap-1.5">
+                <CalculatorIcon class="w-4 h-4 text-indigo-600" />
+                Perhitungan Khusus Stok (Gram / Liter / Kemasan)
+              </span>
+              <div class="flex gap-1.5">
+                <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors" :class="calcModeIn === 'gram' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'" @click="calcModeIn = 'gram'">Gram (gr)</button>
+                <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors" :class="calcModeIn === 'liter' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'" @click="calcModeIn = 'liter'">Liter (L)</button>
+                <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors" :class="calcModeIn === 'pack' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'" @click="calcModeIn = 'pack'">Per Pack / Dus</button>
+              </div>
+            </div>
+
+            <!-- Mode Gram -->
+            <div v-if="calcModeIn === 'gram'" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Konversi dari Kg</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="0.001" min="0" v-model.number="calcGramKgIn" placeholder="0.5" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <span class="text-xs font-bold text-slate-500">kg</span>
+                </div>
+                <span class="text-[10px] text-slate-500">= {{ (calcGramKgIn || 0) * 1000 }} gr</span>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Jumlah Kemasan / Bal</label>
+                <input type="number" min="0" v-model.number="calcGramPacksIn" placeholder="10" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Isi per Kemasan</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="0.01" min="0" v-model.number="calcGramPerPackIn" placeholder="250" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <select v-model="calcGramPackUnitIn" class="text-xs font-bold px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <option value="gr">gr</option>
+                    <option value="kg">kg</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode Liter -->
+            <div v-else-if="calcModeIn === 'liter'" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Konversi dari ml</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="1" min="0" v-model.number="calcLiterMlIn" placeholder="750" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <span class="text-xs font-bold text-slate-500">ml</span>
+                </div>
+                <span class="text-[10px] text-slate-500">= {{ ((calcLiterMlIn || 0) / 1000).toFixed(3) }} Liter</span>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Jumlah Botol / Jerigen</label>
+                <input type="number" min="0" v-model.number="calcLiterPacksIn" placeholder="4" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Volume per Botol/Wadah</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="0.01" min="0" v-model.number="calcLiterPerPackIn" placeholder="5" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <select v-model="calcLiterPackUnitIn" class="text-xs font-bold px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <option value="L">Liter (L)</option>
+                    <option value="ml">ml</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode Pack / Dus -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Jumlah Dus / Karton</label>
+                <input type="number" min="0" v-model.number="calcPackBoxesIn" placeholder="5" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Isi Pcs per Dus</label>
+                <input type="number" min="0" v-model.number="calcPackPcsPerBoxIn" placeholder="24" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-indigo-200/60 dark:border-indigo-800/60">
+              <span class="text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                Hasil Perhitungan: <strong class="text-sm font-black text-indigo-700 dark:text-indigo-300">{{ formatQuantity(calculatedResultIn) }} {{ unitLabel(selectedUnit(receiveForm.product_id)) }}</strong>
+              </span>
+              <button type="button" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm" @click="applyCalcResult('in')">
+                Gunakan Hasil ini ke Kuantitas
+              </button>
+            </div>
           </div>
 
           <div class="form-group">
@@ -103,24 +199,120 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="form-group">
             <label class="form-label">Pilih Produk</label>
-            <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="issueForm.product_id" required>
+            <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-medium" v-model.number="issueForm.product_id" @change="onProductSelect('out')" required>
               <option value="" disabled>-- Pilih Produk --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }}{{ p.artist ? ' (' + p.artist + ')' : '' }} (Stok Tersedia: {{ p.stock }})
+                {{ p.name }}{{ p.artist ? ' [Merk: ' + p.artist + ']' : '' }} (Stok Tersedia: {{ formatQuantity(p.stock) }} {{ unitLabel(p.unit) }})
               </option>
             </select>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Kuantitas Keluar (-)</label>
-            <AppInput 
+            <div class="flex justify-between items-center">
+              <label class="form-label">Kuantitas Keluar (-)</label>
+              <button type="button" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1" @click="toggleCalc('out')">
+                <CalculatorIcon class="w-3.5 h-3.5" />
+                {{ showCalcOut ? 'Tutup Kalkulator' : 'Kalkulator Gram & Liter' }}
+              </button>
+            </div>
+            <input
               type="number" 
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" 
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-bold" 
               v-model.number="issueForm.quantity" 
-              min="1" 
+              :min="selectedUnit(issueForm.product_id) === 'pcs' ? 1 : 0.001"
+              :step="selectedUnit(issueForm.product_id) === 'pcs' ? 1 : 0.001"
               placeholder="cth: 5" 
               required 
             />
+            <span class="text-xs text-slate-500 font-semibold">Satuan: {{ unitLabel(selectedUnit(issueForm.product_id)) }}</span>
+          </div>
+
+          <!-- Kalkulator Konversi Stok Khusus Gram & Liter (Issue) -->
+          <div v-if="showCalcOut" class="col-span-1 sm:col-span-2 p-4 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl flex flex-col gap-3">
+            <div class="flex items-center justify-between border-b border-indigo-200/60 dark:border-indigo-800/60 pb-2">
+              <span class="text-xs font-black uppercase text-indigo-800 dark:text-indigo-300 tracking-wider flex items-center gap-1.5">
+                <CalculatorIcon class="w-4 h-4 text-indigo-600" />
+                Perhitungan Khusus Stok (Gram / Liter / Kemasan)
+              </span>
+              <div class="flex gap-1.5">
+                <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors" :class="calcModeOut === 'gram' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'" @click="calcModeOut = 'gram'">Gram (gr)</button>
+                <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors" :class="calcModeOut === 'liter' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'" @click="calcModeOut = 'liter'">Liter (L)</button>
+                <button type="button" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-colors" :class="calcModeOut === 'pack' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'" @click="calcModeOut = 'pack'">Per Pack / Dus</button>
+              </div>
+            </div>
+
+            <!-- Mode Gram -->
+            <div v-if="calcModeOut === 'gram'" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Konversi dari Kg</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="0.001" min="0" v-model.number="calcGramKgOut" placeholder="0.5" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <span class="text-xs font-bold text-slate-500">kg</span>
+                </div>
+                <span class="text-[10px] text-slate-500">= {{ (calcGramKgOut || 0) * 1000 }} gr</span>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Jumlah Kemasan / Bal</label>
+                <input type="number" min="0" v-model.number="calcGramPacksOut" placeholder="10" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Isi per Kemasan</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="0.01" min="0" v-model.number="calcGramPerPackOut" placeholder="250" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <select v-model="calcGramPackUnitOut" class="text-xs font-bold px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <option value="gr">gr</option>
+                    <option value="kg">kg</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode Liter -->
+            <div v-else-if="calcModeOut === 'liter'" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Konversi dari ml</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="1" min="0" v-model.number="calcLiterMlOut" placeholder="750" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <span class="text-xs font-bold text-slate-500">ml</span>
+                </div>
+                <span class="text-[10px] text-slate-500">= {{ ((calcLiterMlOut || 0) / 1000).toFixed(3) }} Liter</span>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Jumlah Botol / Jerigen</label>
+                <input type="number" min="0" v-model.number="calcLiterPacksOut" placeholder="4" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Volume per Botol/Wadah</label>
+                <div class="flex items-center gap-1 mt-1">
+                  <input type="number" step="0.01" min="0" v-model.number="calcLiterPerPackOut" placeholder="5" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+                  <select v-model="calcLiterPackUnitOut" class="text-xs font-bold px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    <option value="L">Liter (L)</option>
+                    <option value="ml">ml</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode Pack / Dus -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Jumlah Dus / Karton</label>
+                <input type="number" min="0" v-model.number="calcPackBoxesOut" placeholder="5" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+              <div>
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Isi Pcs per Dus</label>
+                <input type="number" min="0" v-model.number="calcPackPcsPerBoxOut" placeholder="24" class="w-full px-3 py-1.5 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold" />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-indigo-200/60 dark:border-indigo-800/60">
+              <span class="text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                Hasil Perhitungan: <strong class="text-sm font-black text-indigo-700 dark:text-indigo-300">{{ formatQuantity(calculatedResultOut) }} {{ unitLabel(selectedUnit(issueForm.product_id)) }}</strong>
+              </span>
+              <button type="button" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm" @click="applyCalcResult('out')">
+                Gunakan Hasil ini ke Kuantitas
+              </button>
+            </div>
           </div>
 
           <div class="form-group">
@@ -189,10 +381,11 @@
                 </td>
                 <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
                   <strong class="product-name">{{ m.product ? m.product.name : 'Produk ID ' + m.product_id }}</strong>
+                  <span v-if="m.product && m.product.artist" class="text-xs text-slate-400 ml-1.5">[Merk: {{ m.product.artist }}]</span>
                 </td>
                 <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
                   <span class="font-bold text-sm" :class="m.type">
-                    {{ m.type === 'in' ? '+' : '-' }}{{ m.quantity }} Unit
+                    {{ m.type === 'in' ? '+' : '-' }}{{ formatQuantity(m.quantity) }} {{ unitLabel(m.unit) }}
                   </span>
                 </td>
                 <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
@@ -212,10 +405,11 @@
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Product, StockMovement } from '../types';
-import { ArrowDownTrayIcon, ArrowUpTrayIcon, ClockIcon } from '@heroicons/vue/24/outline';
+import { ArrowDownTrayIcon, ArrowUpTrayIcon, ClockIcon, CalculatorIcon } from '@heroicons/vue/24/outline';
+import { showAppAlert } from '@/composables/useAppDialog';
 
 const activeTab = ref('receive');
 const products = ref<Product[]>([]);
@@ -244,12 +438,120 @@ const issueForm = ref<StockForm>({
   notes: ''
 });
 
+// State Kalkulator Konversi Stok (In)
+const showCalcIn = ref(false);
+const calcModeIn = ref<'gram' | 'liter' | 'pack'>('gram');
+const calcGramKgIn = ref<number | null>(null);
+const calcGramPacksIn = ref<number | null>(null);
+const calcGramPerPackIn = ref<number | null>(null);
+const calcGramPackUnitIn = ref<'gr' | 'kg'>('gr');
+const calcLiterMlIn = ref<number | null>(null);
+const calcLiterPacksIn = ref<number | null>(null);
+const calcLiterPerPackIn = ref<number | null>(null);
+const calcLiterPackUnitIn = ref<'L' | 'ml'>('L');
+const calcPackBoxesIn = ref<number | null>(null);
+const calcPackPcsPerBoxIn = ref<number | null>(null);
+
+// State Kalkulator Konversi Stok (Out)
+const showCalcOut = ref(false);
+const calcModeOut = ref<'gram' | 'liter' | 'pack'>('gram');
+const calcGramKgOut = ref<number | null>(null);
+const calcGramPacksOut = ref<number | null>(null);
+const calcGramPerPackOut = ref<number | null>(null);
+const calcGramPackUnitOut = ref<'gr' | 'kg'>('gr');
+const calcLiterMlOut = ref<number | null>(null);
+const calcLiterPacksOut = ref<number | null>(null);
+const calcLiterPerPackOut = ref<number | null>(null);
+const calcLiterPackUnitOut = ref<'L' | 'ml'>('L');
+const calcPackBoxesOut = ref<number | null>(null);
+const calcPackPcsPerBoxOut = ref<number | null>(null);
+
 const formatDate = (str?: string): string => {
   if (!str) return '-';
   return new Date(str).toLocaleString('id-ID', {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
+};
+const formatQuantity = (quantity: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(quantity || 0);
+const unitLabel = (unit?: Product['unit']): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
+const selectedUnit = (productId: string | number): Product['unit'] => products.value.find(product => product.id === Number(productId))?.unit ?? 'pcs';
+
+const toggleCalc = (formType: 'in' | 'out') => {
+  if (formType === 'in') {
+    showCalcIn.value = !showCalcIn.value;
+  } else {
+    showCalcOut.value = !showCalcOut.value;
+  }
+};
+
+const onProductSelect = (formType: 'in' | 'out') => {
+  const productId = formType === 'in' ? receiveForm.value.product_id : issueForm.value.product_id;
+  const unit = selectedUnit(productId);
+  if (unit === 'gram') {
+    if (formType === 'in') calcModeIn.value = 'gram';
+    else calcModeOut.value = 'gram';
+  } else if (unit === 'liter') {
+    if (formType === 'in') calcModeIn.value = 'liter';
+    else calcModeOut.value = 'liter';
+  } else {
+    if (formType === 'in') calcModeIn.value = 'pack';
+    else calcModeOut.value = 'pack';
+  }
+};
+
+const calculatedResultIn = computed((): number => {
+  if (calcModeIn.value === 'gram') {
+    if (calcGramKgIn.value) return (calcGramKgIn.value || 0) * 1000;
+    if (calcGramPacksIn.value && calcGramPerPackIn.value) {
+      const perPack = calcGramPackUnitIn.value === 'kg' ? (calcGramPerPackIn.value * 1000) : calcGramPerPackIn.value;
+      return (calcGramPacksIn.value || 0) * perPack;
+    }
+  } else if (calcModeIn.value === 'liter') {
+    if (calcLiterMlIn.value) return (calcLiterMlIn.value || 0) / 1000;
+    if (calcLiterPacksIn.value && calcLiterPerPackIn.value) {
+      const perPack = calcLiterPackUnitIn.value === 'ml' ? (calcLiterPerPackIn.value / 1000) : calcLiterPerPackIn.value;
+      return (calcLiterPacksIn.value || 0) * perPack;
+    }
+  } else if (calcModeIn.value === 'pack') {
+    if (calcPackBoxesIn.value && calcPackPcsPerBoxIn.value) {
+      return (calcPackBoxesIn.value || 0) * (calcPackPcsPerBoxIn.value || 0);
+    }
+  }
+  return 0;
+});
+
+const calculatedResultOut = computed((): number => {
+  if (calcModeOut.value === 'gram') {
+    if (calcGramKgOut.value) return (calcGramKgOut.value || 0) * 1000;
+    if (calcGramPacksOut.value && calcGramPerPackOut.value) {
+      const perPack = calcGramPackUnitOut.value === 'kg' ? (calcGramPerPackOut.value * 1000) : calcGramPerPackOut.value;
+      return (calcGramPacksOut.value || 0) * perPack;
+    }
+  } else if (calcModeOut.value === 'liter') {
+    if (calcLiterMlOut.value) return (calcLiterMlOut.value || 0) / 1000;
+    if (calcLiterPacksOut.value && calcLiterPerPackOut.value) {
+      const perPack = calcLiterPackUnitOut.value === 'ml' ? (calcLiterPerPackOut.value / 1000) : calcLiterPerPackOut.value;
+      return (calcLiterPacksOut.value || 0) * perPack;
+    }
+  } else if (calcModeOut.value === 'pack') {
+    if (calcPackBoxesOut.value && calcPackPcsPerBoxOut.value) {
+      return (calcPackBoxesOut.value || 0) * (calcPackPcsPerBoxOut.value || 0);
+    }
+  }
+  return 0;
+});
+
+const applyCalcResult = (formType: 'in' | 'out') => {
+  if (formType === 'in') {
+    if (calculatedResultIn.value > 0) {
+      receiveForm.value.quantity = calculatedResultIn.value;
+    }
+  } else {
+    if (calculatedResultOut.value > 0) {
+      issueForm.value.quantity = calculatedResultOut.value;
+    }
+  }
 };
 
 const formatReason = (reason: string): string => {
@@ -308,22 +610,23 @@ const submitStockMovement = async (type: string): Promise<void> => {
     };
 
     await api.post('/stock-movements', payload);
-    alert(`Berhasil menyimpan transaksi ${type === 'in' ? 'penerimaan' : 'pengeluaran'} barang!`);
+    await showAppAlert(`Berhasil menyimpan transaksi ${type === 'in' ? 'penerimaan' : 'pengeluaran'} barang!`, 'success');
     if (type === 'in') {
       receiveForm.value = { product_id: '', quantity: 1, reason: 'pembelian_supplier', notes: '' };
+      showCalcIn.value = false;
     } else {
       issueForm.value = { product_id: '', quantity: 1, reason: 'barang_rusak', notes: '' };
+      showCalcOut.value = false;
     }
     fetchProducts();
     fetchMovements();
     activeTab.value = 'history';
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Koneksi error: ' + errMsg);
+    await showAppAlert('Koneksi error: ' + errMsg, 'error');
   } finally {
     isSubmitting.value = false;
   }
 };
 </script>
-
 

@@ -106,6 +106,7 @@ import type { Order } from"../types";
 import appButton from"../components/ui/AppButton.vue";
 import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from"@heroicons/vue/24/outline";
 import AppBadge from"@/components/ui/AppBadge.vue";
+import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
@@ -144,8 +145,13 @@ const openReceipt = (order: Order): void => {
 
 const refundOrder = async (order: Order): Promise<void> => {
   if (
-    !confirm(
+    !await showAppConfirm(
       `Apakah Anda yakin ingin melakukan RETUR pada Invoice #${order.invoice_no}?\n\nStok barang akan dipulihkan secara otomatis.`,
+      {
+        title: 'Konfirmasi Retur',
+        confirmLabel: 'Ya, Proses Retur',
+        tone: 'warning'
+      }
     )
   ) {
     return;
@@ -153,13 +159,12 @@ const refundOrder = async (order: Order): Promise<void> => {
 
   try {
     await api.post(`/orders/${order.id}/refund`);
-    alert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`);
+    await showAppAlert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`, 'success');
     fetchOrders();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert("Koneksi error:" + errMsg);
+    await showAppAlert("Koneksi error: " + errMsg, 'error');
   }
 };
 </script>
-
 

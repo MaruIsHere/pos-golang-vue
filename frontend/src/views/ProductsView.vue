@@ -26,9 +26,9 @@
           </select>
         </div>
         <div class="flex flex-col gap-2">
-          <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Artist</label>
+          <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Merk</label>
           <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedArtist">
-            <option value="">Semua Artist</option>
+            <option value="">Semua Merk</option>
             <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
           </select>
         </div>
@@ -85,7 +85,7 @@
                 <img :src="prod.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" :alt="prod.name" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               </div>
               <AppBadge class="absolute top-3 right-3 text-[0.65rem] font-bold shadow-sm backdrop-blur-md" :variant="prod.stock > 0 ? 'info' : 'danger'">
-                {{ prod.stock }} unit
+                {{ formatQuantity(prod.stock) }} {{ unitLabel(prod.unit) }}
               </AppBadge>
             </div>
             <div class="flex flex-col px-4 pt-3 pb-4 flex-1">
@@ -140,9 +140,9 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Artist</label>
+              <label class="form-label">Merk Produk</label>
               <select v-model="form.artist" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100">
-                <option value="">Pilih Artist</option>
+                <option value="">Pilih Merk</option>
                 <option v-for="artist in artists" :key="artist.id" :value="artist.name">{{ artist.name }}</option>
                 <option v-if="form.artist && !artists.some(artist => artist.name === form.artist)" :value="form.artist">{{ form.artist }}</option>
               </select>
@@ -159,11 +159,11 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Harga Jual (Rp) *</label>
+              <label class="form-label">Harga Jual (Rp / {{ unitLabel(form.unit) }}) *</label>
               <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.price" required min="0" />
             </div>
             <div class="form-group">
-              <label class="form-label">Harga Modal (Rp)</label>
+              <label class="form-label">Harga Modal (Rp / {{ unitLabel(form.unit) }})</label>
               <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.cost_price" min="0" />
             </div>
           </div>
@@ -171,8 +171,18 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Stok Awal *</label>
-              <AppInput type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.stock" required min="0" />
+              <input type="number" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model.number="form.stock" required min="0" :step="form.unit === 'pcs' ? 1 : 0.001" />
             </div>
+            <div class="form-group">
+              <label class="form-label">Satuan Stok *</label>
+              <select v-model="form.unit" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" required>
+                <option value="pcs">Pcs (buah)</option>
+                <option value="gram">Gram (gr)</option>
+                <option value="liter">Liter (L)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
             <div class="form-group">
               <label class="form-label">Kode SKU / Barcode</label>
               <AppInput type="text" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.barcode" placeholder="8991001" />
@@ -250,36 +260,36 @@
           </ul>
         </div>
 
-        <form v-else-if="activeCatalogTab === 'artists'" @submit.prevent="saveArtist" class="modal-body">
+        <form v-if="activeCatalogTab === 'artists'" @submit.prevent="saveArtist" class="modal-body">
           <div class="form-group">
-            <label class="form-label">Nama Artist</label>
-            <AppInput v-model="artistForm.name" required maxlength="100" placeholder="Contoh: Nama Artist" />
+            <label class="form-label">Nama Merk</label>
+            <AppInput v-model="artistForm.name" required maxlength="100" placeholder="Contoh: Indofood, Unilever, Nestle, dll" />
           </div>
           <p v-if="categoryError" class="text-sm font-medium text-rose-600 dark:text-rose-400" role="alert">{{ categoryError }}</p>
-          <div class="modal-footer"><AppButton variant="primary" type="submit" :disabled="isSavingCategory">Tambah Artist</AppButton></div>
+          <div class="modal-footer"><AppButton variant="primary" type="submit" :disabled="isSavingCategory">Tambah Merk</AppButton></div>
         </form>
         <div v-if="activeCatalogTab === 'artists'" class="px-5 pb-5">
-          <h4 class="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Artist Terdaftar ({{ artists.length }})</h4>
-          <p v-if="artists.length === 0" class="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">Belum ada artist.</p>
+          <h4 class="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Merk Terdaftar ({{ artists.length }})</h4>
+          <p v-if="artists.length === 0" class="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">Belum ada merk.</p>
           <ul v-else class="divide-y divide-slate-200 rounded-lg border border-slate-200 dark:divide-slate-700 dark:border-slate-700">
             <li v-for="artist in artists" :key="artist.id" class="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
               <form v-if="editingArtistId === artist.id" class="flex min-w-[240px] flex-1 items-center gap-2" @submit.prevent="updateArtist(artist.id)">
-                <AppInput v-model="editingArtistName" class="min-w-0 flex-1" required maxlength="100" aria-label="Nama artist" />
+                <AppInput v-model="editingArtistName" class="min-w-0 flex-1" required maxlength="100" aria-label="Nama merk" />
                 <AppButton variant="primary" type="submit" size="sm" :disabled="isSavingCategory">Simpan</AppButton>
                 <AppButton variant="secondary" type="button" size="sm" @click="editingArtistId = null">Batal</AppButton>
               </form>
               <template v-else>
                 <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ artist.name }}</span>
                 <div class="flex gap-2">
-                  <AppButton variant="secondary" size="sm" title="Ubah artist" @click="startArtistEdit(artist)"><PencilIcon class="h-4 w-4" /></AppButton>
-                  <AppButton variant="danger" size="sm" title="Hapus artist" @click="deleteArtist(artist)"><TrashIcon class="h-4 w-4" /></AppButton>
+                  <AppButton variant="secondary" size="sm" title="Ubah merk" @click="startArtistEdit(artist)"><PencilIcon class="h-4 w-4" /></AppButton>
+                  <AppButton variant="danger" size="sm" title="Hapus merk" @click="deleteArtist(artist)"><TrashIcon class="h-4 w-4" /></AppButton>
                 </div>
               </template>
             </li>
           </ul>
         </div>
 
-        <form v-else @submit.prevent="saveProductType" class="modal-body">
+        <form v-if="activeCatalogTab === 'productTypes'" @submit.prevent="saveProductType" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Tipe Produk</label>
             <AppInput v-model="productTypeForm.name" required maxlength="100" placeholder="Contoh: Merchandise" />
@@ -321,6 +331,7 @@ import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Artist, Category, Product, ProductType } from '../types';
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
@@ -356,6 +367,7 @@ const form = ref({
   price: 0,
   cost_price: 0,
   stock: 0,
+  unit: 'pcs' as Product['unit'],
   barcode: '',
   image_url: ''
 });
@@ -365,7 +377,7 @@ const artistForm = ref({ name: '' });
 const productTypeForm = ref({ name: '' });
 const catalogTabs = [
   { id: 'categories' as const, label: 'Kategori' },
-  { id: 'artists' as const, label: 'Artist' },
+  { id: 'artists' as const, label: 'Merk' },
   { id: 'productTypes' as const, label: 'Tipe Produk' }
 ];
 const rootCategories = computed(() => categories.value.filter(category => !category.parent_id));
@@ -385,6 +397,8 @@ const matchesCategoryBranch = (productCategoryId: number, selectedCategoryId: nu
 };
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
+const unitLabel = (unit: Product['unit']): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const availableArtists = computed(() => {
   return artists.value.map(artist => artist.name);
@@ -506,6 +520,7 @@ const openAddModal = () => {
     price: 10000,
     cost_price: 5000,
     stock: 20,
+    unit: 'pcs',
     barcode: '',
     image_url: ''
   };
@@ -522,6 +537,7 @@ const openEditModal = (prod: Product): void => {
     price: prod.price,
     cost_price: prod.cost_price ?? 0,
     stock: prod.stock,
+    unit: prod.unit ?? 'pcs',
     barcode: prod.barcode ?? '',
     image_url: prod.image_url ?? ''
   };
@@ -550,13 +566,17 @@ const saveProduct = async () => {
 };
 
 const deleteProduct = async (prod: Product): Promise<void> => {
-  if (confirm(`Hapus produk"${prod.name}"?`)) {
+  if (await showAppConfirm(`Hapus produk "${prod.name}"?`, {
+    title: 'Hapus Produk?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  })) {
     try {
       await api.delete(`/products/${prod.id}`);
       fetchProducts();
     } catch (err: any) {
       const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-      alert('Gagal menghapus produk: ' + errMsg);
+      await showAppAlert('Gagal menghapus produk: ' + errMsg, 'error');
     }
   }
 };
@@ -599,7 +619,11 @@ const updateCategory = async (id: number): Promise<void> => {
 };
 
 const deleteCategory = async (category: Category): Promise<void> => {
-  if (!confirm(`Hapus kategori "${category.name}"?`)) return;
+  if (!await showAppConfirm(`Hapus kategori "${category.name}"?`, {
+    title: 'Hapus Kategori?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  })) return;
   categoryError.value = '';
   try {
     await api.delete(`/categories/${category.id}`);
@@ -645,7 +669,11 @@ const updateArtist = async (id: number): Promise<void> => {
 };
 
 const deleteArtist = async (artist: Artist): Promise<void> => {
-  if (!confirm(`Hapus artist "${artist.name}"?`)) return;
+  if (!await showAppConfirm(`Hapus merk "${artist.name}"?`, {
+    title: 'Hapus Merk?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  })) return;
   categoryError.value = '';
   try {
     await api.delete(`/artists/${artist.id}`);
@@ -690,7 +718,11 @@ const updateProductType = async (id: number): Promise<void> => {
 };
 
 const deleteProductType = async (productType: ProductType): Promise<void> => {
-  if (!confirm(`Hapus tipe produk "${productType.name}"?`)) return;
+  if (!await showAppConfirm(`Hapus tipe produk "${productType.name}"?`, {
+    title: 'Hapus Tipe Produk?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  })) return;
   categoryError.value = '';
   try {
     await api.delete(`/product-types/${productType.id}`);
@@ -700,5 +732,3 @@ const deleteProductType = async (productType: ProductType): Promise<void> => {
   }
 };
 </script>
-
-

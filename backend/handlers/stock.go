@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"pos-backend/database"
 	"pos-backend/models"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,11 +22,11 @@ func GetStockMovements(c *gin.Context) {
 }
 
 type CreateStockMovementInput struct {
-	ProductID uint   `json:"product_id"`
-	Type      string `json:"type"` // "in" or "out"
-	Quantity  int    `json:"quantity"`
-	Reason    string `json:"reason"`
-	Notes     string `json:"notes"`
+	ProductID uint    `json:"product_id"`
+	Type      string  `json:"type"` // "in" or "out"
+	Quantity  float64 `json:"quantity"`
+	Reason    string  `json:"reason"`
+	Notes     string  `json:"notes"`
 }
 
 func CreateStockMovement(c *gin.Context) {
@@ -53,13 +54,18 @@ func CreateStockMovement(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
 		return
 	}
+	if !isValidStockQuantity(input.Quantity, prod.Unit) {
+		tx.Rollback()
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Kuantitas harus bilangan bulat untuk pcs dan maksimal 3 angka desimal untuk gram/liter"})
+		return
+	}
 
 	if input.Type == "in" {
 		prod.Stock += input.Quantity
 	} else {
 		if prod.Stock < input.Quantity {
 			tx.Rollback()
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Stok %s tidak mencukupi (sisa %d)", prod.Name, prod.Stock)})
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Stok %s tidak mencukupi (sisa %s %s)", prod.Name, strconv.FormatFloat(prod.Stock, 'f', -1, 64), prod.Unit)})
 			return
 		}
 		prod.Stock -= input.Quantity
@@ -75,6 +81,7 @@ func CreateStockMovement(c *gin.Context) {
 		ProductID: input.ProductID,
 		Type:      input.Type,
 		Quantity:  input.Quantity,
+		Unit:      prod.Unit,
 		Reason:    input.Reason,
 		Notes:     input.Notes,
 	}

@@ -179,6 +179,7 @@ import AppInput from '@/components/ui/AppInput.vue';
 
 import { ref, computed, onMounted } from"vue";
 import api from '@/utils/api';
+import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 import type { Customer } from"../types";
 import { PencilSquareIcon, TrashIcon, UserPlusIcon, MagnifyingGlassIcon } from"@heroicons/vue/24/outline";
 
@@ -253,14 +254,18 @@ const saveCustomer = async () => {
     loadCustomers();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert("Koneksi error:" + errMsg);
+    await showAppAlert("Koneksi error: " + errMsg, 'error');
   } finally {
     isSaving.value = false;
   }
 };
 
 const deleteCustomer = async (id: number, name: string): Promise<void> => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus pelanggan '${name}'?`))
+  if (!await showAppConfirm(`Apakah Anda yakin ingin menghapus pelanggan '${name}'?`, {
+    title: 'Hapus Pelanggan?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  }))
     return;
 
   try {
@@ -268,9 +273,8 @@ const deleteCustomer = async (id: number, name: string): Promise<void> => {
     loadCustomers();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert("Koneksi error:" + errMsg);
+    await showAppAlert("Koneksi error: " + errMsg, 'error');
   }
 };
 </script>
-
 

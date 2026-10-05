@@ -3,6 +3,7 @@
     <Navbar v-if="authStore.isAuthenticated" />
 
     <PwaInstallBanner />
+    <AppDialogHost />
 
     <main
       class="flex flex-1 min-h-0 overflow-hidden relative"
@@ -22,6 +23,7 @@
 import { onMounted } from "vue";
 import Navbar from "./components/Navbar.vue";
 import PwaInstallBanner from "./components/PwaInstallBanner.vue";
+import AppDialogHost from "./components/ui/AppDialogHost.vue";
 import { useSettingsStore } from "./stores/settings";
 import { useAuthStore } from "./stores/auth";
 import { useTheme } from "./composables/useTheme";

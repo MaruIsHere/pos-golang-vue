@@ -62,7 +62,8 @@ type Product struct {
 	ProductType string    `gorm:"size:100;index" json:"product_type"`
 	Price       float64   `gorm:"type:decimal(12,2);not null" json:"price"`
 	CostPrice   float64   `gorm:"type:decimal(12,2);default:0" json:"cost_price"`
-	Stock       int       `gorm:"default:0" json:"stock"`
+	Stock       float64   `gorm:"type:decimal(12,3);default:0" json:"stock"`
+	Unit        string    `gorm:"size:10;not null;default:'pcs'" json:"unit"`
 	Barcode     string    `gorm:"size:100;index" json:"barcode"`
 	ImageURL    string    `gorm:"size:255" json:"image_url"`
 	IsActive    bool      `gorm:"default:true" json:"is_active"`
@@ -95,7 +96,8 @@ type OrderItem struct {
 	Artist       string  `gorm:"size:100" json:"artist"`
 	ProductType  string  `gorm:"size:100" json:"product_type"`
 	ProductPrice float64 `gorm:"type:decimal(12,2);not null" json:"product_price"`
-	Quantity     int     `gorm:"not null" json:"quantity"`
+	Quantity     float64 `gorm:"type:decimal(12,3);not null" json:"quantity"`
+	Unit         string  `gorm:"size:10;not null;default:'pcs'" json:"unit"`
 	Subtotal     float64 `gorm:"type:decimal(12,2);not null" json:"subtotal"`
 	Notes        string  `gorm:"size:255" json:"notes"`
 }
@@ -138,7 +140,8 @@ type StockMovement struct {
 	ProductID uint      `gorm:"index;not null" json:"product_id"`
 	Product   Product   `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 	Type      string    `gorm:"size:20;not null" json:"type"` // "in" (Penerimaan) or "out" (Pengeluaran)
-	Quantity  int       `gorm:"not null" json:"quantity"`
+	Quantity  float64   `gorm:"type:decimal(12,3);not null" json:"quantity"`
+	Unit      string    `gorm:"size:10;not null;default:'pcs'" json:"unit"`
 	Reason    string    `gorm:"size:50;not null" json:"reason"` // "pembelian_supplier", "barang_rusak", "barang_hilang", "expired", "promosi", "retur_penjualan"
 	Notes     string    `gorm:"size:255" json:"notes"`
 	CreatedAt time.Time `json:"created_at"`

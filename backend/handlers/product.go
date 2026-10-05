@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math"
 	"net/http"
 	"pos-backend/database"
 	"pos-backend/models"
@@ -16,7 +17,8 @@ type productInput struct {
 	ProductType string  `json:"product_type"`
 	Price       float64 `json:"price"`
 	CostPrice   float64 `json:"cost_price"`
-	Stock       int     `json:"stock"`
+	Stock       float64 `json:"stock"`
+	Unit        string  `json:"unit"`
 	Barcode     string  `json:"barcode"`
 	ImageURL    string  `json:"image_url"`
 	IsActive    *bool   `json:"is_active"`
@@ -26,14 +28,24 @@ func validateProductInput(input *productInput) (string, error) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.Artist = strings.TrimSpace(input.Artist)
 	input.ProductType = strings.TrimSpace(input.ProductType)
+	input.Unit = strings.TrimSpace(input.Unit)
+	if input.Unit == "" {
+		input.Unit = "pcs"
+	}
 	if input.Name == "" {
 		return "Nama produk wajib diisi", nil
 	}
 	if input.CategoryID == 0 {
 		return "Kategori produk wajib dipilih", nil
 	}
-	if input.Price < 0 || input.CostPrice < 0 || input.Stock < 0 {
+	if input.Price < 0 || input.CostPrice < 0 {
 		return "Harga dan stok tidak boleh negatif", nil
+	}
+	if input.Unit != "pcs" && input.Unit != "gram" && input.Unit != "liter" {
+		return "Satuan produk harus pcs, gram, atau liter", nil
+	}
+	if !isValidStockQuantity(input.Stock, input.Unit) {
+		return "Stok harus bilangan bulat untuk pcs dan maksimal 3 angka desimal untuk gram/liter", nil
 	}
 	var categoryCount int64
 	if err := database.DB.Model(&models.Category{}).Where("id = ?", input.CategoryID).Count(&categoryCount).Error; err != nil {
@@ -61,6 +73,19 @@ func validateProductInput(input *productInput) (string, error) {
 		}
 	}
 	return "", nil
+}
+
+func isValidStockQuantity(quantity float64, unit string) bool {
+	if math.IsNaN(quantity) || math.IsInf(quantity, 0) || quantity < 0 {
+		return false
+	}
+	if unit != "pcs" && unit != "gram" && unit != "liter" {
+		return false
+	}
+	if math.Abs(quantity*1000-math.Round(quantity*1000)) > 1e-7 {
+		return false
+	}
+	return unit != "pcs" || math.Abs(quantity-math.Round(quantity)) <= 1e-7
 }
 
 // === PRODUCT HANDLERS ===
@@ -122,15 +147,16 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	product := models.Product{
-		CategoryID: input.CategoryID,
-		Name:       input.Name,
-		Artist:     input.Artist,
+		CategoryID:  input.CategoryID,
+		Name:        input.Name,
+		Artist:      input.Artist,
 		ProductType: input.ProductType,
-		Price:      input.Price,
-		CostPrice:  input.CostPrice,
-		Stock:      input.Stock,
-		Barcode:    input.Barcode,
-		ImageURL:   input.ImageURL,
+		Price:       input.Price,
+		CostPrice:   input.CostPrice,
+		Stock:       input.Stock,
+		Unit:        input.Unit,
+		Barcode:     input.Barcode,
+		ImageURL:    input.ImageURL,
 	}
 	if input.IsActive != nil {
 		product.IsActive = *input.IsActive
@@ -174,6 +200,7 @@ func UpdateProduct(c *gin.Context) {
 		"price":        input.Price,
 		"cost_price":   input.CostPrice,
 		"stock":        input.Stock,
+		"unit":         input.Unit,
 		"barcode":      input.Barcode,
 		"image_url":    input.ImageURL,
 	}

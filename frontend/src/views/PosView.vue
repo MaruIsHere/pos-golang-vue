@@ -12,7 +12,7 @@
             type="text" 
             class="w-full bg-transparent border-none outline-none text-[0.95rem] font-medium text-slate-800 dark:text-slate-100 ml-3 placeholder:text-slate-400" 
             v-model="searchQuery" 
-            placeholder="Cari nama produk, artist, atau scan barcode..." 
+            placeholder="Cari nama produk, merk, atau scan barcode..." 
             @keyup.enter="onBarcodeSubmit"
           />
           <button v-if="searchQuery" class="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-full transition-colors text-slate-500" @click="searchQuery = ''">
@@ -49,8 +49,8 @@
       <!-- Compact Sub-categories Filter -->
       <div class="flex items-center gap-3 shrink-0">
         <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedArtist">
-          <option :value="null">Semua Artist</option>
-          <option v-if="availableArtists.length === 0" disabled value="">Belum ada data artist</option>
+          <option :value="null">Semua Merk</option>
+          <option v-if="availableArtists.length === 0" disabled value="">Belum ada data merk</option>
           <option v-for="artist in availableArtists" :key="artist.id" :value="artist.name">{{ artist.name }}</option>
         </select>
         <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedProductType">
@@ -99,6 +99,7 @@
         :tax-percentage="taxPercentage"
         :is-open-mobile="isMobileCartOpen"
         @update-qty="updateCartQty"
+        @set-qty="setCartQty"
         @remove-item="removeCartItem"
         @clear-cart="clearCart"
         @update-discount="discount = $event"
@@ -158,6 +159,7 @@ import BarcodeScannerModal from '../components/BarcodeScannerModal.vue';
 import { useSettingsStore } from '../stores/settings';
 import type { Artist, Category, Product, ProductType, CartItem, Order, CreateOrderPayload } from '../types';
 import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon } from '@heroicons/vue/24/outline';
+import { showAppAlert } from '@/composables/useAppDialog';
 
 defineEmits(['refresh-products']);
 
@@ -290,10 +292,10 @@ const addToCart = (product: Product): void => {
   const existingIndex = cart.value.findIndex(item => item.product.id === product.id);
   if (existingIndex > -1) {
     if (cart.value[existingIndex].quantity < product.stock) {
-      cart.value[existingIndex].quantity++;
+      cart.value[existingIndex].quantity = Math.min(cart.value[existingIndex].quantity + 1, product.stock);
     }
   } else {
-    cart.value.push({ product, quantity: 1, notes: '' });
+    cart.value.push({ product, quantity: Math.min(1, product.stock), notes: '' });
   }
 };
 
@@ -308,6 +310,16 @@ const updateCartQty = ({ index, delta }: { index: number; delta: number }): void
   }
 };
 
+const setCartQty = ({ index, quantity }: { index: number; quantity: number }): void => {
+  const item = cart.value[index];
+  if (!item || (item.product.unit !== 'gram' && item.product.unit !== 'liter') || !Number.isFinite(quantity)) return;
+  if (quantity <= 0) {
+    cart.value.splice(index, 1);
+  } else if (quantity <= item.product.stock) {
+    item.quantity = Math.round(quantity * 1000) / 1000;
+  }
+};
+
 const removeCartItem = (index: number): void => {
   cart.value.splice(index, 1);
 };
@@ -317,7 +329,7 @@ const clearCart = () => {
   discount.value = 0;
 };
 
-const totalCartItems = computed(() => cart.value.reduce((s, i) => s + i.quantity, 0));
+const totalCartItems = computed(() => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(cart.value.reduce((s, i) => s + i.quantity, 0)));
 const subtotal = computed(() => cart.value.reduce((s, i) => s + (i.product.price * i.quantity), 0));
 const taxAmount = computed(() => {
   const taxable = Math.max(0, subtotal.value - discount.value);
@@ -368,7 +380,7 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { 
     fetchProducts(); // refresh stock counts
   } catch (err: any) {
     const errorMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Gagal memproses transaksi: ' + errorMsg);
+    await showAppAlert('Gagal memproses transaksi: ' + errorMsg, 'error');
   } finally {
     isSubmittingOrder.value = false;
   }
@@ -379,5 +391,3 @@ const onReceiptClose = () => {
   lastCompletedOrder.value = null;
 };
 </script>
-
-

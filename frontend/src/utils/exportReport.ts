@@ -4,6 +4,7 @@ import autoTable from 'jspdf-autotable';
 import type { DashboardStats } from '../types';
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const unitLabel = (unit?: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const appendTableSheet = (
   workbook: XLSX.WorkBook,
@@ -152,7 +153,7 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     ['RINGKASAN PERFORMA'],
     ['Total Omset Penjualan', stats.total_revenue],
     ['Total Transaksi', stats.total_orders],
-    ['Total Item Terjual (Pcs)', stats.total_items_sold],
+    ['Total Kuantitas Terjual (Satuan Campuran)', stats.total_items_sold],
     ['']
   ];
 
@@ -206,12 +207,12 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     Artist: p.artist || '-',
     'Tipe Produk': p.product_type || '-',
     'Harga (Rp)': p.price || 0,
-    'Qty Terjual (Pcs)': p.total_qty,
+    'Qty Terjual': `${p.total_qty} ${unitLabel(p.unit)}`,
     'Total Omset (Rp)': p.total_sales,
-    'Sisa Stok': p.stock ?? '-'
+    'Sisa Stok': `${p.stock ?? '-'} ${unitLabel(p.unit)}`
   }));
   appendTableSheet(wb, 'Barang Paling Laku', topRows, [
-    'Peringkat', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Qty Terjual (Pcs)', 'Total Omset (Rp)', 'Sisa Stok'
+    'Peringkat', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Qty Terjual', 'Total Omset (Rp)', 'Sisa Stok'
   ], [12, 34, 22, 20, 17, 20, 20, 14], ['Harga (Rp)', 'Total Omset (Rp)']);
 
   // 3. Sheet Barang Kurang Laku (Slow Moving)
@@ -221,12 +222,12 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     Artist: p.artist || '-',
     'Tipe Produk': p.product_type || '-',
     'Harga (Rp)': p.price || 0,
-    'Qty Terjual (Pcs)': p.total_qty,
+    'Qty Terjual': `${p.total_qty} ${unitLabel(p.unit)}`,
     'Total Omset (Rp)': p.total_sales,
-    'Sisa Stok Tersisa': p.stock ?? 0
+    'Sisa Stok Tersisa': `${p.stock ?? 0} ${unitLabel(p.unit)}`
   }));
   appendTableSheet(wb, 'Barang Kurang Laku', leastRows, [
-    'Peringkat', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Qty Terjual (Pcs)', 'Total Omset (Rp)', 'Sisa Stok Tersisa'
+    'Peringkat', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Qty Terjual', 'Total Omset (Rp)', 'Sisa Stok Tersisa'
   ], [12, 34, 22, 20, 17, 20, 20, 20], ['Harga (Rp)', 'Total Omset (Rp)']);
 
   // 4. Sheet List Seluruh Barang Laku
@@ -236,30 +237,30 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     Artist: p.artist || '-',
     'Tipe Produk': p.product_type || '-',
     'Harga (Rp)': p.price || 0,
-    'Total Terjual (Pcs)': p.total_qty,
+    'Total Terjual': `${p.total_qty} ${unitLabel(p.unit)}`,
     'Total Revenue (Rp)': p.total_sales
   }));
   appendTableSheet(wb, 'List Seluruh Barang Laku', allSoldRows, [
-    'No', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Total Terjual (Pcs)', 'Total Revenue (Rp)'
+    'No', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Total Terjual', 'Total Revenue (Rp)'
   ], [10, 36, 22, 20, 17, 22, 22], ['Harga (Rp)', 'Total Revenue (Rp)']);
 
   // 5. Sheet Breakdown Per Artist & Tipe
   const artistRows = (stats.sales_by_artist || []).map(a => ({
     'Nama Artist': a.name,
-    'Total Terjual (Pcs)': a.total_qty,
+    'Total Kuantitas (Satuan Campuran)': a.total_qty,
     'Total Omset (Rp)': a.total_sales
   }));
   appendTableSheet(wb, 'Penjualan Per Artist', artistRows, [
-    'Nama Artist', 'Total Terjual (Pcs)', 'Total Omset (Rp)'
+    'Nama Artist', 'Total Kuantitas (Satuan Campuran)', 'Total Omset (Rp)'
   ], [34, 23, 23], ['Total Omset (Rp)']);
 
   const typeRows = (stats.sales_by_type || []).map(t => ({
     'Tipe Produk': t.name,
-    'Total Terjual (Pcs)': t.total_qty,
+    'Total Kuantitas (Satuan Campuran)': t.total_qty,
     'Total Omset (Rp)': t.total_sales
   }));
   appendTableSheet(wb, 'Penjualan Per Tipe', typeRows, [
-    'Tipe Produk', 'Total Terjual (Pcs)', 'Total Omset (Rp)'
+    'Tipe Produk', 'Total Kuantitas (Satuan Campuran)', 'Total Omset (Rp)'
   ], [34, 23, 23], ['Total Omset (Rp)']);
 
   await addSalesCharts(wb, stats);
@@ -390,7 +391,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
   doc.setFont('helvetica', 'bold');
   doc.text('ITEM TERJUAL', 142, startY + 6);
   doc.setFontSize(11);
-  doc.text(`${stats.total_items_sold} Pcs`, 142, startY + 14);
+  doc.text(`${stats.total_items_sold}`, 142, startY + 14);
 
   startY += 26;
 
@@ -406,7 +407,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
     p.artist || 'Umum',
     p.product_type || 'Umum',
     `Rp ${formatPrice(p.price || 0)}`,
-    `${p.total_qty} pcs`,
+    `${p.total_qty} ${unitLabel(p.unit)}`,
     `Rp ${formatPrice(p.total_sales)}`
   ]);
 
@@ -435,8 +436,8 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
     p.artist || 'Umum',
     p.product_type || 'Umum',
     `Rp ${formatPrice(p.price || 0)}`,
-    `${p.total_qty} pcs`,
-    `Sisa ${p.stock ?? 0} unit`
+    `${p.total_qty} ${unitLabel(p.unit)}`,
+    `Sisa ${p.stock ?? 0} ${unitLabel(p.unit)}`
   ]);
 
   autoTable(doc, {
@@ -470,7 +471,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
     p.artist || 'Umum',
     p.product_type || 'Umum',
     `Rp ${formatPrice(p.price || 0)}`,
-    `${p.total_qty} pcs`,
+    `${p.total_qty} ${unitLabel(p.unit)}`,
     `Rp ${formatPrice(p.total_sales)}`
   ]);
 
