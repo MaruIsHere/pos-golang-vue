@@ -57,6 +57,7 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.POST("/products", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateProduct)
 			protected.PUT("/products/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateProduct)
 			protected.DELETE("/products/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteProduct)
+			protected.POST("/products/images", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UploadProductImage)
 
 			// Orders / Transactions
 			protected.POST("/orders", handlers.CreateOrder)

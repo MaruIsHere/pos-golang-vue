@@ -113,11 +113,11 @@
   </div>
 
   <!-- Product Form Modal (Add / Edit) -->
-    <div v-if="isProductModalOpen" class="modal-overlay" @click.self="isProductModalOpen = false">
+    <div v-if="isProductModalOpen" class="modal-overlay" @click.self="closeProductModal">
       <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90 modal-lg">
         <div class="modal-header">
           <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ editingId ? 'Edit Produk & Sub-Kategori' : 'Tambah Produk Baru' }}</h3>
-          <AppButton variant="primary" size="icon" aria-label="Tutup form produk" @click="isProductModalOpen = false">
+          <AppButton variant="primary" size="icon" aria-label="Tutup form produk" @click="closeProductModal">
             <XMarkIcon class="w-5 h-5" />
           </AppButton>
         </div>
@@ -190,13 +190,45 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">URL Gambar (Opsional)</label>
-            <AppInput type="url" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100" v-model="form.image_url" placeholder="https://..." />
+            <label for="product-image" class="form-label">Gambar Produk (Opsional)</label>
+            <div class="flex flex-col gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/50 sm:flex-row sm:items-center">
+              <img
+                v-if="productImagePreview"
+                :src="productImagePreview"
+                alt="Pratinjau gambar produk"
+                class="h-20 w-20 shrink-0 rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+              />
+              <div class="flex min-w-0 flex-1 flex-col gap-1">
+                <input
+                  id="product-image"
+                  ref="productImageInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="block w-full cursor-pointer text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-100 file:px-3 file:py-2 file:text-sm file:font-bold file:text-indigo-700 hover:file:bg-indigo-200 dark:text-slate-300 dark:file:bg-indigo-500/15 dark:file:text-indigo-300 dark:hover:file:bg-indigo-500/25"
+                  :disabled="isCompressingImage || isSaving"
+                  @change="onProductImageSelected"
+                />
+                <span class="text-xs text-slate-500 dark:text-slate-400">
+                  JPG, PNG, atau WebP · Maksimal 10 MB · Otomatis dikompres menjadi maksimal 300 KB dan 1200 × 1200 px
+                </span>
+                <span v-if="isCompressingImage" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Mengoptimalkan gambar...</span>
+              </div>
+              <AppButton
+                v-if="productImagePreview"
+                variant="secondary"
+                size="sm"
+                type="button"
+                :disabled="isCompressingImage || isSaving"
+                @click="clearProductImage"
+              >
+                Hapus Gambar
+              </AppButton>
+            </div>
           </div>
 
           <div class="modal-footer">
-            <AppButton variant="secondary" type="button" class="" @click="isProductModalOpen = false">Batal</AppButton>
-            <AppButton variant="primary" type="submit" class="" :disabled="isSaving">
+            <AppButton variant="secondary" type="button" @click="closeProductModal">Batal</AppButton>
+            <AppButton variant="primary" type="submit" :disabled="isSaving || isCompressingImage">
               {{ isSaving ? 'Menyimpan...' : 'Simpan Produk' }}
             </AppButton>
           </div>
@@ -348,6 +380,7 @@ const isProductModalOpen = ref(false);
 const isCategoryModalOpen = ref(false);
 const activeCatalogTab = ref<'categories' | 'artists' | 'productTypes'>('categories');
 const isSaving = ref(false);
+const isCompressingImage = ref(false);
 const isSavingCategory = ref(false);
 const editingId = ref<number | null>(null);
 const editingCategoryId = ref<number | null>(null);
@@ -358,6 +391,9 @@ const editingProductTypeName = ref('');
 const productsError = ref('');
 const categoryError = ref('');
 const productError = ref('');
+const selectedProductImage = ref<File | null>(null);
+const productImagePreview = ref('');
+const productImageInput = ref<HTMLInputElement | null>(null);
 
 const form = ref({
   name: '',
@@ -399,6 +435,9 @@ const matchesCategoryBranch = (productCategoryId: number, selectedCategoryId: nu
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
 const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
 const unitLabel = (unit: Product['unit']): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
+const maxProductImageBytes = 300 * 1024;
+const maxProductImageSourceBytes = 10 * 1024 * 1024;
+const maxProductImageDimension = 1200;
 
 const availableArtists = computed(() => {
   return artists.value.map(artist => artist.name);
@@ -511,6 +550,7 @@ const openCategoryModal = (): void => {
 };
 
 const openAddModal = () => {
+  clearProductImage();
   editingId.value = null;
   form.value = {
     name: '',
@@ -528,6 +568,7 @@ const openAddModal = () => {
 };
 
 const openEditModal = (prod: Product): void => {
+  clearProductImage();
   editingId.value = prod.id;
   form.value = {
     name: prod.name,
@@ -541,7 +582,102 @@ const openEditModal = (prod: Product): void => {
     barcode: prod.barcode ?? '',
     image_url: prod.image_url ?? ''
   };
+  productImagePreview.value = form.value.image_url;
   isProductModalOpen.value = true;
+};
+
+const createJpegBlob = (canvas: HTMLCanvasElement, quality: number): Promise<Blob> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) resolve(blob);
+      else reject(new Error('Browser gagal mengompres gambar.'));
+    }, 'image/jpeg', quality);
+  });
+
+const compressProductImage = async (file: File): Promise<File> => {
+  const bitmap = await createImageBitmap(file);
+  try {
+    if (bitmap.width * bitmap.height > 20_000_000) {
+      throw new Error('Resolusi gambar terlalu besar. Pilih gambar maksimal 20 megapiksel.');
+    }
+
+    const scale = Math.min(1, maxProductImageDimension / Math.max(bitmap.width, bitmap.height));
+    let width = Math.max(1, Math.round(bitmap.width * scale));
+    let height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+
+    while (Math.max(width, height) >= 64) {
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Browser tidak mendukung pemrosesan gambar.');
+
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, width, height);
+      context.drawImage(bitmap, 0, 0, width, height);
+
+      for (let quality = 0.85; quality >= 0.45; quality -= 0.1) {
+        const blob = await createJpegBlob(canvas, quality);
+        if (blob.size <= maxProductImageBytes) {
+          const name = file.name.replace(/\.[^.]+$/, '') || 'gambar-produk';
+          return new File([blob], `${name}.jpg`, { type: 'image/jpeg' });
+        }
+      }
+
+      width = Math.floor(width * 0.8);
+      height = Math.floor(height * 0.8);
+    }
+  } finally {
+    bitmap.close();
+  }
+  throw new Error('Gambar tidak dapat dikompres hingga 300 KB. Pilih gambar lain.');
+};
+
+const onProductImageSelected = async (event: Event): Promise<void> => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  productError.value = '';
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    productError.value = 'Format gambar harus JPG, PNG, atau WebP.';
+    input.value = '';
+    return;
+  }
+  if (file.size > maxProductImageSourceBytes) {
+    productError.value = 'Ukuran gambar asli maksimal 10 MB.';
+    input.value = '';
+    return;
+  }
+
+  isCompressingImage.value = true;
+  try {
+    const compressedImage = await compressProductImage(file);
+    selectedProductImage.value = compressedImage;
+    setProductImagePreview(URL.createObjectURL(compressedImage));
+  } catch (err) {
+    productError.value = err instanceof Error ? err.message : 'Gagal memproses gambar.';
+    input.value = '';
+  } finally {
+    isCompressingImage.value = false;
+  }
+};
+
+const setProductImagePreview = (url: string): void => {
+  if (productImagePreview.value.startsWith('blob:')) URL.revokeObjectURL(productImagePreview.value);
+  productImagePreview.value = url;
+};
+
+const clearProductImage = (): void => {
+  selectedProductImage.value = null;
+  form.value.image_url = '';
+  if (productImageInput.value) productImageInput.value.value = '';
+  setProductImagePreview('');
+};
+
+const closeProductModal = (): void => {
+  isProductModalOpen.value = false;
+  clearProductImage();
 };
 
 const saveProduct = async () => {
@@ -549,14 +685,23 @@ const saveProduct = async () => {
   productError.value = '';
   try {
     const url = editingId.value ? `/products/${editingId.value}` : '/products';
-    
-    if (editingId.value) {
-      await api.put(url, form.value);
-    } else {
-      await api.post(url, form.value);
+    const productPayload = { ...form.value };
+    if (selectedProductImage.value) {
+      const imageForm = new FormData();
+      imageForm.append('image', selectedProductImage.value);
+      const { data } = await api.post<{ image_url: string }>('/products/images', imageForm, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      productPayload.image_url = data.image_url;
     }
     
-    isProductModalOpen.value = false;
+    if (editingId.value) {
+      await api.put(url, productPayload);
+    } else {
+      await api.post(url, productPayload);
+    }
+    
+    closeProductModal();
     fetchProducts();
   } catch (err: any) {
     productError.value = err.response?.data?.error || err.message || 'Gagal menyimpan produk.';

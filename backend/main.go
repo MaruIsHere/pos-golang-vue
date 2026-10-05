@@ -33,12 +33,19 @@ func main() {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: false,
 	}))
+	router.Use(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/uploads/products/") {
+			c.Header("Cache-Control", "public, max-age=31536000, immutable")
+		}
+		c.Next()
+	})
 
 	// API Route Group
 	routes.RegisterAPIRoutes(router)
 
 	// Serve frontend static files if dist folder exists
 	router.Static("/assets", "../frontend/dist/assets")
+	router.Static("/uploads", "./uploads")
 	router.NoRoute(func(c *gin.Context) {
 		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
 			c.JSON(http.StatusNotFound, gin.H{"error": "API tidak ditemukan. Pastikan backend memakai versi terbaru."})

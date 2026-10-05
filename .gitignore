@@ -26,6 +26,7 @@ backend/pos-backend-win.exe
 backend/pos-backend-mac
 backend/*.db
 backend/*.db-journal
+backend/uploads/
 pos_backend
 
 # ========== DATABASE / DATA ==========
