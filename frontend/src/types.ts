@@ -25,6 +25,19 @@ export interface Category {
   id: number;
   name: string;
   icon?: string;
+  parent_id?: number | null;
+  created_at?: string;
+}
+
+export interface Artist {
+  id: number;
+  name: string;
+  created_at?: string;
+}
+
+export interface ProductType {
+  id: number;
+  name: string;
   created_at?: string;
 }
 
@@ -38,6 +51,7 @@ export interface Product {
   price: number;
   cost_price?: number;
   stock: number;
+  unit: 'pcs' | 'gram' | 'liter';
   barcode?: string;
   image_url?: string;
   is_active?: boolean;
@@ -80,6 +94,7 @@ export interface OrderItem {
   product_type?: string;
   product_price: number;
   quantity: number;
+  unit: 'pcs' | 'gram' | 'liter';
   subtotal: number;
   notes?: string;
 }
@@ -127,6 +142,7 @@ export interface StockMovement {
   product?: Product;
   type: string;
   quantity: number;
+  unit: 'pcs' | 'gram' | 'liter';
   reason?: string;
   notes?: string;
   created_at?: string;
@@ -147,6 +163,7 @@ export interface ProductSalesStat {
   total_sales: number;
   stock?: number;
   price?: number;
+  unit?: 'pcs' | 'gram' | 'liter';
 }
 
 export interface DashboardStats {

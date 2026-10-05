@@ -7,7 +7,7 @@ Aplikasi Point of Sales (POS) kasir untuk UMKM / coffee shop / resto kecil. Back
 ## Fitur yang sudah jalan
 
 * **Register / Kasir** (`RegisterView.vue`): katalog produk + filter kategori + search/barcode, keranjang (qty, notes, validasi stok), diskon, pajak otomatis dari `store_setting.tax_percentage`, checkout multi-metode (`cash`, `qris`, `transfer`, `debit`), struk via `ReceiptModal.vue`.
-* **Produk & Kategori** (`ProductsView.vue`): CRUD produk (`price`, `cost_price`, `stock`, `barcode`, `image_url`, `is_active`) + CRUD kategori. Search backend via `?search=` (nama/barcode), filter `?category_id=`.
+* **Produk & Kategori** (`ProductsView.vue`): CRUD produk (`price`, `cost_price`, `stock`, `barcode`, `image_url`, `is_active`) + CRUD kategori. Gambar dapat diunggah (JPG/PNG/WebP, sumber maks. 10 MB), otomatis dikompres menjadi JPEG maks. 300 KB dan 1200 × 1200 px, lalu disimpan di `backend/uploads/products/`. Search backend via `?search=` (nama/barcode), filter `?category_id=`.
 * **Inventory** (`InventoryView.vue`): stok masuk (`in`) / keluar (`out`) dengan alasan (`pembelian_supplier`, `barang_rusak`, `barang_hilang`, `expired`, `promosi`, `retur_penjualan`), riwayat `stock-movements` + update stok atomik (transaction).
 * **Orders** (`OrdersView.vue`): riwayat transaksi (`?limit=`, default `20`), detail per invoice, refund (status jadi `refunded` + stok dikembalikan + catat movement `in`).
 * **Customers** (`CustomersView.vue` + `PaymentModal.vue`): CRUD customer (`name`, `phone`, `email`, `address`, `points`), pilih customer saat bayar.

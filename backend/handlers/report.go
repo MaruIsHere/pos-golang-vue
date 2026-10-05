@@ -13,7 +13,7 @@ import (
 func GetDashboardStats(c *gin.Context) {
 	var totalOrders int64
 	var totalRevenue float64
-	var totalItemsSold int64
+	var totalItemsSold float64
 
 	database.DB.Model(&models.Order{}).Where("status = ?", "completed").Count(&totalOrders)
 	database.DB.Model(&models.Order{}).Where("status = ?", "completed").Select("COALESCE(SUM(grand_total), 0)").Scan(&totalRevenue)
@@ -24,18 +24,19 @@ func GetDashboardStats(c *gin.Context) {
 		ProductName string  `json:"product_name"`
 		Artist      string  `json:"artist"`
 		ProductType string  `json:"product_type"`
-		TotalQty    int     `json:"total_qty"`
+		TotalQty    float64 `json:"total_qty"`
 		TotalSales  float64 `json:"total_sales"`
-		Stock       int     `json:"stock"`
+		Stock       float64 `json:"stock"`
 		Price       float64 `json:"price"`
+		Unit        string  `json:"unit"`
 	}
 
 	// Top Selling Products (Barang Paling Laku)
 	var topProducts []ProductSalesStat
 	database.DB.Table("products p").
-		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price").
+		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
 		Joins("INNER JOIN order_items oi ON oi.product_id = p.id").
-		Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price").
+		Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
 		Order("total_qty desc").
 		Limit(10).
 		Scan(&topProducts)
@@ -43,10 +44,10 @@ func GetDashboardStats(c *gin.Context) {
 	// Slow Moving / Least Sold Products (Barang Kurang Laku)
 	var leastProducts []ProductSalesStat
 	database.DB.Table("products p").
-		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price").
+		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
 		Joins("LEFT JOIN order_items oi ON oi.product_id = p.id").
 		Where("p.is_active = ?", true).
-		Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price").
+		Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
 		Order("total_qty asc, p.stock desc").
 		Limit(10).
 		Scan(&leastProducts)
@@ -54,15 +55,15 @@ func GetDashboardStats(c *gin.Context) {
 	// All Sold Products List (List Seluruh Barang Laku)
 	var allSoldProducts []ProductSalesStat
 	database.DB.Table("order_items").
-		Select("product_id, product_name, COALESCE(NULLIF(artist, ''), 'Umum') as artist, COALESCE(NULLIF(product_type, ''), 'Umum') as product_type, SUM(quantity) as total_qty, SUM(subtotal) as total_sales, MAX(product_price) as price").
-		Group("product_id, product_name, artist, product_type").
+		Select("product_id, product_name, COALESCE(NULLIF(artist, ''), 'Umum') as artist, COALESCE(NULLIF(product_type, ''), 'Umum') as product_type, SUM(quantity) as total_qty, SUM(subtotal) as total_sales, MAX(product_price) as price, MAX(unit) as unit").
+		Group("product_id, product_name, artist, product_type, unit").
 		Order("total_qty desc").
 		Scan(&allSoldProducts)
 
 	// Sub-category Sales Summaries
 	type SubGroupStat struct {
 		Name       string  `json:"name"`
-		TotalQty   int     `json:"total_qty"`
+		TotalQty   float64 `json:"total_qty"`
 		TotalSales float64 `json:"total_sales"`
 	}
 

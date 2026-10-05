@@ -19,7 +19,7 @@
         class="absolute top-4 right-4 text-[0.65rem] px-2.5 py-1 font-bold shadow-sm backdrop-blur-md"
         :variant="stockBadgeVariant"
       >
-        {{ product.stock > 0 ? `Stok: ${product.stock}` : 'Habis' }}
+        {{ product.stock > 0 ? `Stok: ${formatQuantity(product.stock)} ${unitLabel(product.unit)}` : 'Habis' }}
       </AppBadge>
     </div>
     
@@ -38,7 +38,7 @@
       
       <!-- Harga didorong ke paling bawah agar sejajar semua -->
       <p class="text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400 mt-auto pt-2">
-        Rp {{ formatPrice(product.price) }}
+        Rp {{ formatPrice(product.price) }} / {{ unitLabel(product.unit) }}
       </p>
     </div>
   </div>
@@ -60,6 +60,8 @@ const emit = defineEmits(['add-to-cart']);
 const formatPrice = (val: number): string => {
   return new Intl.NumberFormat('id-ID').format(val || 0);
 };
+const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
+const unitLabel = (unit: Product['unit']): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const stockBadgeVariant = computed(() => {
   if (props.product.stock <= 0) return 'danger';

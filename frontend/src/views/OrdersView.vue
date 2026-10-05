@@ -18,8 +18,17 @@
     </div>
 
     <!-- Orders Table -->
-    <div class="overflow-x-auto bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm">
-      <table class="w-full text-left text-sm">
+    <div class="w-full min-w-0 overflow-x-auto bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm">
+      <table class="w-full min-w-[1200px] table-fixed text-left text-sm">
+        <colgroup>
+          <col class="w-[160px]" />
+          <col class="w-[220px]" />
+          <col class="w-[180px]" />
+          <col class="w-[150px]" />
+          <col class="w-[180px]" />
+          <col class="w-[120px]" />
+          <col class="w-[190px]" />
+        </colgroup>
         <thead>
           <tr>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">No. Invoice</th>
@@ -28,15 +37,15 @@
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Metode Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Total Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Status</th>
-            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-right whitespace-nowrap">Aksi</th>
+            <th class="p-3 text-right font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-if="isLoading">
-            <td colspan="7" class="text-center p-4 text-slate-500">Memuat riwayat transaksi...</td>
+          <tr v-if="isLoading" class="border-b border-slate-200 dark:border-slate-700">
+            <td colspan="7" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Memuat riwayat transaksi...</td>
           </tr>
-          <tr v-else-if="orders.length === 0">
-            <td colspan="7" class="text-center p-4 text-slate-500">Belum ada transaksi recorded</td>
+          <tr v-else-if="orders.length === 0" class="border-b border-slate-200 dark:border-slate-700">
+            <td colspan="7" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Belum ada transaksi.</td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
@@ -49,7 +58,7 @@
                 {{ (order.payment_method ||"cash").toUpperCase() }}
               </AppBadge>
             </td>
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(order.grand_total) }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp {{ formatPrice(order.grand_total) }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <span
                 class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -59,7 +68,7 @@
               </span>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-right">
-              <div class="flex items-center justify-end gap-2">
+              <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                 <AppButton @click="openReceipt(order)" variant="secondary" size="sm">
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>
@@ -97,6 +106,7 @@ import type { Order } from"../types";
 import appButton from"../components/ui/AppButton.vue";
 import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from"@heroicons/vue/24/outline";
 import AppBadge from"@/components/ui/AppBadge.vue";
+import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
@@ -135,8 +145,13 @@ const openReceipt = (order: Order): void => {
 
 const refundOrder = async (order: Order): Promise<void> => {
   if (
-    !confirm(
+    !await showAppConfirm(
       `Apakah Anda yakin ingin melakukan RETUR pada Invoice #${order.invoice_no}?\n\nStok barang akan dipulihkan secara otomatis.`,
+      {
+        title: 'Konfirmasi Retur',
+        confirmLabel: 'Ya, Proses Retur',
+        tone: 'warning'
+      }
     )
   ) {
     return;
@@ -144,13 +159,12 @@ const refundOrder = async (order: Order): Promise<void> => {
 
   try {
     await api.post(`/orders/${order.id}/refund`);
-    alert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`);
+    await showAppAlert(`Transaksi #${order.invoice_no} berhasil diretur! Stok produk telah dipulihkan.`, 'success');
     fetchOrders();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert("Koneksi error:" + errMsg);
+    await showAppAlert("Koneksi error: " + errMsg, 'error');
   }
 };
 </script>
-
 

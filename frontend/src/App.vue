@@ -3,8 +3,9 @@
     <Navbar v-if="authStore.isAuthenticated" />
 
     <PwaInstallBanner />
+    <AppDialogHost />
 
-    <main class="flex flex-1 overflow-hidden relative" :class="{ 'md:pl-20 md:pt-16 pt-12 pb-16 md:pb-0': authStore.isAuthenticated }">
+    <main class="flex flex-1 min-h-0 overflow-hidden relative" :class="{ 'md:pl-20 md:pt-16 pt-12 pb-16 md:pb-0': authStore.isAuthenticated }">
       <div class="flex-1 h-full w-full overflow-y-auto overflow-x-hidden flex flex-col relative" :class="{ 'p-3 md:p-5': authStore.isAuthenticated }">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
@@ -20,6 +21,7 @@
 import { onMounted } from "vue";
 import Navbar from "./components/Navbar.vue";
 import PwaInstallBanner from "./components/PwaInstallBanner.vue";
+import AppDialogHost from "./components/ui/AppDialogHost.vue";
 import { useSettingsStore } from "./stores/settings";
 import { useAuthStore } from "./stores/auth";
 import { useTheme } from "./composables/useTheme";

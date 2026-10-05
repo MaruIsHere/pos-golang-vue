@@ -15,9 +15,6 @@
             <SunIcon class="w-5 h-5 text-amber-500" />
             <span>Tema Tampilan (Mode Terang / Mode Gelap)</span>
           </h3>
-          <span class="px-3 py-1 text-xs font-black rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400">
-            {{ isDarkMode ? '🌙 Dark Mode' : '☀️ Light Mode' }}
-          </span>
         </div>
 
         <div class="flex flex-col gap-4 mt-2">
@@ -179,7 +176,7 @@
             </div>
           </div>
 
-          <AppButton variant="success"  type="submit" class="success -block" :disabled="isSavingStore">
+          <AppButton variant="primary" type="submit" class="w-full" :disabled="isSavingStore">
             {{ isSavingStore ? 'Memproses...' : 'Simpan Pengaturan Toko & QRIS' }}
           </AppButton>
         </form>
@@ -200,7 +197,7 @@
           </p>
 
           <!-- Add Voucher Form -->
-          <form @submit.prevent="createVoucher" class="">
+          <form @submit.prevent="createVoucher" class="flex flex-col gap-4">
             <h4>Tambah Kode Voucher Baru</h4>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -315,7 +312,7 @@
           </p>
 
           <!-- Register User Form -->
-          <form @submit.prevent="createUser" class="mb-6">
+          <form @submit.prevent="createUser" class="mb-6 flex flex-col gap-4">
             <h4>Tambah Pengguna / Registrasi Staf Baru</h4>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -367,7 +364,7 @@
 
           <!-- Users List Table -->
           <div class="flex flex-col gap-3">
-            <h4>
+            <h4 class="font-semibold text-slate-700 dark:text-slate-200">
               Daftar Pengguna Terdaftar
               <span v-if="!isLoadingUsers && !usersLoadError">({{ users.length }})</span>
             </h4>
@@ -386,59 +383,62 @@
             </div>
 
             <div v-else class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-              <table class="w-full text-left text-sm whitespace-nowrap">
+              <table class="data-table min-w-[900px] text-sm">
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Nama / Username</th>
                     <th>Role / Akses</th>
                     <th>Tanggal Dibuat</th>
-                    <th class="p-4 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-right">Aksi</th>
+                    <th class="min-w-[280px] whitespace-nowrap text-right">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   <template v-for="u in users" :key="u.id">
                     <tr>
-                    <td>#{{ u.id }}</td>
-                    <td>
-                      <strong class="text-slate-800 dark:text-slate-100 font-bold">{{ u.name || u.username }}</strong>
-                      <span v-if="u.name && u.name !== u.username" class="block text-xs text-slate-500">{{ u.username }}</span>
-                    </td>
-                    <td>
-                      <span class="badge" :class="getUserRoleBadgeClass(u.role)">
-                        {{ formatUserRoleLabel(u.role) }}
-                      </span>
-                    </td>
-                    <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-xs text-slate-500">{{ formatDate(u.created_at) }}</td>
-                    <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-right">
-                      <div class="flex justify-end items-center gap-3 mt-2">
-                        <AppButton v-if="u.id !== Number(authStore.user?.id)" variant="primary"
-                          type="button"
-                          class="icon -edit-user"
-                          :disabled="isLoadingStaffProfile || isSavingStaffProfile"
-                          @click="openStaffProfileForm(u)"
-                        >
-                          <PencilSquareIcon class="w-3.5 h-3.5 inline-block mr-1" /> Edit Profil
-                        </AppButton>
-                        <AppButton variant="primary" 
-                          type="button"
-                          class="icon -change-password"
-                          :disabled="isChangingStaffPassword"
-                          @click="openStaffPasswordForm(u)"
-                        >
-                          Ganti Sandi
-                        </AppButton>
-                        <AppButton variant="primary" 
-                          type="button"
-                          class="icon -delete-voucher"
-                          title="Hapus Pengguna"
-                          @click="deleteUserAccount(u.id, u.username)"
-                        >
-                          <TrashIcon class="w-4 h-4" />
-                        </AppButton>
-                      </div>
-                    </td>
-                  </tr>
+                      <td class="whitespace-nowrap text-slate-500 dark:text-slate-400">#{{ u.id }}</td>
+                      <td>
+                        <strong class="font-bold text-slate-800 dark:text-slate-100">{{ u.name || u.username }}</strong>
+                        <span v-if="u.name && u.name !== u.username" class="block text-xs text-slate-500 dark:text-slate-400">{{ u.username }}</span>
+                      </td>
+                      <td>
+                        <span class="badge" :class="getUserRoleBadgeClass(u.role)">
+                          {{ formatUserRoleLabel(u.role) }}
+                        </span>
+                      </td>
+                      <td class="whitespace-nowrap text-xs text-slate-500 dark:text-slate-400">{{ formatDate(u.created_at) }}</td>
+                      <td class="whitespace-nowrap text-right">
+                        <div class="flex flex-nowrap items-center justify-end gap-2">
+                          <AppButton v-if="u.id !== Number(authStore.user?.id)" variant="primary"
+                            size="sm"
+                            type="button"
+                            class="shrink-0 whitespace-nowrap"
+                            :disabled="isLoadingStaffProfile || isSavingStaffProfile"
+                            @click="openStaffProfileForm(u)"
+                          >
+                            <PencilSquareIcon class="mr-1 h-3.5 w-3.5" /> Edit Profil
+                          </AppButton>
+                          <AppButton variant="primary"
+                            size="sm"
+                            type="button"
+                            class="shrink-0 whitespace-nowrap"
+                            :disabled="isChangingStaffPassword"
+                            @click="openStaffPasswordForm(u)"
+                          >
+                            Ganti Sandi
+                          </AppButton>
+                          <AppButton variant="danger"
+                            size="icon"
+                            type="button"
+                            title="Hapus Pengguna"
+                            :aria-label="`Hapus pengguna ${u.username}`"
+                            @click="deleteUserAccount(u.id, u.username)"
+                          >
+                            <TrashIcon class="h-4 w-4" />
+                          </AppButton>
+                        </div>
+                      </td>
+                    </tr>
                     <tr v-if="staffProfileTarget?.id === u.id">
                       <td colspan="5">
                         <form class="flex flex-col gap-4 mt-3 bg-slate-50 dark:bg-slate-900/30 p-5 rounded-xl border border-slate-100 dark:border-slate-800" @submit.prevent="saveStaffProfile">
@@ -627,6 +627,7 @@ import api from '@/utils/api';
 import type { Voucher } from '../types';
 import { useTheme } from '../composables/useTheme';
 import { useAuthStore } from '../stores/auth';
+import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 import { 
   BuildingStorefrontIcon, 
   TicketIcon, 
@@ -941,13 +942,17 @@ const changeStaffPassword = async () => {
 };
 
 const deleteUserAccount = async (id: number, username: string) => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus akun pengguna "${username}"?`)) return;
+  if (!await showAppConfirm(`Apakah Anda yakin ingin menghapus akun pengguna "${username}"?`, {
+    title: 'Hapus Pengguna?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  })) return;
   try {
     await api.delete(`/users/${id}`);
-    alert('User berhasil dihapus!');
+    await showAppAlert('User berhasil dihapus!', 'success');
     await loadUsers();
   } catch (err: any) {
-    alert('Gagal menghapus user: ' + (err.response?.data?.error || err.message));
+    await showAppAlert('Gagal menghapus user: ' + (err.response?.data?.error || err.message), 'error');
   }
 };
 
@@ -991,7 +996,7 @@ const onQrisFileSelected = (event: Event): void => {
   if (!file) return;
 
   if (file.size > 5 * 1024 * 1024) {
-    alert('Ukuran file foto terlalu besar (maksimal 5MB)');
+    void showAppAlert('Ukuran file foto terlalu besar (maksimal 5MB)', 'warning');
     return;
   }
 
@@ -1006,11 +1011,11 @@ const saveStoreSettings = async () => {
   isSavingStore.value = true;
   try {
     await api.put('/settings', storeForm.value);
-    alert('Pengaturan profil toko & foto QRIS berhasil disimpan!');
+    await showAppAlert('Pengaturan profil toko & foto QRIS berhasil disimpan!', 'success');
     emit('refresh-settings');
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Koneksi error: ' + errMsg);
+    await showAppAlert('Koneksi error: ' + errMsg, 'error');
   } finally {
     isSavingStore.value = false;
   }
@@ -1029,26 +1034,30 @@ const createVoucher = async () => {
     };
 
     await api.post('/vouchers', payload);
-    alert(`Kode voucher '${payload.code}' berhasil ditambahkan!`);
+    await showAppAlert(`Kode voucher '${payload.code}' berhasil ditambahkan!`, 'success');
     newVoucher.value = { code: '', type: 'percent', value: 10, description: '' };
     loadVouchers();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Koneksi error: ' + errMsg);
+    await showAppAlert('Koneksi error: ' + errMsg, 'error');
   } finally {
     isCreatingVoucher.value = false;
   }
 };
 
 const deleteVoucher = async (id: number, code: string): Promise<void> => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus voucher '${code}'?`)) return;
+  if (!await showAppConfirm(`Apakah Anda yakin ingin menghapus voucher '${code}'?`, {
+    title: 'Hapus Voucher?',
+    confirmLabel: 'Ya, Hapus',
+    tone: 'danger'
+  })) return;
 
   try {
     await api.delete(`/vouchers/${id}`);
     loadVouchers();
   } catch (err: any) {
     const errMsg = err.response?.data?.error || err.message || 'Error occurred';
-    alert('Koneksi error: ' + errMsg);
+    await showAppAlert('Koneksi error: ' + errMsg, 'error');
   }
 };
 
@@ -1074,5 +1083,3 @@ const switchDatabaseEngine = async () => {
   }
 };
 </script>
-
-

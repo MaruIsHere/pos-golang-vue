@@ -45,18 +45,31 @@
 
           <div class="flex flex-col pr-8">
             <h4 class="text-[0.9rem] font-bold text-slate-800 dark:text-slate-100 leading-snug line-clamp-2">{{ item.product.name }}</h4>
-            <span class="text-[0.7rem] font-bold text-slate-400 mt-1 uppercase tracking-wider">@ Rp {{ formatPrice(item.product.price) }}</span>
+            <span class="text-[0.7rem] font-bold text-slate-400 mt-1 uppercase tracking-wider">@ Rp {{ formatPrice(item.product.price) }} / {{ unitLabel(item.product.unit) }}</span>
           </div>
 
           <div class="flex items-center justify-between mt-1 pt-3 border-t border-slate-100 dark:border-slate-700/50">
-            <div class="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200/60 dark:border-slate-700/60">
+            <div v-if="item.product.unit !== 'gram' && item.product.unit !== 'liter'" class="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200/60 dark:border-slate-700/60">
               <button class="w-8 h-8 rounded-[10px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center hover:bg-slate-50 shadow-sm active:scale-95 transition-all" @click="$emit('update-qty', { index, delta: -1 })">
                 <MinusIcon class="w-4 h-4" />
               </button>
-              <span class="text-sm font-extrabold min-w-[32px] text-center text-slate-800 dark:text-slate-200">{{ item.quantity }}</span>
+              <span class="text-sm font-extrabold min-w-[32px] text-center text-slate-800 dark:text-slate-200">{{ formatQuantity(item.quantity) }}</span>
               <button class="w-8 h-8 rounded-[10px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center hover:bg-slate-50 shadow-sm active:scale-95 transition-all" @click="$emit('update-qty', { index, delta: 1 })">
                 <PlusIcon class="w-4 h-4" />
               </button>
+            </div>
+            <div v-else class="flex items-center gap-2">
+              <input
+                type="number"
+                class="w-24 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                :value="item.quantity"
+                min="0.001"
+                :max="item.product.stock"
+                step="0.001"
+                :aria-label="`Jumlah ${unitLabel(item.product.unit)} untuk ${item.product.name}`"
+                @change="setQuantity(index, $event)"
+              />
+              <span class="text-xs font-bold text-slate-500">{{ unitLabel(item.product.unit) }}</span>
             </div>
             <div class="flex items-center gap-3">
             <span class="text-[0.95rem] font-black text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(item.product.price * item.quantity) }}</span>
@@ -157,12 +170,18 @@ const props = defineProps({
   isOpenMobile: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(['update-qty', 'remove-item', 'clear-cart', 'update-discount', 'open-payment', 'toggle-mobile']);
+const emit = defineEmits(['update-qty', 'set-qty', 'remove-item', 'clear-cart', 'update-discount', 'open-payment', 'toggle-mobile']);
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
+const unitLabel = (unit: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
+const setQuantity = (index: number, event: Event): void => {
+  const quantity = Number((event.target as HTMLInputElement).value);
+  if (Number.isFinite(quantity)) emit('set-qty', { index, quantity });
+};
 
 const totalItemCount = computed(() => {
-  return props.cart.reduce((sum, item) => sum + item.quantity, 0);
+  return props.cart.length;
 });
 
 const subtotal = computed(() => {

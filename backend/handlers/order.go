@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"pos-backend/database"
 	"pos-backend/models"
@@ -23,9 +24,9 @@ type CreateOrderInput struct {
 }
 
 type CreateOrderItem struct {
-	ProductID uint   `json:"product_id"`
-	Quantity  int    `json:"quantity"`
-	Notes     string `json:"notes"`
+	ProductID uint    `json:"product_id"`
+	Quantity  float64 `json:"quantity"`
+	Notes     string  `json:"notes"`
 }
 
 func CreateOrder(c *gin.Context) {
@@ -46,16 +47,27 @@ func CreateOrder(c *gin.Context) {
 	var orderItems []models.OrderItem
 
 	for _, itemInput := range input.Items {
+		if itemInput.Quantity <= 0 || math.Abs(itemInput.Quantity*1000-math.Round(itemInput.Quantity*1000)) > 1e-7 {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Kuantitas produk harus lebih dari 0 dan maksimal 3 angka desimal"})
+			return
+		}
+
 		var prod models.Product
 		if err := tx.First(&prod, itemInput.ProductID).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Produk ID %d tidak ditemukan", itemInput.ProductID)})
 			return
 		}
+		if !isValidStockQuantity(itemInput.Quantity, prod.Unit) {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Kuantitas harus bilangan bulat untuk pcs dan maksimal 3 angka desimal untuk gram/liter"})
+			return
+		}
 
 		if prod.Stock < itemInput.Quantity {
 			tx.Rollback()
-			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Stok produk %s tidak mencukupi (sisa %d)", prod.Name, prod.Stock)})
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Stok produk %s tidak mencukupi (sisa %s %s)", prod.Name, strconv.FormatFloat(prod.Stock, 'f', -1, 64), prod.Unit)})
 			return
 		}
 
@@ -77,6 +89,7 @@ func CreateOrder(c *gin.Context) {
 			ProductType:  prod.ProductType,
 			ProductPrice: prod.Price,
 			Quantity:     itemInput.Quantity,
+			Unit:         prod.Unit,
 			Subtotal:     subtotal,
 			Notes:        itemInput.Notes,
 		})
@@ -188,6 +201,7 @@ func RefundOrder(c *gin.Context) {
 			ProductID: item.ProductID,
 			Type:      "in",
 			Quantity:  item.Quantity,
+			Unit:      item.Unit,
 			Reason:    "retur_penjualan",
 			Notes:     fmt.Sprintf("Retur Transaksi Invoice #%s", order.InvoiceNo),
 		}

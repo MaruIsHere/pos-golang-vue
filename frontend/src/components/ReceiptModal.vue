@@ -45,7 +45,7 @@
             <div v-for="item in order.order_items" :key="item.id">
               <div class="font-bold">{{ item.product_name }}</div>
               <div class="flex justify-between text-[12px] text-slate-700 print:text-black">
-                <span>{{ item.quantity }} x {{ formatPrice(item.product_price) }}</span>
+                <span>{{ formatQuantity(item.quantity) }} {{ unitLabel(item.unit) }} x {{ formatPrice(item.product_price) }}</span>
                 <span class="font-bold">Rp {{ formatPrice(item.subtotal) }}</span>
               </div>
             </div>
@@ -118,6 +118,8 @@ const settingsStore = useSettingsStore();
 const { settings: storeSetting } = storeToRefs(settingsStore);
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
+const unitLabel = (unit: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const formatDate = (dateStr?: string): string => {
   if (!dateStr) return new Date().toLocaleString('id-ID');

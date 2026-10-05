@@ -8,7 +8,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <AppButton variant="secondary"  class="flex items-center gap-1.5" @click="fetchStats">
+        <AppButton variant="primary" class="flex items-center gap-1.5" @click="fetchStats">
           <ArrowPathIcon class="w-4 h-4" />
           <span>Refresh</span>
         </AppButton>
@@ -53,7 +53,7 @@
         </div>
         <div>
           <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">Total Item Terjual</span>
-          <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">{{ stats.total_items_sold }} Pcs</h3>
+          <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">{{ formatQuantity(stats.total_items_sold) }}</h3>
         </div>
       </AppCard>
     </div>
@@ -111,7 +111,7 @@
               </div>
               <div class="text-right">
                 <div class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">Rp {{ formatPrice(p.total_sales) }}</div>
-                <div class="text-xs font-semibold text-slate-500">{{ p.total_qty }} pcs terjual</div>
+                <div class="text-xs font-semibold text-slate-500">{{ formatQuantity(p.total_qty) }} {{ unitLabel(p.unit) }} terjual</div>
               </div>
             </div>
           </div>
@@ -135,10 +135,10 @@
               <div class="w-8 h-8 flex shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-slate-400 text-xs">#{{ index + 1 }}</div>
               <div class="flex flex-col flex-1 min-w-0">
                 <span class="top-name font-bold text-slate-800">{{ p.product_name }}</span>
-                <span class="top-qty text-xs text-rose-500 font-medium">Sisa Stok: {{ p.stock ?? 0 }} unit</span>
+                <span class="top-qty text-xs text-rose-500 font-medium">Sisa Stok: {{ formatQuantity(p.stock ?? 0) }} {{ unitLabel(p.unit) }}</span>
               </div>
               <div class="text-right">
-                <div class="font-bold text-slate-700">{{ p.total_qty }} pcs terjual</div>
+                <div class="font-bold text-slate-700">{{ formatQuantity(p.total_qty) }} {{ unitLabel(p.unit) }} terjual</div>
                 <div class="text-xs text-slate-500">Rp {{ formatPrice(p.total_sales) }}</div>
               </div>
             </div>
@@ -167,7 +167,7 @@
             <tr>
               <th>No</th>
               <th>Nama Produk</th>
-              <th>Artist</th>
+              <th>Merk</th>
               <th>Tipe Produk</th>
               <th>Harga Satuan</th>
               <th>Total Kuantitas</th>
@@ -184,7 +184,7 @@
               <td><span class="px-2 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-[10px] font-bold border border-purple-200 dark:border-purple-800/50">{{ p.artist }}</span></td>
               <td><span class="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md text-[10px] font-bold border border-amber-200 dark:border-amber-800/50">{{ p.product_type }}</span></td>
               <td>Rp {{ formatPrice(p.price || 0) }}</td>
-              <td><span class="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">{{ p.total_qty }} Pcs</span></td>
+              <td><span class="px-2 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">{{ formatQuantity(p.total_qty) }} {{ unitLabel(p.unit) }}</span></td>
               <td class="text-right font-bold text-emerald-600">Rp {{ formatPrice(p.total_sales) }}</td>
             </tr>
           </tbody>
@@ -192,24 +192,24 @@
       </div>
     </AppCard>
 
-    <!-- Section 4: Breakdown Sales Per Artist & Tipe Produk -->
+    <!-- Section 4: Breakdown Sales Per Merk & Tipe Produk -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-      <!-- Sales by Artist -->
+      <!-- Sales by Artist / Merk -->
       <AppCard>
         <div class="flex flex-col gap-1 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-1.5 text-amber-600">
-            <UserIcon class="w-5 h-5" /> Penjualan Per Artist
+            <UserIcon class="w-5 h-5" /> Penjualan Per Merk
           </h3>
         </div>
         <div class="flex flex-col">
           <div v-if="!stats.sales_by_artist || stats.sales_by_artist.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
-            Belum ada data artist
+            Belum ada data merk
           </div>
           <div v-else class="flex flex-col gap-3">
             <div v-for="(item, idx) in stats.sales_by_artist" :key="idx" class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <div class="flex flex-col flex-1 min-w-0">
                 <span class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.name }}</span>
-                <span class="text-xs text-slate-500 mt-0.5">{{ item.total_qty }} pcs terjual</span>
+                <span class="text-xs text-slate-500 mt-0.5">{{ formatQuantity(item.total_qty) }} kuantitas terjual (satuan campuran)</span>
               </div>
               <div class="font-bold text-slate-700 dark:text-slate-300">Rp {{ formatPrice(item.total_sales) }}</div>
             </div>
@@ -232,7 +232,7 @@
             <div v-for="(item, idx) in stats.sales_by_type" :key="idx" class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm hover:shadow-md transition-shadow">
               <div class="flex flex-col flex-1 min-w-0">
                 <span class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.name }}</span>
-                <span class="text-xs text-slate-500 mt-0.5">{{ item.total_qty }} pcs terjual</span>
+                <span class="text-xs text-slate-500 mt-0.5">{{ formatQuantity(item.total_qty) }} kuantitas terjual (satuan campuran)</span>
               </div>
               <div class="font-bold text-slate-700 dark:text-slate-300">Rp {{ formatPrice(item.total_sales) }}</div>
             </div>
@@ -291,6 +291,8 @@ const stats = ref<DashboardStats>({
 });
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
+const unitLabel = (unit?: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const fetchStats = async () => {
   isLoading.value = true;
@@ -329,7 +331,7 @@ const topVsSlowChartData = computed(() => {
   return {
     labels,
     datasets: [{
-      label: 'Kuantitas Terjual (Pcs)',
+      label: 'Kuantitas Terjual (Satuan Produk)',
       backgroundColor: backgroundColors,
       borderRadius: 6,
       data: dataValues
@@ -376,5 +378,4 @@ const handleExportPDF = () => {
   exportToPDF(stats.value, 'Keseluruhan Penjualan');
 };
 </script>
-
 
