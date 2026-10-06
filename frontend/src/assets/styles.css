@@ -260,3 +260,54 @@
     border-radius: 0.875rem;
   }
 }
+
+/* Print Styles: Dedicated Thermal Struk Printer Page Sizes (58mm / 80mm) */
+@media print {
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #receipt-print-area,
+  #receipt-print-area * {
+    visibility: visible !important;
+  }
+
+  #receipt-print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    padding: 4px 6px !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+
+  #receipt-print-area.paper-58mm {
+    width: 58mm !important;
+    max-width: 58mm !important;
+  }
+
+  #receipt-print-area.paper-80mm {
+    width: 80mm !important;
+    max-width: 80mm !important;
+  }
+
+  @page {
+    size: 58mm auto;
+    margin: 0mm;
+  }
+}
+
+

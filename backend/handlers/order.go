@@ -16,6 +16,7 @@ import (
 
 type CreateOrderInput struct {
 	CustomerName  string            `json:"customer_name"`
+	CashierName   string            `json:"cashier_name"`
 	PaymentMethod string            `json:"payment_method"`
 	PaidAmount    float64           `json:"paid_amount"`
 	Discount      float64           `json:"discount"`
@@ -112,6 +113,23 @@ func CreateOrder(c *gin.Context) {
 		custName = "Umum"
 	}
 
+	cashierName := input.CashierName
+	if cashierName == "" {
+		if userID, exists := c.Get("user_id"); exists {
+			var u models.User
+			if err := database.DB.First(&u, fmt.Sprintf("%v", userID)).Error; err == nil {
+				if u.Name != "" {
+					cashierName = u.Name
+				} else if u.Username != "" {
+					cashierName = u.Username
+				}
+			}
+		}
+	}
+	if cashierName == "" {
+		cashierName = "Kasir"
+	}
+
 	order := models.Order{
 		InvoiceNo:     invoiceNo,
 		TotalAmount:   totalAmount,
@@ -122,7 +140,7 @@ func CreateOrder(c *gin.Context) {
 		ChangeAmount:  changeAmount,
 		PaymentMethod: input.PaymentMethod,
 		Status:        "completed",
-		CashierName:   "Kasir 1",
+		CashierName:   cashierName,
 		CustomerName:  custName,
 		OrderItems:    orderItems,
 	}

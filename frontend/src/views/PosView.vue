@@ -157,6 +157,7 @@ import PaymentModal from '../components/PaymentModal.vue';
 import ReceiptModal from '../components/ReceiptModal.vue';
 import BarcodeScannerModal from '../components/BarcodeScannerModal.vue';
 import { useSettingsStore } from '../stores/settings';
+import { useAuthStore } from '../stores/auth';
 import type { Artist, Category, Product, ProductType, CartItem, Order, CreateOrderPayload } from '../types';
 import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon } from '@heroicons/vue/24/outline';
 import { showAppAlert } from '@/composables/useAppDialog';
@@ -354,12 +355,18 @@ const simulateScan = () => {
   }
 };
 
+const authStore = useAuthStore();
+
 // Checkout API handler
 const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { customer_name: string; payment_method: string; paid_amount: number }): Promise<void> => {
   isSubmittingOrder.value = true;
   try {
+    const activeUser = authStore.user;
+    const cashierName = activeUser?.name || activeUser?.Name || activeUser?.username || activeUser?.Username || 'Kasir';
+
     const payload: CreateOrderPayload = {
       customer_name,
+      cashier_name: cashierName,
       payment_method,
       paid_amount,
       discount: discount.value,

@@ -78,6 +78,7 @@ export interface OrderItemInput {
 
 export interface CreateOrderPayload {
   customer_name: string;
+  cashier_name?: string;
   payment_method: string;
   paid_amount: number;
   discount: number;
