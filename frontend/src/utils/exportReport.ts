@@ -4,6 +4,7 @@ import autoTable from 'jspdf-autotable';
 import type { DashboardStats } from '../types';
 
 const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').format(val || 0);
+const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(val || 0);
 const unitLabel = (unit?: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const appendTableSheet = (
@@ -142,128 +143,372 @@ const addSalesCharts = async (workbook: XLSX.WorkBook, stats: DashboardStats): P
 export const exportToExcel = async (stats: DashboardStats, dateTitle: string = 'Keseluruhan'): Promise<void> => {
   const wb = XLSX.utils.book_new();
 
-  // 1. Sheet Ringkasan (Executive Summary)
-  const storeName = stats.store_setting?.store_name || 'KASIR POS';
-  const summaryData = [
-    ['LAPORAN PENJUALAN'],
-    ['Nama Toko:', storeName],
-    ['Tanggal Cetak:', new Date().toLocaleString('id-ID')],
-    ['Periode Laporan:', dateTitle],
-    [''],
-    ['RINGKASAN PERFORMA'],
-    ['Total Omset Penjualan', stats.total_revenue],
-    ['Total Transaksi', stats.total_orders],
-    ['Total Kuantitas Terjual (Satuan Campuran)', stats.total_items_sold],
-    ['']
+  const store = stats.store_setting;
+  const storeName = store?.store_name || 'KASIR POS SYSTEM';
+  const storeAddress = store?.address || 'Jl. Utama POS';
+  const storePhone = store?.phone ? `Telp: ${store.phone}` : '';
+  const printedDate = new Date().toLocaleString('id-ID');
+
+  // ==========================================
+  // SHEET 1: Ringkasan & Top Items (Main Report)
+  // ==========================================
+  const sheet1Data: any[][] = [
+    [storeName.toUpperCase()],
+    [`${storeAddress} ${storePhone}`],
+    [`LAPORAN PERFORMA PENJUALAN PRODUK (${dateTitle.toUpperCase()}) — Cetak: ${printedDate}`],
+    [''], // Row 4 spacer
+
+    // Stat Cards (Row 5 & 6)
+    ['TOTAL OMSET', '', 'TOTAL TRANSAKSI', '', 'ITEM TERJUAL', '', ''],
+    [stats.total_revenue || 0, '', `${stats.total_orders || 0} Transaksi`, '', `${formatQuantity(stats.total_items_sold || 0)} Item`, '', ''],
+    [''], // Row 7 spacer
+
+    // Table 1: Top Sellers (Row 8 Header, Row 9 Cols)
+    ['🔥 10 BARANG PALING LAKU (TOP SELLERS)'],
+    ['Rank', 'Nama Produk', 'Artist / Merk', 'Tipe Produk', 'Harga Satuan', 'Terjual', 'Total Omset']
   ];
 
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  wsSummary['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-    { s: { r: 5, c: 0 }, e: { r: 5, c: 1 } }
+  // Populate Top 10 Products
+  const topList = (stats.top_products || []).slice(0, 10);
+  topList.forEach((p, idx) => {
+    sheet1Data.push([
+      `#${idx + 1}`,
+      p.product_name,
+      p.artist || 'Umum',
+      p.product_type || 'Umum',
+      p.price || 0,
+      `${formatQuantity(p.total_qty)} ${unitLabel(p.unit)}`,
+      p.total_sales || 0
+    ]);
+  });
+
+  // Table 2: Slow Moving
+  sheet1Data.push(['']);
+  const slowHeaderRowIdx = sheet1Data.length;
+  sheet1Data.push(['⚠️ 10 BARANG KURANG LAKU (SLOW MOVING / EVALUASI STOK)']);
+  const slowColsRowIdx = sheet1Data.length;
+  sheet1Data.push(['No', 'Nama Produk', 'Artist / Merk', 'Tipe Produk', 'Harga Satuan', 'Terjual', 'Stok Gudang']);
+
+  const leastList = (stats.least_products || []).slice(0, 10);
+  leastList.forEach((p, idx) => {
+    sheet1Data.push([
+      `#${idx + 1}`,
+      p.product_name,
+      p.artist || 'Umum',
+      p.product_type || 'Umum',
+      p.price || 0,
+      `${formatQuantity(p.total_qty)} ${unitLabel(p.unit)}`,
+      `Sisa ${formatQuantity(p.stock ?? 0)} ${unitLabel(p.unit)}`
+    ]);
+  });
+
+  const ws1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+
+  // Set Merges for Sheet 1
+  ws1['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, // Header Title
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }, // Header Address
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }, // Header Date
+    // Stat cards merges
+    { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },
+    { s: { r: 5, c: 0 }, e: { r: 5, c: 1 } },
+    { s: { r: 4, c: 2 }, e: { r: 4, c: 3 } },
+    { s: { r: 5, c: 2 }, e: { r: 5, c: 3 } },
+    { s: { r: 4, c: 4 }, e: { r: 4, c: 6 } },
+    { s: { r: 5, c: 4 }, e: { r: 5, c: 6 } },
+    // Table headers
+    { s: { r: 7, c: 0 }, e: { r: 7, c: 6 } },
+    { s: { r: slowHeaderRowIdx, c: 0 }, e: { r: slowHeaderRowIdx, c: 6 } }
   ];
-  wsSummary['!cols'] = [{ wch: 34 }, { wch: 38 }];
-  wsSummary['!rows'] = [{ hpt: 34 }, { hpt: 23 }, { hpt: 23 }, { hpt: 23 }, { hpt: 10 }, { hpt: 25 }];
-  wsSummary['A1'].s = {
-    fill: { patternType: 'solid', fgColor: { rgb: '174C43' } },
-    font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 16 },
-    alignment: { vertical: 'center', horizontal: 'left' }
-  };
-  wsSummary['A6'].s = {
-    fill: { patternType: 'solid', fgColor: { rgb: '176B5B' } },
-    font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 },
-    alignment: { vertical: 'center' }
-  };
-  for (let row = 1; row <= 3; row++) {
-    wsSummary[`A${row + 1}`].s = {
-      fill: { patternType: 'solid', fgColor: { rgb: 'EEF5F2' } },
-      font: { bold: true, color: { rgb: '334A43' } },
-      alignment: { vertical: 'center' }
-    };
-    wsSummary[`B${row + 1}`].s = {
-      font: { color: { rgb: '24332F' } },
-      alignment: { vertical: 'center' }
-    };
+
+  ws1['!cols'] = [
+    { wch: 10 }, // Rank / No
+    { wch: 34 }, // Nama Produk
+    { wch: 20 }, // Artist / Merk
+    { wch: 20 }, // Tipe Produk
+    { wch: 18 }, // Harga Satuan
+    { wch: 20 }, // Qty Terjual
+    { wch: 22 }  // Total Omset / Stok
+  ];
+
+  // Apply Styling for Sheet 1
+  if (ws1['A1']) ws1['A1'].s = { fill: { fgColor: { rgb: '1E293B' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 14 }, alignment: { vertical: 'center' } };
+  if (ws1['A2']) ws1['A2'].s = { fill: { fgColor: { rgb: '1E293B' } }, font: { color: { rgb: 'CBD5E1' }, sz: 9 }, alignment: { vertical: 'center' } };
+  if (ws1['A3']) ws1['A3'].s = { fill: { fgColor: { rgb: '1E293B' } }, font: { color: { rgb: '94A3B8' }, sz: 9, italic: true }, alignment: { vertical: 'center' } };
+
+  // Stat Card 1 (Omset)
+  if (ws1['A5']) ws1['A5'].s = { fill: { fgColor: { rgb: 'F0FDF4' } }, font: { bold: true, color: { rgb: '166534' }, sz: 9 }, alignment: { vertical: 'center', horizontal: 'center' } };
+  if (ws1['A6']) {
+    ws1['A6'].s = { fill: { fgColor: { rgb: 'F0FDF4' } }, font: { bold: true, color: { rgb: '166534' }, sz: 13 }, alignment: { vertical: 'center', horizontal: 'center' } };
+    ws1['A6'].z = '"Rp" #,##0';
   }
-  for (let row = 7; row <= 9; row++) {
-    wsSummary[`A${row}`].s = {
-      fill: { patternType: 'solid', fgColor: { rgb: 'EEF5F2' } },
-      font: { bold: true, color: { rgb: '334A43' } },
-      alignment: { vertical: 'center' }
-    };
-    wsSummary[`B${row}`].s = {
-      fill: { patternType: 'solid', fgColor: { rgb: 'F8FBF9' } },
-      font: { bold: true, color: { rgb: '176B5B' }, sz: 12 },
-      alignment: { vertical: 'center', horizontal: 'right' },
-      ...(row === 7 ? { numFmt: '"Rp" #,##0' } : {})
-    };
+
+  // Stat Card 2 (Transaksi)
+  if (ws1['C5']) ws1['C5'].s = { fill: { fgColor: { rgb: 'EEF2FF' } }, font: { bold: true, color: { rgb: '3730A3' }, sz: 9 }, alignment: { vertical: 'center', horizontal: 'center' } };
+  if (ws1['C6']) ws1['C6'].s = { fill: { fgColor: { rgb: 'EEF2FF' } }, font: { bold: true, color: { rgb: '3730A3' }, sz: 13 }, alignment: { vertical: 'center', horizontal: 'center' } };
+
+  // Stat Card 3 (Item Terjual)
+  if (ws1['E5']) ws1['E5'].s = { fill: { fgColor: { rgb: 'FEF3C7' } }, font: { bold: true, color: { rgb: '92400E' }, sz: 9 }, alignment: { vertical: 'center', horizontal: 'center' } };
+  if (ws1['E6']) ws1['E6'].s = { fill: { fgColor: { rgb: 'FEF3C7' } }, font: { bold: true, color: { rgb: '92400E' }, sz: 13 }, alignment: { vertical: 'center', horizontal: 'center' } };
+
+  // Section 1 Header (Top Sellers)
+  if (ws1['A8']) ws1['A8'].s = { fill: { fgColor: { rgb: '4F46E5' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 }, alignment: { vertical: 'center' } };
+  for (let c = 0; c < 7; c++) {
+    const colName = String.fromCharCode(65 + c);
+    if (ws1[`${colName}9`]) {
+      ws1[`${colName}9`].s = { fill: { fgColor: { rgb: '3730A3' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 9 }, alignment: { vertical: 'center' } };
+    }
   }
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan Eksekutif');
 
-  // 2. Sheet Barang Paling Laku (Top Sellers)
-  const topRows = (stats.top_products || []).map((p, idx) => ({
-    Peringkat: `#${idx + 1}`,
-    'Nama Produk': p.product_name,
-    Artist: p.artist || '-',
-    'Tipe Produk': p.product_type || '-',
-    'Harga (Rp)': p.price || 0,
-    'Qty Terjual': `${p.total_qty} ${unitLabel(p.unit)}`,
-    'Total Omset (Rp)': p.total_sales,
-    'Sisa Stok': `${p.stock ?? '-'} ${unitLabel(p.unit)}`
-  }));
-  appendTableSheet(wb, 'Barang Paling Laku', topRows, [
-    'Peringkat', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Qty Terjual', 'Total Omset (Rp)', 'Sisa Stok'
-  ], [12, 34, 22, 20, 17, 20, 20, 14], ['Harga (Rp)', 'Total Omset (Rp)']);
+  // Section 1 Data rows
+  topList.forEach((_, idx) => {
+    const r = 10 + idx;
+    const bg = idx % 2 === 0 ? 'F8FAFC' : 'FFFFFF';
+    for (let c = 0; c < 7; c++) {
+      const cellRef = `${String.fromCharCode(65 + c)}${r}`;
+      if (ws1[cellRef]) {
+        ws1[cellRef].s = { fill: { fgColor: { rgb: bg } }, font: { sz: 9 }, alignment: { vertical: 'center' } };
+        if (c === 4 || c === 6) {
+          ws1[cellRef].z = '"Rp" #,##0';
+          ws1[cellRef].s.alignment = { vertical: 'center', horizontal: 'right' };
+        }
+      }
+    }
+  });
 
-  // 3. Sheet Barang Kurang Laku (Slow Moving)
-  const leastRows = (stats.least_products || []).map((p, idx) => ({
-    Peringkat: `#${idx + 1}`,
-    'Nama Produk': p.product_name,
-    Artist: p.artist || '-',
-    'Tipe Produk': p.product_type || '-',
-    'Harga (Rp)': p.price || 0,
-    'Qty Terjual': `${p.total_qty} ${unitLabel(p.unit)}`,
-    'Total Omset (Rp)': p.total_sales,
-    'Sisa Stok Tersisa': `${p.stock ?? 0} ${unitLabel(p.unit)}`
-  }));
-  appendTableSheet(wb, 'Barang Kurang Laku', leastRows, [
-    'Peringkat', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Qty Terjual', 'Total Omset (Rp)', 'Sisa Stok Tersisa'
-  ], [12, 34, 22, 20, 17, 20, 20, 20], ['Harga (Rp)', 'Total Omset (Rp)']);
+  // Section 2 Header (Slow Moving)
+  const slowHeaderRef = `A${slowHeaderRowIdx + 1}`;
+  if (ws1[slowHeaderRef]) {
+    ws1[slowHeaderRef].s = { fill: { fgColor: { rgb: 'E11D48' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 }, alignment: { vertical: 'center' } };
+  }
+  for (let c = 0; c < 7; c++) {
+    const colName = String.fromCharCode(65 + c);
+    const cellRef = `${colName}${slowColsRowIdx + 1}`;
+    if (ws1[cellRef]) {
+      ws1[cellRef].s = { fill: { fgColor: { rgb: 'BE123C' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 9 }, alignment: { vertical: 'center' } };
+    }
+  }
 
-  // 4. Sheet List Seluruh Barang Laku
-  const allSoldRows = (stats.all_sold_products || []).map((p, idx) => ({
-    No: idx + 1,
-    'Nama Produk': p.product_name,
-    Artist: p.artist || '-',
-    'Tipe Produk': p.product_type || '-',
-    'Harga (Rp)': p.price || 0,
-    'Total Terjual': `${p.total_qty} ${unitLabel(p.unit)}`,
-    'Total Revenue (Rp)': p.total_sales
-  }));
-  appendTableSheet(wb, 'List Seluruh Barang Laku', allSoldRows, [
-    'No', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga (Rp)', 'Total Terjual', 'Total Revenue (Rp)'
-  ], [10, 36, 22, 20, 17, 22, 22], ['Harga (Rp)', 'Total Revenue (Rp)']);
+  // Section 2 Data rows
+  leastList.forEach((_, idx) => {
+    const r = slowColsRowIdx + 2 + idx;
+    const bg = idx % 2 === 0 ? 'FFF1F2' : 'FFFFFF';
+    for (let c = 0; c < 7; c++) {
+      const cellRef = `${String.fromCharCode(65 + c)}${r}`;
+      if (ws1[cellRef]) {
+        ws1[cellRef].s = { fill: { fgColor: { rgb: bg } }, font: { sz: 9 }, alignment: { vertical: 'center' } };
+        if (c === 4) {
+          ws1[cellRef].z = '"Rp" #,##0';
+          ws1[cellRef].s.alignment = { vertical: 'center', horizontal: 'right' };
+        }
+      }
+    }
+  });
 
-  // 5. Sheet Breakdown Per Artist & Tipe
-  const artistRows = (stats.sales_by_artist || []).map(a => ({
-    'Nama Artist': a.name,
-    'Total Kuantitas (Satuan Campuran)': a.total_qty,
-    'Total Omset (Rp)': a.total_sales
-  }));
-  appendTableSheet(wb, 'Penjualan Per Artist', artistRows, [
-    'Nama Artist', 'Total Kuantitas (Satuan Campuran)', 'Total Omset (Rp)'
-  ], [34, 23, 23], ['Total Omset (Rp)']);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Ringkasan & Top Items');
 
-  const typeRows = (stats.sales_by_type || []).map(t => ({
-    'Tipe Produk': t.name,
-    'Total Kuantitas (Satuan Campuran)': t.total_qty,
-    'Total Omset (Rp)': t.total_sales
-  }));
-  appendTableSheet(wb, 'Penjualan Per Tipe', typeRows, [
-    'Tipe Produk', 'Total Kuantitas (Satuan Campuran)', 'Total Omset (Rp)'
-  ], [34, 23, 23], ['Total Omset (Rp)']);
 
-  await addSalesCharts(wb, stats);
+  // ==========================================
+  // SHEET 2: Rincian Barang & Kategori
+  // ==========================================
+  const sheet2Data: any[][] = [
+    ['LIST SELURUH BARANG LAKU & RINCIAN KATEGORI'],
+    [`Rincian lengkap kinerja per barang, penjualan per merk, dan penjualan per tipe produk — Cetak: ${printedDate}`],
+    [''], // Spacer
+
+    // Section 1: All Sold Products Table
+    ['📋 LIST SELURUH BARANG LAKU'],
+    ['No', 'Nama Produk', 'Merk', 'Tipe Produk', 'Harga Satuan', 'Total Terjual', 'Total Sales (Omset)']
+  ];
+
+  const allSold = stats.all_sold_products || [];
+  let totalAllSales = 0;
+  let totalAllQty = 0;
+
+  allSold.forEach((p, idx) => {
+    totalAllSales += (p.total_sales || 0);
+    totalAllQty += (p.total_qty || 0);
+    sheet2Data.push([
+      idx + 1,
+      p.product_name,
+      p.artist || 'Umum',
+      p.product_type || 'Umum',
+      p.price || 0,
+      `${formatQuantity(p.total_qty)} ${unitLabel(p.unit)}`,
+      p.total_sales || 0
+    ]);
+  });
+
+  // Table 1 Summary Row
+  const summaryRowIdx = sheet2Data.length;
+  sheet2Data.push([
+    'TOTAL',
+    `${allSold.length} Jenis Produk`,
+    '-',
+    '-',
+    '-',
+    `${formatQuantity(totalAllQty)} Total Item`,
+    totalAllSales
+  ]);
+
+  // Section 2: Penjualan Per Merk
+  sheet2Data.push(['']);
+  const merkHeaderRowIdx = sheet2Data.length;
+  sheet2Data.push(['🏷️ RINGKASAN PENJUALAN PER MERK']);
+  const merkColsRowIdx = sheet2Data.length;
+  sheet2Data.push(['No', 'Nama Merk', 'Total Kuantitas Terjual', 'Total Sales (Omset)']);
+
+  const artistSales = stats.sales_by_artist || [];
+  artistSales.forEach((a, idx) => {
+    sheet2Data.push([
+      idx + 1,
+      a.name,
+      `${formatQuantity(a.total_qty)} Kuantitas`,
+      a.total_sales || 0
+    ]);
+  });
+
+  // Section 3: Penjualan Per Tipe Produk
+  sheet2Data.push(['']);
+  const typeHeaderRowIdx = sheet2Data.length;
+  sheet2Data.push(['🔲 RINGKASAN PENJUALAN PER TIPE PRODUK']);
+  const typeColsRowIdx = sheet2Data.length;
+  sheet2Data.push(['No', 'Tipe Produk', 'Total Kuantitas Terjual', 'Total Sales (Omset)']);
+
+  const typeSales = stats.sales_by_type || [];
+  typeSales.forEach((t, idx) => {
+    sheet2Data.push([
+      idx + 1,
+      t.name,
+      `${formatQuantity(t.total_qty)} Kuantitas`,
+      t.total_sales || 0
+    ]);
+  });
+
+  const ws2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+
+  // Set Merges for Sheet 2
+  ws2['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }, // Title
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }, // Subtitle
+    { s: { r: 3, c: 0 }, e: { r: 3, c: 6 } }, // All Sold Header
+    { s: { r: merkHeaderRowIdx, c: 0 }, e: { r: merkHeaderRowIdx, c: 3 } }, // Merk Header
+    { s: { r: typeHeaderRowIdx, c: 0 }, e: { r: typeHeaderRowIdx, c: 3 } }  // Type Header
+  ];
+
+  ws2['!cols'] = [
+    { wch: 8 },  // No
+    { wch: 36 }, // Nama Produk / Merk / Tipe
+    { wch: 22 }, // Merk / Qty
+    { wch: 22 }, // Tipe Produk / Sales
+    { wch: 18 }, // Harga Satuan
+    { wch: 22 }, // Total Terjual
+    { wch: 24 }  // Total Sales
+  ];
+
+  // Apply Styling for Sheet 2
+  if (ws2['A1']) ws2['A1'].s = { fill: { fgColor: { rgb: '1E293B' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 14 }, alignment: { vertical: 'center' } };
+  if (ws2['A2']) ws2['A2'].s = { fill: { fgColor: { rgb: '1E293B' } }, font: { color: { rgb: '94A3B8' }, sz: 9, italic: true }, alignment: { vertical: 'center' } };
+
+  // All Sold Header
+  if (ws2['A4']) ws2['A4'].s = { fill: { fgColor: { rgb: '334155' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11 }, alignment: { vertical: 'center' } };
+  for (let c = 0; c < 7; c++) {
+    const colName = String.fromCharCode(65 + c);
+    if (ws2[`${colName}5`]) {
+      ws2[`${colName}5`].s = { fill: { fgColor: { rgb: '0F172A' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 9 }, alignment: { vertical: 'center' } };
+    }
+  }
+
+  // All Sold Data Rows
+  allSold.forEach((_, idx) => {
+    const r = 6 + idx;
+    const bg = idx % 2 === 0 ? 'F8FAFC' : 'FFFFFF';
+    for (let c = 0; c < 7; c++) {
+      const cellRef = `${String.fromCharCode(65 + c)}${r}`;
+      if (ws2[cellRef]) {
+        ws2[cellRef].s = { fill: { fgColor: { rgb: bg } }, font: { sz: 9 }, alignment: { vertical: 'center' } };
+        if (c === 4 || c === 6) {
+          ws2[cellRef].z = '"Rp" #,##0';
+          ws2[cellRef].s.alignment = { vertical: 'center', horizontal: 'right' };
+        }
+      }
+    }
+  });
+
+  // Table 1 Summary Row Style
+  const sumRowRefIdx = summaryRowIdx + 1;
+  for (let c = 0; c < 7; c++) {
+    const cellRef = `${String.fromCharCode(65 + c)}${sumRowRefIdx}`;
+    if (ws2[cellRef]) {
+      ws2[cellRef].s = { fill: { fgColor: { rgb: 'E2E8F0' } }, font: { bold: true, color: { rgb: '0F172A' }, sz: 9 }, alignment: { vertical: 'center' } };
+      if (c === 6) {
+        ws2[cellRef].z = '"Rp" #,##0';
+        ws2[cellRef].s.alignment = { vertical: 'center', horizontal: 'right' };
+      }
+    }
+  }
+
+  // Merk Header Style
+  const merkHeaderRef = `A${merkHeaderRowIdx + 1}`;
+  if (ws2[merkHeaderRef]) {
+    ws2[merkHeaderRef].s = { fill: { fgColor: { rgb: 'D97706' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 10 }, alignment: { vertical: 'center' } };
+  }
+  for (let c = 0; c < 4; c++) {
+    const colName = String.fromCharCode(65 + c);
+    const cellRef = `${colName}${merkColsRowIdx + 1}`;
+    if (ws2[cellRef]) {
+      ws2[cellRef].s = { fill: { fgColor: { rgb: 'B45309' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 9 }, alignment: { vertical: 'center' } };
+    }
+  }
+
+  artistSales.forEach((_, idx) => {
+    const r = merkColsRowIdx + 2 + idx;
+    const bg = idx % 2 === 0 ? 'FFFBEB' : 'FFFFFF';
+    for (let c = 0; c < 4; c++) {
+      const cellRef = `${String.fromCharCode(65 + c)}${r}`;
+      if (ws2[cellRef]) {
+        ws2[cellRef].s = { fill: { fgColor: { rgb: bg } }, font: { sz: 9 }, alignment: { vertical: 'center' } };
+        if (c === 3) {
+          ws2[cellRef].z = '"Rp" #,##0';
+          ws2[cellRef].s.alignment = { vertical: 'center', horizontal: 'right' };
+        }
+      }
+    }
+  });
+
+  // Type Header Style
+  const typeHeaderRef = `A${typeHeaderRowIdx + 1}`;
+  if (ws2[typeHeaderRef]) {
+    ws2[typeHeaderRef].s = { fill: { fgColor: { rgb: 'DB2777' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 10 }, alignment: { vertical: 'center' } };
+  }
+  for (let c = 0; c < 4; c++) {
+    const colName = String.fromCharCode(65 + c);
+    const cellRef = `${colName}${typeColsRowIdx + 1}`;
+    if (ws2[cellRef]) {
+      ws2[cellRef].s = { fill: { fgColor: { rgb: 'BE185D' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 9 }, alignment: { vertical: 'center' } };
+    }
+  }
+
+  typeSales.forEach((_, idx) => {
+    const r = typeColsRowIdx + 2 + idx;
+    const bg = idx % 2 === 0 ? 'FDF2F8' : 'FFFFFF';
+    for (let c = 0; c < 4; c++) {
+      const cellRef = `${String.fromCharCode(65 + c)}${r}`;
+      if (ws2[cellRef]) {
+        ws2[cellRef].s = { fill: { fgColor: { rgb: bg } }, font: { sz: 9 }, alignment: { vertical: 'center' } };
+        if (c === 3) {
+          ws2[cellRef].z = '"Rp" #,##0';
+          ws2[cellRef].s.alignment = { vertical: 'center', horizontal: 'right' };
+        }
+      }
+    }
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws2, 'Detail Barang & Kategori');
+
+  // Generate File Output
+  const fileName = `Laporan_Penjualan_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(wb, fileName);
 };
 
 

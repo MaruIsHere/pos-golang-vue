@@ -408,12 +408,14 @@
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/utils/api';
 import type { Product, StockMovement } from '../types';
 import { ArrowDownTrayIcon, ArrowUpTrayIcon, ClockIcon, CalculatorIcon } from '@heroicons/vue/24/outline';
 import { showAppAlert } from '@/composables/useAppDialog';
+import { useStoreContextStore } from '@/stores/storeContext';
 
+const storeContextStore = useStoreContextStore();
 const activeTab = ref('receive');
 const products = ref<Product[]>([]);
 const movements = ref<StockMovement[]>([]);
@@ -574,7 +576,11 @@ const formatReason = (reason: string): string => {
 
 const fetchProducts = async () => {
   try {
-    const res = await api.get('/products');
+    const params: Record<string, any> = { is_master: false };
+    if (storeContextStore.activeStoreId) {
+      params.store_id = storeContextStore.activeStoreId;
+    }
+    const res = await api.get('/products', { params });
     products.value = res.data;
   } catch (err: any) {
     console.error(err.response?.data?.error || err.message || 'Error occurred');
@@ -594,8 +600,13 @@ const fetchMovements = async () => {
 };
 
 onMounted(() => {
+  storeContextStore.fetchStores();
   fetchProducts();
   fetchMovements();
+});
+
+watch(() => storeContextStore.activeStoreId, () => {
+  fetchProducts();
 });
 
 const submitStockMovement = async (type: string): Promise<void> => {

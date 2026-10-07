@@ -11,17 +11,20 @@ import (
 )
 
 type productInput struct {
-	CategoryID  uint    `json:"category_id"`
-	Name        string  `json:"name"`
-	Artist      string  `json:"artist"`
-	ProductType string  `json:"product_type"`
-	Price       float64 `json:"price"`
-	CostPrice   float64 `json:"cost_price"`
-	Stock       float64 `json:"stock"`
-	Unit        string  `json:"unit"`
-	Barcode     string  `json:"barcode"`
-	ImageURL    string  `json:"image_url"`
-	IsActive    *bool   `json:"is_active"`
+	CategoryID      uint    `json:"category_id"`
+	Name            string  `json:"name"`
+	Artist          string  `json:"artist"`
+	ProductType     string  `json:"product_type"`
+	Price           float64 `json:"price"`
+	CostPrice       float64 `json:"cost_price"`
+	Stock           float64 `json:"stock"`
+	Unit            string  `json:"unit"`
+	Barcode         string  `json:"barcode"`
+	ImageURL        string  `json:"image_url"`
+	IsActive        *bool   `json:"is_active"`
+	IsMaster        *bool   `json:"is_master"`
+	StoreID         *uint   `json:"store_id"`
+	MasterProductID *uint   `json:"master_product_id"`
 }
 
 func validateProductInput(input *productInput) (string, error) {
@@ -92,7 +95,7 @@ func isValidStockQuantity(quantity float64, unit string) bool {
 
 func GetProducts(c *gin.Context) {
 	var products []models.Product
-	query := database.DB.Preload("Category")
+	query := database.DB.Preload("Category").Preload("Store")
 
 	catID := c.Query("category_id")
 	if catID != "" {
@@ -111,6 +114,20 @@ func GetProducts(c *gin.Context) {
 	if search != "" {
 		s := "%" + search + "%"
 		query = query.Where("name LIKE ? OR barcode LIKE ? OR artist LIKE ? OR product_type LIKE ?", s, s, s, s)
+	}
+
+	isMaster := c.Query("is_master")
+	storeID := c.Query("store_id")
+
+	if isMaster == "true" {
+		query = query.Where("is_master = ? OR master_product_id IS NULL", true)
+	} else if isMaster == "false" {
+		query = query.Where("is_master = ?", false)
+		if storeID != "" {
+			query = query.Where("store_id = ?", storeID)
+		}
+	} else if storeID != "" {
+		query = query.Where("store_id = ? AND is_master = ?", storeID, false)
 	}
 
 	if err := query.Find(&products).Error; err != nil {
@@ -147,26 +164,31 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 	product := models.Product{
-		CategoryID:  input.CategoryID,
-		Name:        input.Name,
-		Artist:      input.Artist,
-		ProductType: input.ProductType,
-		Price:       input.Price,
-		CostPrice:   input.CostPrice,
-		Stock:       input.Stock,
-		Unit:        input.Unit,
-		Barcode:     input.Barcode,
-		ImageURL:    input.ImageURL,
+		CategoryID:      input.CategoryID,
+		Name:            input.Name,
+		Artist:          input.Artist,
+		ProductType:     input.ProductType,
+		Price:           input.Price,
+		CostPrice:       input.CostPrice,
+		Stock:           input.Stock,
+		Unit:            input.Unit,
+		Barcode:         input.Barcode,
+		ImageURL:        input.ImageURL,
+		StoreID:         input.StoreID,
+		MasterProductID: input.MasterProductID,
 	}
 	if input.IsActive != nil {
 		product.IsActive = *input.IsActive
+	}
+	if input.IsMaster != nil {
+		product.IsMaster = *input.IsMaster
 	}
 	if err := database.DB.Create(&product).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk"})
 		return
 	}
-	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat kategorinya"})
+	if err := database.DB.Preload("Category").Preload("Store").First(&product, product.ID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
 		return
 	}
 	c.JSON(http.StatusCreated, product)

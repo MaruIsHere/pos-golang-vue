@@ -18,6 +18,21 @@
             <MagnifyingGlassIcon class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
+        <div class="flex flex-col gap-2" v-if="catalogMode === 'master'">
+          <label class="text-[0.7rem] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1">
+            <BuildingStorefrontIcon class="w-3.5 h-3.5" /> Filter Toko Utama
+          </label>
+          <select 
+            class="w-full px-4 py-2.5 bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-[14px] text-sm font-bold text-indigo-900 dark:text-indigo-200 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+            v-model="selectedStoreFilter"
+            @change="fetchProducts"
+          >
+            <option :value="null">Semua Toko (Semua Master)</option>
+            <option v-for="st in storeContextStore.stores" :key="st.id" :value="st.id">
+              {{ st.name }} ({{ st.code }})
+            </option>
+          </select>
+        </div>
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Kategori</label>
           <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedCatId">
@@ -43,20 +58,58 @@
     </div>
 
     <!-- KARTU KANAN: KONTEN PRODUK (SCROLLABLE) -->
-    <div class="flex-1 flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm lg:overflow-hidden min-w-0">
+    <div class="flex-1 flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[24px] shadow-sm overflow-hidden min-w-0">
+      
+      <!-- TAB TOGGLE UNTUK CATALOG SYSTEM: STORE POS vs MASTER CATALOG -->
+      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700/60 px-5 pt-3 bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
+        <button 
+          @click="catalogMode = 'store'"
+          class="pb-3 pt-1 px-4 border-b-2 font-bold text-sm flex items-center gap-2 transition-all cursor-pointer"
+          :class="catalogMode === 'store' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+        >
+          <BuildingStorefrontIcon class="w-4 h-4" />
+          <span>Produk Kasir Toko</span>
+          <span v-if="storeContextStore.activeStore" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 font-bold text-slate-700 dark:text-slate-300">
+            {{ storeContextStore.activeStore.name }}
+          </span>
+        </button>
+        <button 
+          @click="catalogMode = 'master'"
+          class="pb-3 pt-1 px-4 border-b-2 font-bold text-sm flex items-center gap-2 transition-all cursor-pointer"
+          :class="catalogMode === 'master' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'"
+        >
+          <SparklesIcon class="w-4 h-4" />
+          <span>Katalog Produk Utama</span>
+        </button>
+      </div>
+
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 border-b border-slate-100 dark:border-slate-700/50 shrink-0 bg-white dark:bg-slate-800 z-10">
-        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          Daftar Produk 
-          <span class="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-xs font-black">{{ filteredProducts.length }}</span>
-        </h3>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            {{ catalogMode === 'store' ? 'Produk Toko Kasir' : 'Produk Utama Pusat' }}
+            <span class="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-xs font-black">{{ filteredProducts.length }}</span>
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {{ catalogMode === 'store' ? 'Produk yang tersedia untuk dijual di kasir toko ini.' : 'Produk master pusat yang bisa diimpor ke kasir tiap toko.' }}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <AppButton 
+            v-if="catalogMode === 'store'" 
+            variant="secondary" 
+            class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl font-bold border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/30 hover:bg-indigo-100" 
+            @click="openBatchImportModal"
+          >
+            <ArrowDownTrayIcon class="w-4 h-4" />
+            <span>Ambil Data Menu</span>
+          </AppButton>
           <AppButton variant="secondary" class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-700 dark:text-slate-200" @click="openCategoryModal">
             <PlusIcon class="w-4 h-4" />
             <span>Master Data</span>
           </AppButton>
           <AppButton variant="primary" class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl font-bold shadow-indigo-600/20 shadow-lg active:scale-95" @click="openAddModal">
             <PlusIcon class="w-4 h-4 text-indigo-50" />
-            <span>Produk Baru</span>
+            <span>{{ catalogMode === 'master' ? 'Produk Utama Baru' : 'Produk Kasir Baru' }}</span>
           </AppButton>
         </div>
       </div>
@@ -76,7 +129,18 @@
             <MagnifyingGlassIcon class="w-10 h-10 text-slate-400" />
           </div>
           <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Tidak ada produk</h3>
-          <p class="text-sm text-slate-500 mt-1 max-w-sm">Produk yang dicari tidak ditemukan.</p>
+          <p class="text-sm text-slate-500 mt-1 max-w-sm">
+            {{ catalogMode === 'master' ? 'Belum ada produk utama terdaftar.' : 'Produk untuk toko ini tidak ditemukan.' }}
+          </p>
+          <AppButton 
+            v-if="catalogMode === 'store'" 
+            variant="primary" 
+            class="mt-4 flex items-center gap-2 shadow-lg shadow-indigo-600/20 font-bold" 
+            @click="openBatchImportModal"
+          >
+            <ArrowDownTrayIcon class="w-4 h-4" />
+            <span>Ambil Data Menu dari Produk Utama</span>
+          </AppButton>
         </div>
         <div v-else class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
           <div v-for="prod in filteredProducts" :key="prod.id" class="group flex flex-col bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-[20px] overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg hover:border-indigo-400/50 transition-all h-full">
@@ -87,6 +151,12 @@
               <AppBadge class="absolute top-3 right-3 text-[0.65rem] font-bold shadow-sm backdrop-blur-md" :variant="prod.stock > 0 ? 'info' : 'danger'">
                 {{ formatQuantity(prod.stock) }} {{ unitLabel(prod.unit) }}
               </AppBadge>
+              <span v-if="prod.is_master" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-amber-500 text-white shadow-md">
+                Master Pusat
+              </span>
+              <span v-else-if="prod.store" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md">
+                {{ prod.store.name }}
+              </span>
             </div>
             <div class="flex flex-col px-3 sm:px-4 pt-3 pb-4 flex-1">
               <div class="flex items-center gap-1.5 mb-1.5 shrink-0">
@@ -97,12 +167,15 @@
                 <span class="text-[0.65rem] sm:text-[0.7rem] font-semibold text-slate-400 line-through">M: Rp {{ formatPrice(prod.cost_price ?? 0) }}</span>
                 <span class="text-[0.85rem] sm:text-[0.95rem] font-extrabold text-indigo-600 dark:text-indigo-400">J: Rp {{ formatPrice(prod.price) }}</span>
               </div>
-              <div class="flex sm:flex-row flex-col items-center gap-2 mt-auto pt-3 border-t border-slate-100 dark:border-slate-700/60">
-                <button class="w-full sm:flex-1 py-1.5 flex justify-center items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-600 rounded-[10px] transition-colors" @click="openEditModal(prod)">
-                  <PencilIcon class="w-3.5 h-3.5" /> <span class="sm:hidden lg:inline">Edit</span>
+              <div class="flex items-center gap-1.5 mt-auto pt-3 border-t border-slate-100 dark:border-slate-700/60">
+                <button v-if="catalogMode === 'master'" class="flex-1 py-1.5 flex justify-center items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-600 rounded-[10px] transition-colors" @click="openImportModal(prod)">
+                  <ArrowDownTrayIcon class="w-3.5 h-3.5" /> Impor
                 </button>
-                <button class="w-full sm:flex-1 py-1.5 flex justify-center items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 rounded-[10px] transition-colors" @click="deleteProduct(prod)">
-                  <TrashIcon class="w-3.5 h-3.5" /> <span class="sm:hidden lg:inline">Hapus</span>
+                <button class="flex-1 py-1.5 flex justify-center items-center gap-1 text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-600 rounded-[10px] transition-colors" @click="openEditModal(prod)">
+                  <PencilIcon class="w-3.5 h-3.5" /> Edit
+                </button>
+                <button class="py-1.5 px-2 flex justify-center items-center gap-1 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-600 rounded-[10px] transition-colors" @click="deleteProduct(prod)" title="Hapus">
+                  <TrashIcon class="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -351,6 +424,131 @@
         </div>
       </div>
     </div>
+
+    <!-- Import Product Modal -->
+    <div v-if="isImportModalOpen" class="modal-overlay" @click.self="isImportModalOpen = false">
+      <div class="modal-content backdrop-blur-md bg-white/90 dark:bg-slate-900/90 max-w-md w-full p-6 rounded-2xl shadow-xl">
+        <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700">
+          <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <ArrowDownTrayIcon class="w-5 h-5 text-emerald-600" />
+            <span>Impor ke Kasir Toko</span>
+          </h3>
+          <AppButton variant="secondary" size="sm" aria-label="Tutup modal impor" @click="isImportModalOpen = false">
+            <XMarkIcon class="w-4 h-4" />
+          </AppButton>
+        </div>
+
+        <div class="py-4 flex flex-col gap-4" v-if="selectedMasterProduct">
+          <div class="flex items-center gap-3 p-3 bg-indigo-50/60 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/40">
+            <img :src="selectedMasterProduct.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" class="w-12 h-12 object-cover rounded-lg shrink-0" />
+            <div class="min-w-0 flex-1">
+              <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">{{ selectedMasterProduct.name }}</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Harga Master: Rp {{ formatPrice(selectedMasterProduct.price) }}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pilih Toko Tujuan Kasir *</label>
+            <select v-model="importForm.target_store_id" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 font-bold text-sm">
+              <option v-for="st in storeContextStore.stores" :key="st.id" :value="st.id">
+                {{ st.name }} ({{ st.code }})
+              </option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Stok Kasir Toko *</label>
+              <input type="number" min="0" v-model.number="importForm.stock" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-bold" required />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Harga Jual (Rp) *</label>
+              <input type="number" min="0" v-model.number="importForm.price" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-bold" required />
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Harga Modal Toko (Rp)</label>
+            <input type="number" min="0" v-model.number="importForm.cost_price" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-bold" />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <AppButton variant="secondary" type="button" @click="isImportModalOpen = false">Batal</AppButton>
+          <AppButton variant="primary" type="button" :disabled="isSaving" @click="executeImportProduct">
+            {{ isSaving ? 'Mengimpor...' : 'Impor ke Toko' }}
+          </AppButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Import Master Products Modal (Ambil Data Menu) -->
+    <div v-if="isBatchImportModalOpen" class="modal-overlay" @click.self="isBatchImportModalOpen = false">
+      <div class="modal-content backdrop-blur-md bg-white/95 dark:bg-slate-900/95 max-w-xl w-full p-6 rounded-2xl shadow-xl flex flex-col max-h-[85vh]">
+        <div class="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <ArrowDownTrayIcon class="w-5 h-5 text-indigo-600" />
+              <span>Ambil Data Menu dari Produk Utama</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Pilih produk utama yang ingin diimpor ke etalase kasir toko <strong>{{ storeContextStore.activeStore?.name }}</strong>.
+            </p>
+          </div>
+          <AppButton variant="secondary" size="sm" aria-label="Tutup modal" @click="isBatchImportModalOpen = false">
+            <XMarkIcon class="w-4 h-4" />
+          </AppButton>
+        </div>
+
+        <div class="py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 shrink-0">
+          <label class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer select-none">
+            <input type="checkbox" :checked="isAllBatchSelected" @change="toggleSelectAllBatch" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" />
+            <span>Pilih Semua Menu ({{ availableMasterProductsToImport.length }})</span>
+          </label>
+          <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+            {{ selectedBatchMasterIDs.length }} terpilih
+          </span>
+        </div>
+
+        <div class="flex-1 overflow-y-auto py-3 custom-scrollbar flex flex-col gap-2">
+          <div v-if="availableMasterProductsToImport.length === 0" class="p-8 text-center text-slate-500 text-sm">
+            Semua produk utama sudah diimpor ke toko ini.
+          </div>
+          <label 
+            v-for="masterProd in availableMasterProductsToImport" 
+            :key="masterProd.id"
+            class="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+          >
+            <div class="flex items-center gap-3">
+              <input 
+                type="checkbox" 
+                :value="masterProd.id" 
+                v-model="selectedBatchMasterIDs" 
+                class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
+              />
+              <img :src="masterProd.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400'" class="w-10 h-10 object-cover rounded-lg shrink-0" />
+              <div>
+                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">{{ masterProd.name }}</h4>
+                <span class="text-[10px] font-bold text-slate-400 uppercase">{{ categoryLabelById(masterProd.category_id) }}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="font-extrabold text-sm text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(masterProd.price) }}</span>
+              <span class="block text-[10px] text-slate-500">Stok: {{ masterProd.stock }} {{ unitLabel(masterProd.unit) }}</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700 shrink-0">
+          <span class="text-xs text-slate-500">{{ selectedBatchMasterIDs.length }} menu dipilih</span>
+          <div class="flex gap-2">
+            <AppButton variant="secondary" type="button" @click="isBatchImportModalOpen = false">Batal</AppButton>
+            <AppButton variant="primary" type="button" :disabled="isSavingBatch || selectedBatchMasterIDs.length === 0" @click="executeBatchImport">
+              {{ isSavingBatch ? 'Mengimpor...' : `Impor ${selectedBatchMasterIDs.length} Menu ke Toko` }}
+            </AppButton>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -362,8 +560,70 @@ import AppBadge from '@/components/ui/AppBadge.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Artist, Category, Product, ProductType } from '../types';
-import { MagnifyingGlassIcon, PencilIcon, TrashIcon, PlusIcon, XMarkIcon } from '@heroicons/vue/24/outline';
+import { MagnifyingGlassIcon, PencilIcon, TrashIcon, PlusIcon, XMarkIcon, BuildingStorefrontIcon, SparklesIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
+import { useStoreContextStore } from '@/stores/storeContext';
+
+const storeContextStore = useStoreContextStore();
+const catalogMode = ref<'store' | 'master'>('store');
+const masterStoreFilter = ref<number | null>(null);
+
+const selectedStoreFilter = computed({
+  get() {
+    if (catalogMode.value === 'master') {
+      return masterStoreFilter.value;
+    }
+    return storeContextStore.activeStoreId;
+  },
+  set(val: number | null) {
+    if (catalogMode.value === 'master') {
+      masterStoreFilter.value = val;
+      if (val !== null) {
+        storeContextStore.setActiveStore(val);
+      }
+    } else {
+      if (val !== null) {
+        storeContextStore.setActiveStore(val);
+      }
+    }
+  }
+});
+const isImportModalOpen = ref(false);
+const selectedMasterProduct = ref<Product | null>(null);
+const importForm = ref({
+  target_store_id: 1,
+  stock: 10,
+  price: 0,
+  cost_price: 0
+});
+
+const isBatchImportModalOpen = ref(false);
+const selectedBatchMasterIDs = ref<number[]>([]);
+const isSavingBatch = ref(false);
+
+const masterProductsList = computed(() => products.value.filter(p => p.is_master || !p.master_product_id));
+
+const availableMasterProductsToImport = computed(() => {
+  const currentStoreMasterIDs = new Set(
+    products.value
+      .filter(p => !p.is_master && p.store_id === storeContextStore.activeStoreId && p.master_product_id)
+      .map(p => p.master_product_id)
+  );
+  return masterProductsList.value.filter(m => !currentStoreMasterIDs.has(m.id));
+});
+
+const isAllBatchSelected = computed(() => {
+  return availableMasterProductsToImport.value.length > 0 && 
+    selectedBatchMasterIDs.value.length === availableMasterProductsToImport.value.length;
+});
+
+const toggleSelectAllBatch = () => {
+  if (isAllBatchSelected.value) {
+    selectedBatchMasterIDs.value = [];
+  } else {
+    selectedBatchMasterIDs.value = availableMasterProductsToImport.value.map(m => m.id);
+  }
+};
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
@@ -502,6 +762,7 @@ const fetchCatalogs = async () => {
 };
 
 onMounted(() => {
+  storeContextStore.fetchStores();
   fetchProducts();
   fetchCategories();
   fetchCatalogs();
@@ -516,6 +777,22 @@ const resetFilters = () => {
 
 const filteredProducts = computed(() => {
   return products.value.filter(p => {
+    // Filter berdasarkan Dual Catalog Mode (Kasir Toko vs Master Pusat)
+    if (catalogMode.value === 'master') {
+      if (!p.is_master) return false;
+      if (masterStoreFilter.value !== null) {
+        if (p.store_id && p.store_id !== masterStoreFilter.value) {
+          return false;
+        }
+      }
+    } else {
+      // 'store' mode
+      if (p.is_master) return false;
+      if (storeContextStore.activeStoreId && p.store_id && p.store_id !== storeContextStore.activeStoreId) {
+        return false;
+      }
+    }
+
     const matchCat = selectedCatId.value === null || matchesCategoryBranch(p.category_id, selectedCatId.value);
     const matchArt = !selectedArtist.value || p.artist === selectedArtist.value;
     const matchType = !selectedProductType.value || p.product_type === selectedProductType.value;
@@ -530,6 +807,62 @@ const filteredProducts = computed(() => {
     return matchCat && matchArt && matchType && matchQ;
   });
 });
+
+const openImportModal = (masterProd: Product) => {
+  selectedMasterProduct.value = masterProd;
+  importForm.value = {
+    target_store_id: storeContextStore.activeStoreId || (storeContextStore.stores[0]?.id ?? 1),
+    stock: 10,
+    price: masterProd.price,
+    cost_price: masterProd.cost_price || 0
+  };
+  isImportModalOpen.value = true;
+};
+
+const executeImportProduct = async () => {
+  if (!selectedMasterProduct.value) return;
+  isSaving.value = true;
+  try {
+    await api.post(`/stores/${importForm.value.target_store_id}/import-product`, {
+      master_product_id: selectedMasterProduct.value.id,
+      stock: importForm.value.stock,
+      price: importForm.value.price,
+      cost_price: importForm.value.cost_price
+    });
+    await showAppAlert(`Produk "${selectedMasterProduct.value.name}" berhasil diimpor ke toko kasir!`, 'info');
+    isImportModalOpen.value = false;
+    fetchProducts();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Gagal mengimpor produk ke toko.';
+    await showAppAlert(errMsg, 'error');
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const openBatchImportModal = () => {
+  selectedBatchMasterIDs.value = availableMasterProductsToImport.value.map(m => m.id);
+  isBatchImportModalOpen.value = true;
+};
+
+const executeBatchImport = async () => {
+  if (!storeContextStore.activeStoreId || selectedBatchMasterIDs.value.length === 0) return;
+  isSavingBatch.value = true;
+  try {
+    const res = await api.post('/stores/import-batch', {
+      store_id: storeContextStore.activeStoreId,
+      master_product_ids: selectedBatchMasterIDs.value
+    });
+    await showAppAlert(res.data.message || 'Berhasil mengimpor data menu ke kasir toko!', 'info');
+    isBatchImportModalOpen.value = false;
+    fetchProducts();
+  } catch (err: any) {
+    const errMsg = err.response?.data?.error || err.message || 'Gagal mengimpor menu.';
+    await showAppAlert(errMsg, 'error');
+  } finally {
+    isSavingBatch.value = false;
+  }
+};
 
 const getStockBadge = (stock: number): string => {
   if (stock <= 0) return 'badge';
@@ -685,7 +1018,11 @@ const saveProduct = async () => {
   productError.value = '';
   try {
     const url = editingId.value ? `/products/${editingId.value}` : '/products';
-    const productPayload = { ...form.value };
+    const productPayload: any = { 
+      ...form.value,
+      is_master: catalogMode.value === 'master',
+      store_id: catalogMode.value === 'master' ? null : (storeContextStore.activeStoreId || null)
+    };
     if (selectedProductImage.value) {
       const imageForm = new FormData();
       imageForm.append('image', selectedProductImage.value);

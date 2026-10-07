@@ -13,12 +13,27 @@ export interface StoreSetting {
   qris_image_url?: string;
 }
 
+export interface Store {
+  id: number;
+  name: string;
+  code: string;
+  address?: string;
+  phone?: string;
+  is_active?: boolean;
+  total_cashiers?: number;
+  total_products?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface UserProfile {
   id: number;
   username: string;
   name: string;
   profile_photo?: string;
   role: string;
+  store_id?: number | null;
+  store?: Store;
 }
 
 export interface Category {
@@ -55,6 +70,10 @@ export interface Product {
   barcode?: string;
   image_url?: string;
   is_active?: boolean;
+  is_master?: boolean;
+  master_product_id?: number | null;
+  store_id?: number | null;
+  store?: Store;
   created_at?: string;
   updated_at?: string;
 }
@@ -77,7 +96,9 @@ export interface OrderItemInput {
 }
 
 export interface CreateOrderPayload {
+  store_id?: number | null;
   customer_name: string;
+  cashier_name?: string;
   payment_method: string;
   paid_amount: number;
   discount: number;

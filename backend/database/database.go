@@ -60,6 +60,7 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 
 	// Auto Migration
 	err = db.AutoMigrate(
+		&models.Store{},
 		&models.User{},
 		&models.Category{},
 		&models.Artist{},
@@ -193,6 +194,55 @@ func migrateLegacyCategoryCatalogs(db *gorm.DB) error {
 }
 
 func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
+	// Seed Default Store if empty
+	var storeCount int64
+	db.Model(&models.Store{}).Count(&storeCount)
+	var defaultStore models.Store
+	if storeCount == 0 {
+		defaultStore = models.Store{
+			Name:     "Toko Utama",
+			Code:     "STORE-001",
+			Address:  "Jl. Merdeka Utama No. 1, Jakarta",
+			Phone:    "0812-3456-7890",
+			IsActive: true,
+		}
+		db.Create(&defaultStore)
+	} else {
+		db.First(&defaultStore)
+	}
+
+	// Assign default store_id to existing users and ensure products without master_product_id are set as master products
+	db.Model(&models.User{}).Where("store_id IS NULL AND role != ?", "owner").Update("store_id", defaultStore.ID)
+	db.Model(&models.Product{}).Where("master_product_id IS NULL").Update("is_master", true)
+
+	// Ensure default store (STORE-001) has store POS products copied from master products if empty
+	var defaultStoreProdCount int64
+	db.Model(&models.Product{}).Where("store_id = ? AND is_master = ?", defaultStore.ID, false).Count(&defaultStoreProdCount)
+	if defaultStoreProdCount == 0 {
+		var masterProducts []models.Product
+		db.Where("is_master = ?", true).Find(&masterProducts)
+		for _, m := range masterProducts {
+			mID := m.ID
+			sID := defaultStore.ID
+			db.Create(&models.Product{
+				CategoryID:      m.CategoryID,
+				Name:            m.Name,
+				Artist:          m.Artist,
+				ProductType:     m.ProductType,
+				Price:           m.Price,
+				CostPrice:       m.CostPrice,
+				Stock:           m.Stock,
+				Unit:            m.Unit,
+				Barcode:         m.Barcode,
+				ImageURL:        m.ImageURL,
+				IsActive:        true,
+				IsMaster:        false,
+				MasterProductID: &mID,
+				StoreID:         &sID,
+			})
+		}
+	}
+
 	// Seed Default Accounts if missing
 	defaultUsers := []struct {
 		username string

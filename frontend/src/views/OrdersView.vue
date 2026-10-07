@@ -22,17 +22,19 @@
       <table class="w-full min-w-[1200px] table-fixed text-left text-sm">
         <colgroup>
           <col class="w-[160px]" />
-          <col class="w-[220px]" />
-          <col class="w-[180px]" />
+          <col class="w-[200px]" />
           <col class="w-[150px]" />
+          <col class="w-[160px]" />
+          <col class="w-[140px]" />
+          <col class="w-[170px]" />
+          <col class="w-[110px]" />
           <col class="w-[180px]" />
-          <col class="w-[120px]" />
-          <col class="w-[190px]" />
         </colgroup>
         <thead>
           <tr>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">No. Invoice</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Waktu & Tanggal</th>
+            <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Kasir</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Pelanggan</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Metode Bayar</th>
             <th class="p-3 font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Total Bayar</th>
@@ -42,20 +44,26 @@
         </thead>
         <tbody>
           <tr v-if="isLoading" class="border-b border-slate-200 dark:border-slate-700">
-            <td colspan="7" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Memuat riwayat transaksi...</td>
+            <td colspan="8" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Memuat riwayat transaksi...</td>
           </tr>
           <tr v-else-if="orders.length === 0" class="border-b border-slate-200 dark:border-slate-700">
-            <td colspan="7" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Belum ada transaksi.</td>
+            <td colspan="8" class="px-3 py-8 text-center text-slate-500 dark:text-slate-400">Belum ada transaksi.</td>
           </tr>
           <tr v-else v-for="order in orders" :key="order.id">
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <code class="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-md text-xs font-mono font-bold text-slate-600 dark:text-slate-400">{{ order.invoice_no }}</code>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ formatDate(order.created_at) }}</td>
-            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ order.customer_name ||"Umum" }}</td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
+                <UserIcon class="w-3.5 h-3.5" />
+                {{ order.cashier_name || 'Kasir' }}
+              </span>
+            </td>
+            <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ order.customer_name || "Umum" }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
               <AppBadge variant="neutral">
-                {{ (order.payment_method ||"cash").toUpperCase() }}
+                {{ (order.payment_method || "cash").toUpperCase() }}
               </AppBadge>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp {{ formatPrice(order.grand_total) }}</td>
@@ -64,7 +72,7 @@
                 class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
                 :class="order.status === 'refunded' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'"
               >
-                {{ order.status ==="refunded" ?"Diretur" :"Selesai" }}
+                {{ order.status === "refunded" ? "Diretur" : "Selesai" }}
               </span>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-right">
@@ -99,12 +107,12 @@
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 
-import { ref, onMounted } from"vue";
+import { ref, onMounted } from "vue";
 import api from '@/utils/api';
-import ReceiptModal from"../components/ReceiptModal.vue";
-import type { Order } from"../types";
-import appButton from"../components/ui/AppButton.vue";
-import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon } from"@heroicons/vue/24/outline";
+import ReceiptModal from "../components/ReceiptModal.vue";
+import type { Order } from "../types";
+import appButton from "../components/ui/AppButton.vue";
+import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon, UserIcon } from "@heroicons/vue/24/outline";
 import AppBadge from"@/components/ui/AppBadge.vue";
 import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 
