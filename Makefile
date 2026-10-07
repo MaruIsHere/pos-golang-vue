@@ -19,16 +19,16 @@ run:
 
 build:
 	npm --prefix frontend run build
-	cd $(BACKEND_DIR) && go build -o pos-backend .
+	cd $(BACKEND_DIR) && go build -o pos-backend ./cmd/api
 
 build-linux:
-	cd $(BACKEND_DIR) && GOOS=linux GOARCH=amd64 go build -o pos-backend-linux .
+	cd $(BACKEND_DIR) && GOOS=linux GOARCH=amd64 go build -o pos-backend-linux ./cmd/api
 
 build-win:
-	cd $(BACKEND_DIR) && GOOS=windows GOARCH=amd64 go build -o pos-backend-win.exe .
+	cd $(BACKEND_DIR) && GOOS=windows GOARCH=amd64 go build -o pos-backend-win.exe ./cmd/api
 
 build-mac:
-	cd $(BACKEND_DIR) && GOOS=darwin GOARCH=arm64 go build -o pos-backend-mac .
+	cd $(BACKEND_DIR) && GOOS=darwin GOARCH=arm64 go build -o pos-backend-mac ./cmd/api
 
 start:
 	npm start

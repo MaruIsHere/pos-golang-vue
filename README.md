@@ -1,4 +1,4 @@
-# POS Golang + Vue — Sistem Kasir Modern (PWA)
+# POS Golang Vue (v1.0.0-MVP Multi-Tenant SaaS)\n\n# POS Golang + Vue — Sistem Kasir Modern (PWA)
 
 Aplikasi Point of Sales (POS) kasir untuk UMKM / coffee shop / resto kecil. Backend REST API memakai **Go + Gin + GORM**, frontend kasir memakai **Vue 3 + Vite + PWA**. Database default **SQLite** (`pos.db`), bisa pindah live ke **MySQL** dari halaman Settings tanpa restart manual.
 
