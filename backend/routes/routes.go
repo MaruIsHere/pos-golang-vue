@@ -82,6 +82,15 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.PUT("/settings", middleware.RoleMiddleware("admin", "owner"), handlers.UpdateSettings)
 			protected.POST("/settings/switch-db", middleware.RoleMiddleware("admin", "owner"), handlers.SwitchDatabase)
 
+			// Store Management (Registrasi & Kelola Toko)
+			protected.GET("/stores", handlers.GetStores)
+			protected.POST("/stores", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.CreateStore)
+			protected.PUT("/stores/:id", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.UpdateStore)
+			protected.DELETE("/stores/:id", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.DeleteStore)
+			protected.POST("/stores/assign-user", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.AssignUserStore)
+			protected.POST("/stores/import-product", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.ImportMasterProductToStore)
+			protected.POST("/stores/import-batch", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.ImportBatchMasterProductsToStore)
+
 			// Vouchers
 			protected.GET("/vouchers", handlers.GetVouchers)
 			protected.POST("/vouchers", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateVoucher)

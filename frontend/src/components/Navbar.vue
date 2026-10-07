@@ -40,9 +40,24 @@
   <header class="hidden md:flex fixed top-0 left-20 right-0 h-16 items-center justify-between px-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40">
     <!-- Info Toko & Database -->
     <div class="flex items-center gap-3">
-      <h1 class="text-base font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+      <!-- Active Store Selector -->
+      <div v-if="storeContextStore.stores.length > 0" class="relative">
+        <select 
+          class="appearance-none pl-8 pr-7 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 outline-none cursor-pointer hover:bg-indigo-100 transition-colors"
+          :value="storeContextStore.activeStoreId"
+          @change="onStoreChange"
+        >
+          <option v-for="s in storeContextStore.stores" :key="s.id" :value="s.id">
+            🏪 {{ s.name }} ({{ s.code }})
+          </option>
+        </select>
+        <BuildingStorefrontIcon class="w-4 h-4 text-indigo-500 absolute left-2.5 top-2 pointer-events-none" />
+      </div>
+
+      <h1 v-else class="text-base font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
         {{ storeSetting.store_name || 'POS KASIR PRO' }}
       </h1>
+
       <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
       <span 
         class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -122,6 +137,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
 import { useAuthStore } from '../stores/auth';
+import { useStoreContextStore } from '../stores/storeContext';
 import { useTheme } from '../composables/useTheme';
 import api from '../utils/api';
 import {
@@ -146,10 +162,19 @@ defineProps({
 const settingsStore = useSettingsStore();
 const { settings: storeSetting } = storeToRefs(settingsStore);
 const authStore = useAuthStore();
+const storeContextStore = useStoreContextStore();
 const { isDarkMode, toggleTheme } = useTheme();
 
 const logout = () => {
   authStore.logout();
+};
+
+const onStoreChange = (e: Event) => {
+  const target = e.target as HTMLSelectElement;
+  if (target && target.value) {
+    storeContextStore.setActiveStore(Number(target.value));
+    window.location.reload();
+  }
 };
 
 const syncProfile = async (): Promise<void> => {
@@ -163,8 +188,9 @@ const syncProfile = async (): Promise<void> => {
 };
 
 const allNavItems = [
-  { id: 'register', to: '/', label: 'Kasir', iconComp: BuildingStorefrontIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
+  { id: 'register', to: '/', label: 'Kasir', iconComp: ShoppingCartIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
   { id: 'products', to: '/products', label: 'Produk', iconComp: CubeIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
+  { id: 'stores', to: '/stores', label: 'Toko', iconComp: BuildingStorefrontIcon, roles: ['owner', 'admin'] },
   { id: 'inventory', to: '/inventory', label: 'Inventori', iconComp: ArchiveBoxIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
   { id: 'customers', to: '/customers', label: 'Pelanggan', iconComp: UsersIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
   { id: 'orders', to: '/orders', label: 'Riwayat', iconComp: DocumentTextIcon, roles: ['kasir', 'kepala_kasir', 'owner', 'admin'] },
@@ -205,6 +231,7 @@ const updateTime = (): void => {
 
 let timer: ReturnType<typeof setInterval> | null = null;
 onMounted(() => {
+  storeContextStore.fetchStores();
   void syncProfile();
   updateTime();
   timer = setInterval(updateTime, 1000);

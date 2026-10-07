@@ -46,6 +46,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/SettingsView.vue'), 
     meta: { requiresAuth: true, roles: ['owner', 'admin'] } 
   },
+  { 
+    path: '/stores', 
+    name: 'stores', 
+    component: () => import('../views/StoresView.vue'), 
+    meta: { requiresAuth: true, roles: ['owner', 'admin'] } 
+  },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ];
 

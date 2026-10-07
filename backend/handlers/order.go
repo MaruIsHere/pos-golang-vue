@@ -15,6 +15,7 @@ import (
 // === ORDER / TRANSAKSI HANDLERS ===
 
 type CreateOrderInput struct {
+	StoreID       *uint             `json:"store_id"`
 	CustomerName  string            `json:"customer_name"`
 	CashierName   string            `json:"cashier_name"`
 	PaymentMethod string            `json:"payment_method"`
@@ -130,7 +131,18 @@ func CreateOrder(c *gin.Context) {
 		cashierName = "Kasir"
 	}
 
+	storeID := input.StoreID
+	if storeID == nil {
+		if userID, exists := c.Get("user_id"); exists {
+			var u models.User
+			if err := database.DB.First(&u, fmt.Sprintf("%v", userID)).Error; err == nil && u.StoreID != nil {
+				storeID = u.StoreID
+			}
+		}
+	}
+
 	order := models.Order{
+		StoreID:       storeID,
 		InvoiceNo:     invoiceNo,
 		TotalAmount:   totalAmount,
 		Discount:      input.Discount,
@@ -160,6 +172,10 @@ func CreateOrder(c *gin.Context) {
 func GetOrders(c *gin.Context) {
 	var orders []models.Order
 	query := database.DB.Preload("OrderItems").Order("created_at desc")
+
+	if storeIDStr := c.Query("store_id"); storeIDStr != "" {
+		query = query.Where("store_id = ?", storeIDStr)
+	}
 
 	limitStr := c.DefaultQuery("limit", "20")
 	limit, _ := strconv.Atoi(limitStr)

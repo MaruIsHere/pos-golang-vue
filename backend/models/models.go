@@ -22,6 +22,17 @@ func (r UserRole) IsValid() bool {
 	return false
 }
 
+type Store struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Name      string    `gorm:"size:150;not null" json:"name"`
+	Code      string    `gorm:"size:50;uniqueIndex;not null" json:"code"`
+	Address   string    `gorm:"size:255" json:"address"`
+	Phone     string    `gorm:"size:50" json:"phone"`
+	IsActive  bool      `gorm:"default:true" json:"is_active"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type User struct {
 	ID           uint      `gorm:"primaryKey" json:"id"`
 	Username     string    `gorm:"size:100;not null;unique" json:"username"`
@@ -29,6 +40,8 @@ type User struct {
 	ProfilePhoto string    `gorm:"type:longtext" json:"profile_photo"`
 	Password     string    `gorm:"size:255;not null" json:"-"`
 	Role         UserRole  `gorm:"type:varchar(20);default:'KASIR'" json:"role"`
+	StoreID      *uint     `gorm:"index" json:"store_id,omitempty"`
+	Store        *Store    `gorm:"foreignKey:StoreID" json:"store,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -54,21 +67,25 @@ type ProductType struct {
 }
 
 type Product struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	CategoryID  uint      `gorm:"index;not null" json:"category_id"`
-	Category    Category  `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
-	Name        string    `gorm:"size:150;not null" json:"name"`
-	Artist      string    `gorm:"size:100;index" json:"artist"`
-	ProductType string    `gorm:"size:100;index" json:"product_type"`
-	Price       float64   `gorm:"type:decimal(12,2);not null" json:"price"`
-	CostPrice   float64   `gorm:"type:decimal(12,2);default:0" json:"cost_price"`
-	Stock       float64   `gorm:"type:decimal(12,3);default:0" json:"stock"`
-	Unit        string    `gorm:"size:10;not null;default:'pcs'" json:"unit"`
-	Barcode     string    `gorm:"size:100;index" json:"barcode"`
-	ImageURL    string    `gorm:"size:255" json:"image_url"`
-	IsActive    bool      `gorm:"default:true" json:"is_active"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID              uint      `gorm:"primaryKey" json:"id"`
+	CategoryID      uint      `gorm:"index;not null" json:"category_id"`
+	Category        Category  `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
+	Name            string    `gorm:"size:150;not null" json:"name"`
+	Artist          string    `gorm:"size:100;index" json:"artist"`
+	ProductType     string    `gorm:"size:100;index" json:"product_type"`
+	Price           float64   `gorm:"type:decimal(12,2);not null" json:"price"`
+	CostPrice       float64   `gorm:"type:decimal(12,2);default:0" json:"cost_price"`
+	Stock           float64   `gorm:"type:decimal(12,3);default:0" json:"stock"`
+	Unit            string    `gorm:"size:10;not null;default:'pcs'" json:"unit"`
+	Barcode         string    `gorm:"size:100;index" json:"barcode"`
+	ImageURL        string    `gorm:"size:255" json:"image_url"`
+	IsActive        bool      `gorm:"default:true" json:"is_active"`
+	IsMaster        bool      `gorm:"default:false;index" json:"is_master"`
+	MasterProductID *uint     `gorm:"index" json:"master_product_id,omitempty"`
+	StoreID         *uint     `gorm:"index" json:"store_id,omitempty"`
+	Store           *Store    `gorm:"foreignKey:StoreID" json:"store,omitempty"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 type Order struct {
@@ -84,6 +101,8 @@ type Order struct {
 	Status        string      `gorm:"size:30;default:'completed'" json:"status"`    // completed, refunded, cancelled
 	CashierName   string      `gorm:"size:100;default:'Kasir Utama'" json:"cashier_name"`
 	CustomerName  string      `gorm:"size:100;default:'Umum'" json:"customer_name"`
+	StoreID       *uint       `gorm:"index" json:"store_id,omitempty"`
+	Store         *Store      `gorm:"foreignKey:StoreID" json:"store,omitempty"`
 	CreatedAt     time.Time   `json:"created_at"`
 	OrderItems    []OrderItem `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE" json:"order_items"`
 }

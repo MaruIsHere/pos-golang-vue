@@ -2,8 +2,21 @@
   <div class="h-[calc(100vh-8rem)] md:h-[calc(100vh-6.5rem)] w-full flex flex-col lg:grid lg:grid-cols-[1fr_350px] xl:grid-cols-[1fr_400px] gap-6 relative">
     
     <!-- Left Area: Catalog & Products -->
-    <div class="flex flex-col gap-5 h-full min-h-0 relative">
+    <div class="flex flex-col gap-4 h-full min-h-0 relative">
       
+      <!-- Store POS Context Banner -->
+      <div v-if="storeContextStore.activeStore" class="flex items-center justify-between px-4 py-2 bg-indigo-50/80 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl shrink-0">
+        <div class="flex items-center gap-2">
+          <BuildingStorefrontIcon class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          <span class="text-xs font-bold text-slate-700 dark:text-slate-200">
+            Etalase Kasir Toko: <strong class="text-indigo-600 dark:text-indigo-400 font-extrabold">{{ storeContextStore.activeStore.name }}</strong> ({{ storeContextStore.activeStore.code }})
+          </span>
+        </div>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+          {{ filteredProducts.length }} Produk Kasir
+        </span>
+      </div>
+
       <!-- Apple-style Search Bar & Scan -->
       <div class="flex items-center gap-3 shrink-0 relative z-10">
         <div class="relative flex-1 flex items-center bg-white dark:bg-slate-800 rounded-full px-5 py-3 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700/50 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:border-indigo-300 dark:focus-within:border-indigo-600 transition-all duration-300">
@@ -26,41 +39,96 @@
         </button>
       </div>
 
-      <!-- M3 Segmented Categories Pills -->
-      <div class="flex items-center gap-2.5 overflow-x-auto pb-2 shrink-0 no-scrollbar snap-x">
-        <button 
-          class="px-5 py-2 rounded-full text-[0.85rem] font-bold whitespace-nowrap transition-all duration-300 shadow-sm snap-start" 
-          :class="selectedCategoryId === null ? 'bg-indigo-600 text-white border-transparent shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-          @click="selectCategory(null)"
-        >
-          Semua Produk
-        </button>
-        <button 
-          v-for="cat in rootCategories" 
-          :key="cat.id" 
-          class="px-5 py-2 rounded-full text-[0.85rem] font-bold whitespace-nowrap transition-all duration-300 shadow-sm snap-start" 
-          :class="selectedCategoryId === cat.id ? 'bg-indigo-600 text-white border-transparent shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-          @click="selectCategory(cat.id)"
-        >
-          {{ categoryLabel(cat) }}
-        </button>
-      </div>
+      <!-- Cashier Filter Section (Segmented Pills with Labels & Separators) -->
+      <div class="flex flex-col gap-2 shrink-0 bg-white/60 dark:bg-slate-800/50 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-xs">
+        
+        <!-- Row 1: Kategori Filter -->
+        <div class="flex items-center gap-2.5 overflow-x-auto no-scrollbar snap-x py-0.5">
+          <div class="flex items-center gap-1.5 shrink-0 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
+            <TagIcon class="w-3.5 h-3.5 text-indigo-500" />
+            <span>Kategori</span>
+          </div>
+          <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+          
+          <button 
+            class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
+            :class="selectedCategoryId === null ? 'bg-indigo-600 text-white shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectCategory(null)"
+          >
+            Semua Produk
+          </button>
+          <button 
+            v-for="cat in rootCategories" 
+            :key="cat.id" 
+            class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
+            :class="selectedCategoryId === cat.id ? 'bg-indigo-600 text-white shadow-indigo-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectCategory(cat.id)"
+          >
+            {{ categoryLabel(cat) }}
+          </button>
+        </div>
 
-      <!-- Compact Sub-categories Filter -->
-      <div class="flex items-center gap-3 shrink-0">
-        <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedArtist">
-          <option :value="null">Semua Merk</option>
-          <option v-if="availableArtists.length === 0" disabled value="">Belum ada data merk</option>
-          <option v-for="artist in availableArtists" :key="artist.id" :value="artist.name">{{ artist.name }}</option>
-        </select>
-        <select class="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer transition-all" v-model="selectedProductType">
-          <option :value="null">Semua Tipe</option>
-          <option v-if="availableProductTypes.length === 0" disabled value="">Belum ada data tipe produk</option>
-          <option v-for="type in availableProductTypes" :key="type.id" :value="type.name">{{ type.name }}</option>
-        </select>
-        <button v-if="selectedArtist || selectedProductType" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 rounded-xl transition-colors shadow-sm ml-auto" @click="resetSubFilters">
-          Reset
-        </button>
+        <!-- Row 2: Merk Filter (Show if availableArtists has items) -->
+        <div v-if="availableArtists.length > 0" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar snap-x py-0.5 border-t border-slate-100 dark:border-slate-700/50 pt-2">
+          <div class="flex items-center gap-1.5 shrink-0 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
+            <BookmarkIcon class="w-3.5 h-3.5 text-emerald-500" />
+            <span>Merk</span>
+          </div>
+          <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+
+          <button 
+            class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
+            :class="selectedArtist === null ? 'bg-emerald-600 text-white shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectedArtist = null"
+          >
+            Semua Merk
+          </button>
+          <button 
+            v-for="artist in availableArtists" 
+            :key="artist.id" 
+            class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
+            :class="selectedArtist === artist.name ? 'bg-emerald-600 text-white shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectedArtist = artist.name"
+          >
+            {{ artist.name }}
+          </button>
+        </div>
+
+        <!-- Row 3: Tipe Filter (Show if availableProductTypes has items) -->
+        <div v-if="availableProductTypes.length > 0" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar snap-x py-0.5 border-t border-slate-100 dark:border-slate-700/50 pt-2">
+          <div class="flex items-center gap-1.5 shrink-0 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
+            <Squares2X2Icon class="w-3.5 h-3.5 text-amber-500" />
+            <span>Tipe</span>
+          </div>
+          <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+
+          <button 
+            class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
+            :class="selectedProductType === null ? 'bg-amber-600 text-white shadow-amber-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectedProductType = null"
+          >
+            Semua Tipe
+          </button>
+          <button 
+            v-for="type in availableProductTypes" 
+            :key="type.id" 
+            class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
+            :class="selectedProductType === type.name ? 'bg-amber-600 text-white shadow-amber-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectedProductType = type.name"
+          >
+            {{ type.name }}
+          </button>
+        </div>
+
+        <!-- Filter Reset Action Row -->
+        <div v-if="selectedCategoryId !== null || selectedArtist !== null || selectedProductType !== null" class="flex items-center justify-between border-t border-slate-100 dark:border-slate-700/50 pt-2 px-1">
+          <span class="text-[11px] font-medium text-slate-400">Filter aktif diterapkan</span>
+          <button class="px-2.5 py-1 text-[11px] font-bold text-red-600 hover:text-red-700 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 rounded-lg transition-colors flex items-center gap-1" @click="resetAllFilters">
+            <XMarkIcon class="w-3.5 h-3.5" />
+            <span>Reset Filter</span>
+          </button>
+        </div>
+
       </div>
       <div v-if="catalogError" class="flex items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" role="alert">
         <span>{{ catalogError }}</span>
@@ -148,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import api from '@/utils/api';
 import { storeToRefs } from 'pinia';
 import ProductCard from '../components/ProductCard.vue';
@@ -158,14 +226,16 @@ import ReceiptModal from '../components/ReceiptModal.vue';
 import BarcodeScannerModal from '../components/BarcodeScannerModal.vue';
 import { useSettingsStore } from '../stores/settings';
 import { useAuthStore } from '../stores/auth';
+import { useStoreContextStore } from '../stores/storeContext';
 import type { Artist, Category, Product, ProductType, CartItem, Order, CreateOrderPayload } from '../types';
-import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon } from '@heroicons/vue/24/outline';
+import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon, TagIcon, BookmarkIcon, Squares2X2Icon, BuildingStorefrontIcon } from '@heroicons/vue/24/outline';
 import { showAppAlert } from '@/composables/useAppDialog';
 
 defineEmits(['refresh-products']);
 
 const settingsStore = useSettingsStore();
 const { settings: storeSetting } = storeToRefs(settingsStore);
+const storeContextStore = useStoreContextStore();
 
 const categories = ref<Category[]>([]);
 const artists = ref<Artist[]>([]);
@@ -198,6 +268,12 @@ const categoryLabel = (category: Category): string => {
 };
 
 const resetSubFilters = () => {
+  selectedArtist.value = null;
+  selectedProductType.value = null;
+};
+
+const resetAllFilters = () => {
+  selectedCategoryId.value = null;
   selectedArtist.value = null;
   selectedProductType.value = null;
 };
@@ -255,7 +331,11 @@ const fetchCatalogs = async () => {
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
-    const res = await api.get('/products');
+    const params: Record<string, any> = { is_master: false };
+    if (storeContextStore.activeStoreId) {
+      params.store_id = storeContextStore.activeStoreId;
+    }
+    const res = await api.get('/products', { params });
     products.value = res.data;
   } catch (err: any) {
     console.error('Fetch products error:', err.response?.data?.error || err.message || 'Error occurred');
@@ -265,14 +345,26 @@ const fetchProducts = async () => {
 };
 
 onMounted(() => {
+  storeContextStore.fetchStores();
   fetchCategories();
   fetchCatalogs();
+  fetchProducts();
+});
+
+watch(() => storeContextStore.activeStoreId, () => {
+  cart.value = [];
   fetchProducts();
 });
 
 // Filtering
 const filteredProducts = computed(() => {
   return products.value.filter(p => {
+    // Filter out master products from POS (POS only displays store POS products)
+    if (p.is_master) return false;
+    if (storeContextStore.activeStoreId && p.store_id && p.store_id !== storeContextStore.activeStoreId) {
+      return false;
+    }
+
     const matchesCat = selectedCategoryId.value === null || p.category_id === selectedCategoryId.value;
     const matchesArt = !selectedArtist.value || p.artist === selectedArtist.value;
     const matchesType = !selectedProductType.value || p.product_type === selectedProductType.value;
@@ -365,6 +457,7 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { 
     const cashierName = activeUser?.name || activeUser?.Name || activeUser?.username || activeUser?.Username || 'Kasir';
 
     const payload: CreateOrderPayload = {
+      store_id: storeContextStore.activeStoreId || null,
       customer_name,
       cashier_name: cashierName,
       payment_method,
