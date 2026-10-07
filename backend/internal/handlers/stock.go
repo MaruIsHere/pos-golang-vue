@@ -3,18 +3,28 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // === STOCK MOVEMENT HANDLERS ===
 
 func GetStockMovements(c *gin.Context) {
 	var movements []models.StockMovement
-	if err := database.DB.Preload("Product").Order("created_at desc").Find(&movements).Error; err != nil {
+	query := database.DB.Preload("Product").Order("created_at desc")
+
+	if merchantID, exists := c.Get("merchant_id"); exists {
+		query = query.Where("merchant_id = ?", merchantID)
+	}
+	if outletID, exists := c.Get("outlet_id"); exists {
+		query = query.Where("outlet_id = ?", outletID)
+	}
+
+	if err := query.Find(&movements).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -22,11 +32,13 @@ func GetStockMovements(c *gin.Context) {
 }
 
 type CreateStockMovementInput struct {
-	ProductID uint    `json:"product_id"`
-	Type      string  `json:"type"` // "in" or "out"
-	Quantity  float64 `json:"quantity"`
-	Reason    string  `json:"reason"`
-	Notes     string  `json:"notes"`
+	MerchantID *uuid.UUID `json:"merchant_id"`
+	OutletID   *uuid.UUID `json:"outlet_id"`
+	ProductID  uuid.UUID  `json:"product_id"`
+	Type       string     `json:"type"` // "in" or "out"
+	Quantity   float64    `json:"quantity"`
+	Reason     string     `json:"reason"`
+	Notes      string     `json:"notes"`
 }
 
 func CreateStockMovement(c *gin.Context) {
@@ -36,7 +48,7 @@ func CreateStockMovement(c *gin.Context) {
 		return
 	}
 
-	if input.ProductID == 0 || input.Quantity <= 0 {
+	if input.ProductID == uuid.Nil || input.Quantity <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Produk dan kuantitas harus valid"})
 		return
 	}
@@ -77,13 +89,30 @@ func CreateStockMovement(c *gin.Context) {
 		return
 	}
 
+	// Parsing IDs from input or context
+	merchantID := prod.MerchantID
+	if input.MerchantID != nil {
+		merchantID = *input.MerchantID
+	}
+
+	var outletID uuid.UUID
+	if prod.OutletID != nil {
+		outletID = *prod.OutletID
+	} else if input.OutletID != nil {
+		outletID = *input.OutletID
+	} else if oidRaw, exists := c.Get("outlet_id"); exists {
+		outletID, _ = uuid.Parse(fmt.Sprintf("%v", oidRaw))
+	}
+
 	movement := models.StockMovement{
-		ProductID: input.ProductID,
-		Type:      input.Type,
-		Quantity:  input.Quantity,
-		Unit:      prod.Unit,
-		Reason:    input.Reason,
-		Notes:     input.Notes,
+		MerchantID: merchantID,
+		OutletID:   outletID,
+		ProductID:  input.ProductID,
+		Type:       input.Type,
+		Quantity:   input.Quantity,
+		Unit:       prod.Unit,
+		Reason:     input.Reason,
+		Notes:      input.Notes,
 	}
 
 	if err := tx.Create(&movement).Error; err != nil {

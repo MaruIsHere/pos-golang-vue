@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import api from '@/utils/api';
-import type { Store } from '@/types';
+import type { Outlet } from '@/types';
 
 export const useStoreContextStore = defineStore('storeContext', () => {
-  const stores = ref<Store[]>([]);
-  const activeStoreId = ref<number | null>(
-    localStorage.getItem('active_store_id') ? Number(localStorage.getItem('active_store_id')) : null
+  const stores = ref<Outlet[]>([]);
+  const activeStoreId = ref<string | null>(
+    localStorage.getItem('active_store_id') || null
   );
   const isLoading = ref(false);
 
@@ -30,9 +30,9 @@ export const useStoreContextStore = defineStore('storeContext', () => {
     }
   };
 
-  const setActiveStore = (id: number) => {
+  const setActiveStore = (id: string) => {
     activeStoreId.value = id;
-    localStorage.setItem('active_store_id', String(id));
+    localStorage.setItem('active_store_id', id);
   };
 
   return {

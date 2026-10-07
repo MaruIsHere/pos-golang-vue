@@ -4,7 +4,7 @@
     <!-- Left Area: Catalog & Products -->
     <div class="flex flex-col gap-4 h-full min-h-0 relative">
       
-      <!-- Store POS Context Banner -->
+      <!-- Outlet POS Context Banner -->
       <div v-if="storeContextStore.activeStore" class="flex items-center justify-between px-4 py-2 bg-indigo-50/80 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl shrink-0">
         <div class="flex items-center gap-2">
           <BuildingStorefrontIcon class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
@@ -243,7 +243,7 @@ const isLoading = ref(true);
 const catalogError = ref('');
 
 const searchQuery = ref('');
-const selectedCategoryId = ref<number | null>(null);
+const selectedCategoryId = ref<string | null>(null);
 const selectedArtist = ref<string | null>(null);
 const selectedProductType = ref<string | null>(null);
 
@@ -276,7 +276,7 @@ const resetAllFilters = () => {
   selectedProductType.value = null;
 };
 
-const selectCategory = (categoryId: number | null): void => {
+const selectCategory = (categoryId: string | null): void => {
   selectedCategoryId.value = categoryId;
   resetSubFilters();
 };
@@ -331,7 +331,7 @@ const fetchProducts = async () => {
   try {
     const params: Record<string, any> = { is_master: false };
     if (storeContextStore.activeStoreId) {
-      params.store_id = storeContextStore.activeStoreId;
+      params.outlet_id = storeContextStore.activeStoreId;
     }
     const res = await api.get('/products', { params });
     products.value = res.data;
@@ -359,7 +359,7 @@ const filteredProducts = computed(() => {
   return products.value.filter(p => {
     // Filter out master products from POS (POS only displays store POS products)
     if (p.is_master) return false;
-    if (storeContextStore.activeStoreId && p.store_id && p.store_id !== storeContextStore.activeStoreId) {
+    if (storeContextStore.activeStoreId && p.outlet_id && p.outlet_id !== storeContextStore.activeStoreId) {
       return false;
     }
 
@@ -455,7 +455,7 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { 
     const cashierName = activeUser?.name || activeUser?.Name || activeUser?.username || activeUser?.Username || 'Kasir';
 
     const payload: CreateOrderPayload = {
-      store_id: storeContextStore.activeStoreId || null,
+      outlet_id: storeContextStore.activeStoreId || null,
       customer_name,
       cashier_name: cashierName,
       payment_method,

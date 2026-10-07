@@ -2,9 +2,9 @@ package routes
 
 import (
 	"net/http"
-	"pos-backend/config"
-	"pos-backend/handlers"
-	"pos-backend/middleware"
+	"pos-backend/internal/config"
+	"pos-backend/internal/handlers"
+	"pos-backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )

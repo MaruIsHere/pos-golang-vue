@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 	"strings"
 	"time"
 
@@ -111,12 +111,19 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
 		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(),
-	})
+	}
+	if user.MerchantID != nil {
+		claims["merchant_id"] = user.MerchantID.String()
+	}
+	if user.OutletID != nil {
+		claims["outlet_id"] = user.OutletID.String()
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui sesi"})
@@ -335,12 +342,20 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
 		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 Days Token
-	})
+	}
+	if user.MerchantID != nil {
+		claims["merchant_id"] = user.MerchantID.String()
+	}
+	if user.OutletID != nil {
+		claims["outlet_id"] = user.OutletID.String()
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
@@ -356,6 +371,8 @@ func Login(c *gin.Context) {
 			"name":          user.Name,
 			"profile_photo": user.ProfilePhoto,
 			"role":          user.Role,
+			"merchant_id":   user.MerchantID,
+			"outlet_id":     user.OutletID,
 		},
 	})
 }

@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 	"log"
-	"pos-backend/config"
-	"pos-backend/database"
-	"pos-backend/routes"
+	"pos-backend/internal/config"
+	"pos-backend/internal/database"
+	"pos-backend/internal/routes"
 	"strings"
 
 	"github.com/gin-contrib/cors"

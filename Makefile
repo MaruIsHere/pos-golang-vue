@@ -35,3 +35,7 @@ start:
 
 clean:
 	rm -f $(BIN) $(BACKEND_DIR)/pos-backend-linux $(BACKEND_DIR)/pos-backend-win.exe $(BACKEND_DIR)/pos-backend-mac
+
+# Database Migration
+migrate-fresh:
+	cd backend && go run ./cmd/migrate/main.go

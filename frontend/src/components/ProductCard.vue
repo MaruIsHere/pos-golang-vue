@@ -18,8 +18,8 @@
       <span v-if="product.is_master" class="absolute top-4 left-4 text-[0.68rem] font-extrabold px-3 py-1 rounded-full bg-amber-500 text-white shadow-md z-10">
         Master Pusat
       </span>
-      <span v-else-if="product.store" class="absolute top-4 left-4 text-[0.68rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md z-10">
-        {{ product.store.name }}
+      <span v-else-if="product.outlet" class="absolute top-4 left-4 text-[0.68rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md z-10">
+        {{ product.outlet.name }}
       </span>
 
       <AppBadge 

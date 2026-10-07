@@ -3,9 +3,9 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"pos-backend/config"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/config"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +14,12 @@ import (
 
 func GetSettings(c *gin.Context) {
 	var setting models.StoreSetting
-	if err := database.DB.First(&setting).Error; err != nil {
+	query := database.DB.Model(&models.StoreSetting{})
+	if merchantID, exists := c.Get("merchant_id"); exists {
+		query = query.Where("merchant_id = ?", merchantID)
+	}
+
+	if err := query.First(&setting).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -23,7 +28,12 @@ func GetSettings(c *gin.Context) {
 
 func UpdateSettings(c *gin.Context) {
 	var setting models.StoreSetting
-	if err := database.DB.First(&setting).Error; err != nil {
+	query := database.DB.Model(&models.StoreSetting{})
+	if merchantID, exists := c.Get("merchant_id"); exists {
+		query = query.Where("merchant_id = ?", merchantID)
+	}
+
+	if err := query.First(&setting).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

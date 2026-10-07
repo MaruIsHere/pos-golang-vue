@@ -148,6 +148,8 @@ Alasan cross-compile works: SQLite driver yang dipakai (`glebarez/sqlite` / `mod
 
 ## Database
 
+* **Migrate Fresh (Reset Database):** Gunakan perintah `make migrate-fresh` untuk mereset seluruh database dan menjalankan ulang *AutoMigrate* serta seeding data awal (mirip *php artisan migrate:fresh*). Sangat berguna saat terjadi perubahan besar pada skema database, seperti migrasi ID ke UUID.
+
 * `InitDB(engine, mysqlDsn, sqlitePath)` di `database/database.go:41`.
 * `AutoMigrate`: `Category`, `Product`, `Order`, `OrderItem`, `StoreSetting`, `Voucher`, `Customer`, `StockMovement`.
 * MySQL: database dibuat otomatis (`CREATE DATABASE IF NOT EXISTS`, `database.go:20`).

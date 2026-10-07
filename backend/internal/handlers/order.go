@@ -4,31 +4,35 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // === ORDER / TRANSAKSI HANDLERS ===
 
 type CreateOrderInput struct {
-	StoreID       *uint             `json:"store_id"`
-	CustomerName  string            `json:"customer_name"`
-	CashierName   string            `json:"cashier_name"`
-	PaymentMethod string            `json:"payment_method"`
-	PaidAmount    float64           `json:"paid_amount"`
-	Discount      float64           `json:"discount"`
-	Tax           float64           `json:"tax"`
-	Items         []CreateOrderItem `json:"items"`
+	MerchantID       *uuid.UUID        `json:"merchant_id"`
+	OutletID         *uuid.UUID        `json:"outlet_id"`
+	CustomerName     string            `json:"customer_name"`
+	CashierName      string            `json:"cashier_name"`
+	PaymentMethod    string            `json:"payment_method"`
+	PaymentReference string            `json:"payment_reference"`
+	PlatformFee      float64           `json:"platform_fee"`
+	PaidAmount       float64           `json:"paid_amount"`
+	Discount         float64           `json:"discount"`
+	Tax              float64           `json:"tax"`
+	Items            []CreateOrderItem `json:"items"`
 }
 
 type CreateOrderItem struct {
-	ProductID uint    `json:"product_id"`
-	Quantity  float64 `json:"quantity"`
-	Notes     string  `json:"notes"`
+	ProductID uuid.UUID `json:"product_id"`
+	Quantity  float64   `json:"quantity"`
+	Notes     string    `json:"notes"`
 }
 
 func CreateOrder(c *gin.Context) {
@@ -58,7 +62,7 @@ func CreateOrder(c *gin.Context) {
 		var prod models.Product
 		if err := tx.First(&prod, itemInput.ProductID).Error; err != nil {
 			tx.Rollback()
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Produk ID %d tidak ditemukan", itemInput.ProductID)})
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Produk ID %s tidak ditemukan", itemInput.ProductID)})
 			return
 		}
 		if !isValidStockQuantity(itemInput.Quantity, prod.Unit) {
@@ -131,30 +135,37 @@ func CreateOrder(c *gin.Context) {
 		cashierName = "Kasir"
 	}
 
-	storeID := input.StoreID
-	if storeID == nil {
-		if userID, exists := c.Get("user_id"); exists {
-			var u models.User
-			if err := database.DB.First(&u, fmt.Sprintf("%v", userID)).Error; err == nil && u.StoreID != nil {
-				storeID = u.StoreID
-			}
-		}
+	merchantID := uuid.Nil
+	if input.MerchantID != nil {
+		merchantID = *input.MerchantID
+	} else if mid, exists := c.Get("merchant_id"); exists {
+		merchantID, _ = uuid.Parse(fmt.Sprintf("%v", mid))
+	}
+
+	outletID := uuid.Nil
+	if input.OutletID != nil {
+		outletID = *input.OutletID
+	} else if oid, exists := c.Get("outlet_id"); exists {
+		outletID, _ = uuid.Parse(fmt.Sprintf("%v", oid))
 	}
 
 	order := models.Order{
-		StoreID:       storeID,
-		InvoiceNo:     invoiceNo,
-		TotalAmount:   totalAmount,
-		Discount:      input.Discount,
-		Tax:           input.Tax,
-		GrandTotal:    grandTotal,
-		PaidAmount:    input.PaidAmount,
-		ChangeAmount:  changeAmount,
-		PaymentMethod: input.PaymentMethod,
-		Status:        "completed",
-		CashierName:   cashierName,
-		CustomerName:  custName,
-		OrderItems:    orderItems,
+		MerchantID:       merchantID,
+		OutletID:         outletID,
+		InvoiceNo:        invoiceNo,
+		TotalAmount:      totalAmount,
+		Discount:         input.Discount,
+		Tax:              input.Tax,
+		GrandTotal:       grandTotal,
+		PaidAmount:       input.PaidAmount,
+		ChangeAmount:     changeAmount,
+		PaymentMethod:    input.PaymentMethod,
+		PaymentReference: input.PaymentReference,
+		PlatformFee:      input.PlatformFee,
+		Status:           "completed",
+		CashierName:      cashierName,
+		CustomerName:     custName,
+		OrderItems:       orderItems,
 	}
 
 	if err := tx.Create(&order).Error; err != nil {
@@ -173,8 +184,20 @@ func GetOrders(c *gin.Context) {
 	var orders []models.Order
 	query := database.DB.Preload("OrderItems").Order("created_at desc")
 
-	if storeIDStr := c.Query("store_id"); storeIDStr != "" {
-		query = query.Where("store_id = ?", storeIDStr)
+	// Multi-tenant isolation
+	if merchantID, exists := c.Get("merchant_id"); exists {
+		query = query.Where("merchant_id = ?", merchantID)
+	}
+	if outletID, exists := c.Get("outlet_id"); exists {
+		query = query.Where("outlet_id = ?", outletID)
+	}
+
+	// Optional filtering from query params
+	if qMerchantID := c.Query("merchant_id"); qMerchantID != "" {
+		query = query.Where("merchant_id = ?", qMerchantID)
+	}
+	if qOutletID := c.Query("outlet_id"); qOutletID != "" {
+		query = query.Where("outlet_id = ?", qOutletID)
 	}
 
 	limitStr := c.DefaultQuery("limit", "20")
@@ -232,12 +255,14 @@ func RefundOrder(c *gin.Context) {
 		}
 
 		movement := models.StockMovement{
-			ProductID: item.ProductID,
-			Type:      "in",
-			Quantity:  item.Quantity,
-			Unit:      item.Unit,
-			Reason:    "retur_penjualan",
-			Notes:     fmt.Sprintf("Retur Transaksi Invoice #%s", order.InvoiceNo),
+			MerchantID: order.MerchantID,
+			OutletID:   order.OutletID,
+			ProductID:  item.ProductID,
+			Type:       "in",
+			Quantity:   item.Quantity,
+			Unit:       item.Unit,
+			Reason:     "retur_penjualan",
+			Notes:      fmt.Sprintf("Retur Transaksi Invoice #%s", order.InvoiceNo),
 		}
 		tx.Create(&movement)
 	}

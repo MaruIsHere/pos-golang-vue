@@ -203,11 +203,11 @@ const appliedVoucher = ref<AppliedVoucher | null>(null);
 const voucherError = ref('');
 
 const availableVouchers = ref<Voucher[]>([
-  { code: 'DISKON10', type: 'percent', value: 10, description: 'Diskon 10%' },
-  { code: 'DISKON20', type: 'percent', value: 20, description: 'Diskon 20%' },
-  { code: 'HEMAT10K', type: 'flat', value: 10000, description: 'Potongan Rp 10.000' },
-  { code: 'HEMAT50K', type: 'flat', value: 50000, description: 'Potongan Rp 50.000' },
-  { code: 'POSHEMAT', type: 'percent', value: 15, description: 'Diskon POS 15%' }
+  { code: 'DISKON10', type: 'percent', value: 10, description: 'Diskon 10%' } as unknown as Voucher,
+  { code: 'DISKON20', type: 'percent', value: 20, description: 'Diskon 20%' } as unknown as Voucher,
+  { code: 'HEMAT10K', type: 'flat', value: 10000, description: 'Potongan Rp 10.000' } as unknown as Voucher,
+  { code: 'HEMAT50K', type: 'flat', value: 50000, description: 'Potongan Rp 50.000' } as unknown as Voucher,
+  { code: 'POSHEMAT', type: 'percent', value: 15, description: 'Diskon POS 15%' } as unknown as Voucher
 ]);
 
 const fetchVouchers = async () => {

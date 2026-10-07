@@ -1,7 +1,9 @@
 // Shared API types — mirror of backend/models/models.go (JSON shape).
 
 export interface StoreSetting {
-  id?: number;
+  id?: string;
+  merchant_id?: string;
+  outlet_id?: string | null;
   store_name: string;
   address: string;
   phone: string;
@@ -13,13 +15,23 @@ export interface StoreSetting {
   qris_image_url?: string;
 }
 
-export interface Store {
-  id: number;
+export interface Merchant {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  is_active?: boolean;
+}
+
+export interface Outlet {
+  id: string;
+  merchant_id: string;
   name: string;
   code: string;
   address?: string;
   phone?: string;
   is_active?: boolean;
+  is_warehouse?: boolean;
   total_cashiers?: number;
   total_products?: number;
   created_at?: string;
@@ -27,38 +39,44 @@ export interface Store {
 }
 
 export interface UserProfile {
-  id: number;
+  id: string;
   username: string;
   name: string;
   profile_photo?: string;
   role: string;
-  store_id?: number | null;
-  store?: Store;
+  merchant_id?: string | null;
+  outlet_id?: string | null;
+  outlet?: Outlet;
 }
 
 export interface Category {
-  id: number;
+  id: string;
+  merchant_id?: string;
   name: string;
   icon?: string;
-  parent_id?: number | null;
+  parent_id?: string | null;
   created_at?: string;
 }
 
 export interface Artist {
-  id: number;
+  id: string;
+  merchant_id?: string;
   name: string;
   created_at?: string;
 }
 
 export interface ProductType {
-  id: number;
+  id: string;
+  merchant_id?: string;
   name: string;
   created_at?: string;
 }
 
 export interface Product {
-  id: number;
-  category_id: number;
+  id: string;
+  merchant_id: string;
+  outlet_id?: string | null;
+  category_id: string | null;
   category?: Category;
   name: string;
   artist?: string;
@@ -71,9 +89,8 @@ export interface Product {
   image_url?: string;
   is_active?: boolean;
   is_master?: boolean;
-  master_product_id?: number | null;
-  store_id?: number | null;
-  store?: Store;
+  master_product_id?: string | null;
+  outlet?: Outlet;
   created_at?: string;
   updated_at?: string;
 }
@@ -90,13 +107,14 @@ export interface CartItem {
 }
 
 export interface OrderItemInput {
-  product_id: number;
+  product_id: string;
   quantity: number;
   notes?: string;
 }
 
 export interface CreateOrderPayload {
-  store_id?: number | null;
+  merchant_id?: string | null;
+  outlet_id?: string | null;
   customer_name: string;
   cashier_name?: string;
   payment_method: string;
@@ -107,9 +125,9 @@ export interface CreateOrderPayload {
 }
 
 export interface OrderItem {
-  id: number;
-  order_id: number;
-  product_id: number;
+  id: string;
+  order_id: string;
+  product_id: string;
   product_name: string;
   artist?: string;
   product_type?: string;
@@ -121,7 +139,9 @@ export interface OrderItem {
 }
 
 export interface Order {
-  id: number;
+  id: string;
+  merchant_id: string;
+  outlet_id: string;
   invoice_no: string;
   total_amount: number;
   discount: number;
@@ -138,7 +158,8 @@ export interface Order {
 }
 
 export interface Customer {
-  id: number;
+  id: string;
+  merchant_id: string;
   name: string;
   phone?: string;
   email?: string;
@@ -148,7 +169,8 @@ export interface Customer {
 }
 
 export interface Voucher {
-  id?: number;
+  id?: string;
+  merchant_id: string;
   code: string;
   type: string;
   value: number;
@@ -158,8 +180,10 @@ export interface Voucher {
 }
 
 export interface StockMovement {
-  id: number;
-  product_id: number;
+  id: string;
+  merchant_id: string;
+  outlet_id: string;
+  product_id: string;
   product?: Product;
   type: string;
   quantity: number;
@@ -176,7 +200,7 @@ export interface SubGroupStat {
 }
 
 export interface ProductSalesStat {
-  product_id: number;
+  product_id: string;
   product_name: string;
   artist?: string;
   product_type?: string;

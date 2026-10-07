@@ -282,7 +282,7 @@
                     </td>
                     <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">{{ v.description || '-' }}</td>
                     <td class="p-4 border-b border-slate-100 dark:border-slate-800 text-right">
-                      <AppButton variant="danger" size="icon" class="ml-auto" title="Hapus Voucher" @click="deleteVoucher(v.id ?? 0, v.code)">
+                      <AppButton variant="danger" size="icon" class="ml-auto" title="Hapus Voucher" @click="deleteVoucher(v.id ?? '', v.code)">
                         <TrashIcon class="w-4 h-4" />
                       </AppButton>
                     </td>
@@ -1045,7 +1045,7 @@ const createVoucher = async () => {
   }
 };
 
-const deleteVoucher = async (id: number, code: string): Promise<void> => {
+const deleteVoucher = async (id: string, code: string): Promise<void> => {
   if (!await showAppConfirm(`Apakah Anda yakin ingin menghapus voucher '${code}'?`, {
     title: 'Hapus Voucher?',
     confirmLabel: 'Ya, Hapus',

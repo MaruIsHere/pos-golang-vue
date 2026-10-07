@@ -154,8 +154,8 @@
               <span v-if="prod.is_master" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-amber-500 text-white shadow-md">
                 Master Pusat
               </span>
-              <span v-else-if="prod.store" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md">
-                {{ prod.store.name }}
+              <span v-else-if="prod.outlet" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md">
+                {{ prod.outlet.name }}
               </span>
             </div>
             <div class="flex flex-col px-3 sm:px-4 pt-3 pb-4 flex-1">
@@ -566,7 +566,7 @@ import { useStoreContextStore } from '@/stores/storeContext';
 
 const storeContextStore = useStoreContextStore();
 const catalogMode = ref<'store' | 'master'>('store');
-const masterStoreFilter = ref<number | null>(null);
+const masterStoreFilter = ref<string | null>(null);
 
 const selectedStoreFilter = computed({
   get() {
@@ -575,7 +575,7 @@ const selectedStoreFilter = computed({
     }
     return storeContextStore.activeStoreId;
   },
-  set(val: number | null) {
+  set(val: string | null) {
     if (catalogMode.value === 'master') {
       masterStoreFilter.value = val;
       if (val !== null) {
@@ -591,14 +591,14 @@ const selectedStoreFilter = computed({
 const isImportModalOpen = ref(false);
 const selectedMasterProduct = ref<Product | null>(null);
 const importForm = ref({
-  target_store_id: 1,
+  target_store_id: "",
   stock: 10,
   price: 0,
   cost_price: 0
 });
 
 const isBatchImportModalOpen = ref(false);
-const selectedBatchMasterIDs = ref<number[]>([]);
+const selectedBatchMasterIDs = ref<string[]>([]);
 const isSavingBatch = ref(false);
 
 const masterProductsList = computed(() => products.value.filter(p => p.is_master || !p.master_product_id));
@@ -606,7 +606,7 @@ const masterProductsList = computed(() => products.value.filter(p => p.is_master
 const availableMasterProductsToImport = computed(() => {
   const currentStoreMasterIDs = new Set(
     products.value
-      .filter(p => !p.is_master && p.store_id === storeContextStore.activeStoreId && p.master_product_id)
+      .filter(p => !p.is_master && p.outlet_id === storeContextStore.activeStoreId && p.master_product_id)
       .map(p => p.master_product_id)
   );
   return masterProductsList.value.filter(m => !currentStoreMasterIDs.has(m.id));
@@ -632,7 +632,7 @@ const productTypes = ref<ProductType[]>([]);
 const isLoading = ref(true);
 
 const searchQuery = ref('');
-const selectedCatId = ref<number | null>(null);
+const selectedCatId = ref<string | null>(null);
 const selectedArtist = ref<string>('');
 const selectedProductType = ref<string>('');
 
@@ -642,11 +642,11 @@ const activeCatalogTab = ref<'categories' | 'artists' | 'productTypes'>('categor
 const isSaving = ref(false);
 const isCompressingImage = ref(false);
 const isSavingCategory = ref(false);
-const editingId = ref<number | null>(null);
-const editingCategoryId = ref<number | null>(null);
-const editingArtistId = ref<number | null>(null);
+const editingId = ref<string | null>(null);
+const editingCategoryId = ref<string | null>(null);
+const editingArtistId = ref<string | null>(null);
 const editingArtistName = ref('');
-const editingProductTypeId = ref<number | null>(null);
+const editingProductTypeId = ref<string | null>(null);
 const editingProductTypeName = ref('');
 const productsError = ref('');
 const categoryError = ref('');
@@ -657,7 +657,7 @@ const productImageInput = ref<HTMLInputElement | null>(null);
 
 const form = ref({
   name: '',
-  category_id: '' as string | number,
+  category_id: '' as string,
   artist: '',
   product_type: '',
   price: 0,
@@ -677,11 +677,11 @@ const catalogTabs = [
   { id: 'productTypes' as const, label: 'Tipe Produk' }
 ];
 const rootCategories = computed(() => categories.value.filter(category => !category.parent_id));
-const categoryLabelById = (categoryId: number): string => {
+const categoryLabelById = (categoryId: string | null): string => {
   const category = categories.value.find(item => item.id === categoryId);
   return category?.name ?? 'Umum';
 };
-const matchesCategoryBranch = (productCategoryId: number, selectedCategoryId: number): boolean => {
+const matchesCategoryBranch = (productCategoryId: string | null, selectedCategoryId: string | null): boolean => {
   let category = categories.value.find(item => item.id === productCategoryId);
   while (category) {
     if (category.id === selectedCategoryId) return true;
@@ -781,14 +781,14 @@ const filteredProducts = computed(() => {
     if (catalogMode.value === 'master') {
       if (!p.is_master) return false;
       if (masterStoreFilter.value !== null) {
-        if (p.store_id && p.store_id !== masterStoreFilter.value) {
+        if (p.outlet_id && p.outlet_id !== masterStoreFilter.value) {
           return false;
         }
       }
     } else {
       // 'store' mode
       if (p.is_master) return false;
-      if (storeContextStore.activeStoreId && p.store_id && p.store_id !== storeContextStore.activeStoreId) {
+      if (storeContextStore.activeStoreId && p.outlet_id && p.outlet_id !== storeContextStore.activeStoreId) {
         return false;
       }
     }
@@ -811,7 +811,7 @@ const filteredProducts = computed(() => {
 const openImportModal = (masterProd: Product) => {
   selectedMasterProduct.value = masterProd;
   importForm.value = {
-    target_store_id: storeContextStore.activeStoreId || (storeContextStore.stores[0]?.id ?? 1),
+    target_store_id: storeContextStore.activeStoreId || (storeContextStore.stores[0]?.id ?? ""),
     stock: 10,
     price: masterProd.price,
     cost_price: masterProd.cost_price || 0
@@ -850,7 +850,7 @@ const executeBatchImport = async () => {
   isSavingBatch.value = true;
   try {
     const res = await api.post('/stores/import-batch', {
-      store_id: storeContextStore.activeStoreId,
+      outlet_id: storeContextStore.activeStoreId,
       master_product_ids: selectedBatchMasterIDs.value
     });
     await showAppAlert(res.data.message || 'Berhasil mengimpor data menu ke kasir toko!', 'info');
@@ -905,7 +905,7 @@ const openEditModal = (prod: Product): void => {
   editingId.value = prod.id;
   form.value = {
     name: prod.name,
-    category_id: prod.category_id,
+    category_id: prod.category_id ?? "",
     artist: prod.artist ?? '',
     product_type: prod.product_type ?? '',
     price: prod.price,
@@ -1021,7 +1021,7 @@ const saveProduct = async () => {
     const productPayload: any = { 
       ...form.value,
       is_master: catalogMode.value === 'master',
-      store_id: catalogMode.value === 'master' ? null : (storeContextStore.activeStoreId || null)
+      outlet_id: catalogMode.value === 'master' ? null : (storeContextStore.activeStoreId || null)
     };
     if (selectedProductImage.value) {
       const imageForm = new FormData();
@@ -1086,7 +1086,7 @@ const startCategoryEdit = (category: Category): void => {
   categoryForm.value = { name: category.name };
 };
 
-const updateCategory = async (id: number): Promise<void> => {
+const updateCategory = async (id: string): Promise<void> => {
   categoryError.value = '';
   isSavingCategory.value = true;
   try {
@@ -1136,7 +1136,7 @@ const startArtistEdit = (artist: Artist): void => {
   editingArtistName.value = artist.name;
 };
 
-const updateArtist = async (id: number): Promise<void> => {
+const updateArtist = async (id: string): Promise<void> => {
   categoryError.value = '';
   isSavingCategory.value = true;
   try {
@@ -1185,7 +1185,7 @@ const startProductTypeEdit = (productType: ProductType): void => {
   editingProductTypeName.value = productType.name;
 };
 
-const updateProductType = async (id: number): Promise<void> => {
+const updateProductType = async (id: string): Promise<void> => {
   categoryError.value = '';
   isSavingCategory.value = true;
   try {

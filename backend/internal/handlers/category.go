@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"net/http"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // === CATEGORY HANDLERS ===
@@ -22,7 +23,8 @@ func GetCategories(c *gin.Context) {
 
 func CreateCategory(c *gin.Context) {
 	var input struct {
-		Name string `json:"name" binding:"required"`
+		MerchantID string `json:"merchant_id"` // Required for multi-tenant
+		Name       string `json:"name" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama kategori wajib diisi"})
@@ -33,6 +35,16 @@ func CreateCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Nama kategori wajib diisi (maksimal 100 karakter)"})
 		return
 	}
+	
+	// Default to a placeholder if auth merchant parsing is not implemented yet
+	var mID *uuid.UUID
+	if input.MerchantID != "" {
+		parsed, err := uuid.Parse(input.MerchantID)
+		if err == nil {
+			mID = &parsed
+		}
+	}
+
 	var count int64
 	if err := database.DB.Model(&models.Category{}).Where("LOWER(name) = LOWER(?) AND parent_id IS NULL", input.Name).Count(&count).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa kategori"})
@@ -42,7 +54,7 @@ func CreateCategory(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"error": "Kategori sudah tersedia"})
 		return
 	}
-	category := models.Category{Name: input.Name}
+	category := models.Category{Name: input.Name, MerchantID: mID}
 	if err := database.DB.Create(&category).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan kategori"})
 		return
@@ -65,7 +77,7 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	var category models.Category
-	if err := database.DB.First(&category, c.Param("id")).Error; err != nil {
+	if err := database.DB.First(&category, "id = ?", c.Param("id")).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Kategori tidak ditemukan"})
 		return
 	}
@@ -92,7 +104,7 @@ func UpdateCategory(c *gin.Context) {
 
 func DeleteCategory(c *gin.Context) {
 	var category models.Category
-	if err := database.DB.First(&category, c.Param("id")).Error; err != nil {
+	if err := database.DB.First(&category, "id = ?", c.Param("id")).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Kategori tidak ditemukan"})
 		return
 	}
@@ -101,8 +113,10 @@ func DeleteCategory(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memuat subkategori"})
 		return
 	}
-	categoryIDs := []uint{category.ID}
-	knownIDs := map[uint]struct{}{category.ID: {}}
+	
+	categoryIDs := []uuid.UUID{category.ID}
+	knownIDs := map[uuid.UUID]struct{}{category.ID: {}}
+	
 	for index := 0; index < len(categoryIDs); index++ {
 		parentID := categoryIDs[index]
 		for _, child := range categories {

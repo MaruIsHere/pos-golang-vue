@@ -188,7 +188,7 @@ const isLoading = ref(true);
 const isSaving = ref(false);
 const searchQuery = ref("");
 
-const editingId = ref<number | null>(null);
+const editingId = ref<string | null>(null);
 const custForm = ref({
   name:"",
   phone:"",
@@ -260,7 +260,7 @@ const saveCustomer = async () => {
   }
 };
 
-const deleteCustomer = async (id: number, name: string): Promise<void> => {
+const deleteCustomer = async (id: string, name: string): Promise<void> => {
   if (!await showAppConfirm(`Apakah Anda yakin ingin menghapus pelanggan '${name}'?`, {
     title: 'Hapus Pelanggan?',
     confirmLabel: 'Ya, Hapus',

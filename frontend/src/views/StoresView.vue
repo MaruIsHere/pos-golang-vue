@@ -18,7 +18,7 @@
       </div>
     </AppCard>
 
-    <!-- Store Stats Summary -->
+    <!-- Outlet Stats Summary -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
       <AppCard body-class="flex items-center gap-4">
         <div class="p-3.5 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400">
@@ -51,7 +51,7 @@
       </AppCard>
     </div>
 
-    <!-- Store List Grid -->
+    <!-- Outlet List Grid -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
       <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
       <span class="text-sm font-semibold text-slate-500 mt-3">Memuat data toko...</span>
@@ -100,7 +100,7 @@
           </div>
         </div>
 
-        <!-- Store Metrics Pill Badges -->
+        <!-- Outlet Metrics Pill Badges -->
         <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 mb-5 text-center">
           <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Kasir Terhubung</span>
@@ -112,7 +112,7 @@
           </div>
         </div>
 
-        <!-- Store Actions -->
+        <!-- Outlet Actions -->
         <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/60">
           <button 
             v-if="storeContextStore.activeStoreId !== store.id"
@@ -219,7 +219,7 @@
             >
               <option :value="null" disabled>-- Pilih Pengguna / Kasir --</option>
               <option v-for="user in usersList" :key="user.id" :value="user.id">
-                {{ user.name || user.username }} ({{ user.role.toUpperCase() }}) {{ user.store_id === targetStoreForAssign?.id ? '[Sudah di toko ini]' : '' }}
+                {{ user.name || user.username }} ({{ user.role.toUpperCase() }}) {{ user.outlet_id === targetStoreForAssign?.id ? '[Sudah di toko ini]' : '' }}
               </option>
             </select>
           </div>
@@ -245,7 +245,7 @@ import AppCard from '@/components/ui/AppCard.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
-import type { Store, UserProfile, Product } from '@/types';
+import type { Outlet, UserProfile, Product } from '@/types';
 import { useStoreContextStore } from '@/stores/storeContext';
 import { 
   BuildingStorefrontIcon, 
@@ -262,14 +262,14 @@ import {
 
 const storeContextStore = useStoreContextStore();
 
-const stores = ref<Store[]>([]);
+const stores = ref<Outlet[]>([]);
 const allProducts = ref<Product[]>([]);
 const usersList = ref<UserProfile[]>([]);
 const isLoading = ref(true);
 const isSubmitting = ref(false);
 
 const isModalOpen = ref(false);
-const editingStoreId = ref<number | null>(null);
+const editingStoreId = ref<string | null>(null);
 const formError = ref('');
 const form = ref({
   name: '',
@@ -279,12 +279,12 @@ const form = ref({
 });
 
 const isAssignModalOpen = ref(false);
-const targetStoreForAssign = ref<Store | null>(null);
-const assignForm = ref<{ user_id: number | null }>({
+const targetStoreForAssign = ref<Outlet | null>(null);
+const assignForm = ref<{ user_id: string | null }>({
   user_id: null
 });
 
-const totalCashiers = computed(() => stores.value.reduce((sum, s) => sum + (s.total_cashiers || 0), 0));
+const totalCashiers = computed(() => stores.value.reduce((sum: number, s: Outlet) => sum + (s.total_cashiers || 0), 0));
 const totalProducts = computed(() => {
   if (!allProducts.value.length) return 0;
   const storeProds = allProducts.value.filter(p => !p.is_master);
@@ -330,7 +330,7 @@ const openCreateModal = () => {
   isModalOpen.value = true;
 };
 
-const openEditModal = (store: Store) => {
+const openEditModal = (store: Outlet) => {
   editingStoreId.value = store.id;
   formError.value = '';
   form.value = {
@@ -365,7 +365,7 @@ const saveStore = async () => {
   }
 };
 
-const openAssignUserModal = (store: Store) => {
+const openAssignUserModal = (store: Outlet) => {
   targetStoreForAssign.value = store;
   assignForm.value.user_id = null;
   isAssignModalOpen.value = true;
@@ -378,7 +378,7 @@ const saveAssignUser = async () => {
   try {
     await api.post('/stores/assign-user', {
       user_id: assignForm.value.user_id,
-      store_id: targetStoreForAssign.value.id
+      outlet_id: targetStoreForAssign.value.id
     });
     isAssignModalOpen.value = false;
     await fetchStores();
@@ -389,7 +389,7 @@ const saveAssignUser = async () => {
   }
 };
 
-const selectActiveStore = (id: number) => {
+const selectActiveStore = (id: string) => {
   storeContextStore.setActiveStore(id);
 };
 

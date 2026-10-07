@@ -480,7 +480,7 @@ const formatDate = (str?: string): string => {
 };
 const formatQuantity = (quantity: number): string => new Intl.NumberFormat('id-ID', { maximumFractionDigits: 3 }).format(quantity || 0);
 const unitLabel = (unit?: Product['unit']): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
-const selectedUnit = (productId: string | number): Product['unit'] => products.value.find(product => product.id === Number(productId))?.unit ?? 'pcs';
+const selectedUnit = (productId: string | number): Product['unit'] => products.value.find(product => product.id === String(productId))?.unit ?? 'pcs';
 
 const toggleCalc = (formType: 'in' | 'out') => {
   if (formType === 'in') {
@@ -578,7 +578,7 @@ const fetchProducts = async () => {
   try {
     const params: Record<string, any> = { is_master: false };
     if (storeContextStore.activeStoreId) {
-      params.store_id = storeContextStore.activeStoreId;
+      params.outlet_id = storeContextStore.activeStoreId;
     }
     const res = await api.get('/products', { params });
     products.value = res.data;

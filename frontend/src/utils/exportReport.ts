@@ -8,7 +8,7 @@ const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', {
 const unitLabel = (unit?: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 const appendTableSheet = (
-  workbook: XLSX.WorkBook,
+  workbook: any,
   name: string,
   rows: Record<string, string | number>[],
   headers: string[],
@@ -52,7 +52,7 @@ const appendTableSheet = (
   XLSX.utils.book_append_sheet(workbook, worksheet, name);
 };
 
-const addSalesCharts = async (workbook: XLSX.WorkBook, stats: DashboardStats): Promise<void> => {
+const addSalesCharts = async (workbook: any, stats: DashboardStats): Promise<void> => {
   const [{ Chart, registerables }, ExcelJS] = await Promise.all([
     import('chart.js'),
     import('exceljs')

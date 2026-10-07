@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 	"strings"
 
 	"github.com/gin-gonic/gin"

@@ -1,30 +1,33 @@
 package handlers
 
 import (
+	"fmt"
 	"math"
 	"net/http"
-	"pos-backend/database"
-	"pos-backend/models"
+	"pos-backend/internal/database"
+	"pos-backend/internal/models"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type productInput struct {
-	CategoryID      uint    `json:"category_id"`
-	Name            string  `json:"name"`
-	Artist          string  `json:"artist"`
-	ProductType     string  `json:"product_type"`
-	Price           float64 `json:"price"`
-	CostPrice       float64 `json:"cost_price"`
-	Stock           float64 `json:"stock"`
-	Unit            string  `json:"unit"`
-	Barcode         string  `json:"barcode"`
-	ImageURL        string  `json:"image_url"`
-	IsActive        *bool   `json:"is_active"`
-	IsMaster        *bool   `json:"is_master"`
-	StoreID         *uint   `json:"store_id"`
-	MasterProductID *uint   `json:"master_product_id"`
+	CategoryID      *uuid.UUID `json:"category_id"`
+	MerchantID      *uuid.UUID `json:"merchant_id"`
+	OutletID        *uuid.UUID `json:"outlet_id"`
+	Name            string     `json:"name"`
+	Artist          string     `json:"artist"`
+	ProductType     string     `json:"product_type"`
+	Price           float64    `json:"price"`
+	CostPrice       float64    `json:"cost_price"`
+	Stock           float64    `json:"stock"`
+	Unit            string     `json:"unit"`
+	Barcode         string     `json:"barcode"`
+	ImageURL        string     `json:"image_url"`
+	IsActive        *bool      `json:"is_active"`
+	IsMaster        *bool      `json:"is_master"`
+	MasterProductID *uuid.UUID `json:"master_product_id"`
 }
 
 func validateProductInput(input *productInput) (string, error) {
@@ -38,7 +41,7 @@ func validateProductInput(input *productInput) (string, error) {
 	if input.Name == "" {
 		return "Nama produk wajib diisi", nil
 	}
-	if input.CategoryID == 0 {
+	if input.CategoryID == nil || *input.CategoryID == uuid.Nil {
 		return "Kategori produk wajib dipilih", nil
 	}
 	if input.Price < 0 || input.CostPrice < 0 {
@@ -95,7 +98,7 @@ func isValidStockQuantity(quantity float64, unit string) bool {
 
 func GetProducts(c *gin.Context) {
 	var products []models.Product
-	query := database.DB.Preload("Category").Preload("Store")
+	query := database.DB.Preload("Category").Preload("Outlet")
 
 	catID := c.Query("category_id")
 	if catID != "" {
@@ -117,17 +120,30 @@ func GetProducts(c *gin.Context) {
 	}
 
 	isMaster := c.Query("is_master")
-	storeID := c.Query("store_id")
+	outletID := c.Query("outlet_id")
+	merchantID, _ := c.Get("merchant_id")
+
+	if merchantID != nil {
+		query = query.Where("merchant_id = ?", merchantID)
+	} else if qMerchantID := c.Query("merchant_id"); qMerchantID != "" {
+		query = query.Where("merchant_id = ?", qMerchantID)
+	}
 
 	if isMaster == "true" {
 		query = query.Where("is_master = ? OR master_product_id IS NULL", true)
 	} else if isMaster == "false" {
 		query = query.Where("is_master = ?", false)
-		if storeID != "" {
-			query = query.Where("store_id = ?", storeID)
+		if outletID != "" {
+			query = query.Where("outlet_id = ?", outletID)
+		} else if ctxOutletID, exists := c.Get("outlet_id"); exists {
+			query = query.Where("outlet_id = ?", ctxOutletID)
 		}
-	} else if storeID != "" {
-		query = query.Where("store_id = ? AND is_master = ?", storeID, false)
+	} else {
+		if outletID != "" {
+			query = query.Where("outlet_id = ?", outletID)
+		} else if ctxOutletID, exists := c.Get("outlet_id"); exists {
+			query = query.Where("outlet_id = ?", ctxOutletID)
+		}
 	}
 
 	if err := query.Find(&products).Error; err != nil {
@@ -163,8 +179,28 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": message})
 		return
 	}
+	// Parse SaaS IDs
+	var merchantID uuid.UUID
+	if input.MerchantID != nil {
+		merchantID = *input.MerchantID
+	} else if midRaw, exists := c.Get("merchant_id"); exists {
+		merchantID, _ = uuid.Parse(fmt.Sprintf("%v", midRaw))
+	}
+
+	var outletID *uuid.UUID
+	if input.OutletID != nil {
+		outletID = input.OutletID
+	} else if oidRaw, exists := c.Get("outlet_id"); exists {
+		parsed, err := uuid.Parse(fmt.Sprintf("%v", oidRaw))
+		if err == nil {
+			outletID = &parsed
+		}
+	}
+
 	product := models.Product{
 		CategoryID:      input.CategoryID,
+		MerchantID:      merchantID,
+		OutletID:        outletID,
 		Name:            input.Name,
 		Artist:          input.Artist,
 		ProductType:     input.ProductType,
@@ -174,7 +210,6 @@ func CreateProduct(c *gin.Context) {
 		Unit:            input.Unit,
 		Barcode:         input.Barcode,
 		ImageURL:        input.ImageURL,
-		StoreID:         input.StoreID,
 		MasterProductID: input.MasterProductID,
 	}
 	if input.IsActive != nil {
@@ -187,7 +222,7 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk"})
 		return
 	}
-	if err := database.DB.Preload("Category").Preload("Store").First(&product, product.ID).Error; err != nil {
+	if err := database.DB.Preload("Category").Preload("Outlet").First(&product, product.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
 		return
 	}

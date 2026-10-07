@@ -40,7 +40,7 @@
   <header class="hidden md:flex fixed top-0 left-20 right-0 h-16 items-center justify-between px-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 z-40">
     <!-- Info Toko & Database -->
     <div class="flex items-center gap-3">
-      <!-- Active Store Selector -->
+      <!-- Active Outlet Selector -->
       <div v-if="storeContextStore.stores.length > 0" class="relative">
         <select 
           class="appearance-none pl-8 pr-7 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-300 outline-none cursor-pointer hover:bg-indigo-100 transition-colors"
@@ -172,7 +172,7 @@ const logout = () => {
 const onStoreChange = (e: Event) => {
   const target = e.target as HTMLSelectElement;
   if (target && target.value) {
-    storeContextStore.setActiveStore(Number(target.value));
+    storeContextStore.setActiveStore(target.value);
     window.location.reload();
   }
 };
