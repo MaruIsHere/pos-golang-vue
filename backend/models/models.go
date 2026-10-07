@@ -98,6 +98,7 @@ type Order struct {
 	PaidAmount    float64     `gorm:"type:decimal(12,2);not null" json:"paid_amount"`
 	ChangeAmount  float64     `gorm:"type:decimal(12,2);default:0" json:"change_amount"`
 	PaymentMethod string      `gorm:"size:50;default:'cash'" json:"payment_method"` // cash, qris, debit, credit
+	PaymentProof  string      `gorm:"type:longtext" json:"payment_proof"`
 	Status        string      `gorm:"size:30;default:'completed'" json:"status"`    // completed, refunded, cancelled
 	CashierName   string      `gorm:"size:100;default:'Kasir Utama'" json:"cashier_name"`
 	CustomerName  string      `gorm:"size:100;default:'Umum'" json:"customer_name"`

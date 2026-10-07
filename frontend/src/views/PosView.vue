@@ -450,7 +450,7 @@ const simulateScan = () => {
 const authStore = useAuthStore();
 
 // Checkout API handler
-const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { customer_name: string; payment_method: string; paid_amount: number }): Promise<void> => {
+const handleCheckout = async ({ customer_name, payment_method, paid_amount, payment_proof }: { customer_name: string; payment_method: string; paid_amount: number; payment_proof?: string }): Promise<void> => {
   isSubmittingOrder.value = true;
   try {
     const activeUser = authStore.user;
@@ -461,6 +461,7 @@ const handleCheckout = async ({ customer_name, payment_method, paid_amount }: { 
       customer_name,
       cashier_name: cashierName,
       payment_method,
+      payment_proof: payment_proof || '',
       paid_amount,
       discount: discount.value,
       tax: taxAmount.value,

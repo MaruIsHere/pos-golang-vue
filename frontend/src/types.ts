@@ -100,6 +100,7 @@ export interface CreateOrderPayload {
   customer_name: string;
   cashier_name?: string;
   payment_method: string;
+  payment_proof?: string;
   paid_amount: number;
   discount: number;
   tax: number;
@@ -130,6 +131,7 @@ export interface Order {
   paid_amount: number;
   change_amount: number;
   payment_method: string;
+  payment_proof?: string;
   status: string;
   cashier_name?: string;
   customer_name?: string;

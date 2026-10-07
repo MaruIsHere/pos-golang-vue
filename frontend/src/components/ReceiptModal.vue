@@ -106,6 +106,16 @@
               <span>Kembali:</span>
               <span>Rp {{ formatPrice(order.change_amount) }}</span>
             </div>
+            <div v-if="order.payment_proof" class="flex justify-between text-[11.5px] font-bold text-indigo-700 print:text-black mt-1 pt-1 border-t border-dashed border-slate-300 print:border-slate-400">
+              <span>Bukti Pembayaran:</span>
+              <span>Terlampir (Foto)</span>
+            </div>
+          </div>
+
+          <!-- Proof Preview in Thermal Box (Print Hidden) -->
+          <div v-if="order.payment_proof" class="mt-3 pt-2 border-t border-slate-200 text-center print:hidden">
+            <span class="text-[10px] font-bold uppercase text-slate-500 block mb-1">Foto Bukti Transfer/QRIS:</span>
+            <img :src="order.payment_proof" alt="Foto Bukti Pembayaran" class="w-full max-h-36 object-contain rounded border border-slate-200 mx-auto" />
           </div>
 
           <div class="text-center text-slate-400 print:text-black my-1.5 text-[11px] overflow-hidden whitespace-nowrap">------------------------------------------</div>

@@ -120,7 +120,7 @@ func GetProducts(c *gin.Context) {
 	storeID := c.Query("store_id")
 
 	if isMaster == "true" {
-		query = query.Where("is_master = ? OR master_product_id IS NULL", true)
+		query = query.Where("is_master = ?", true)
 	} else if isMaster == "false" {
 		query = query.Where("is_master = ?", false)
 		if storeID != "" {
@@ -163,6 +163,72 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": message})
 		return
 	}
+
+	isMaster := false
+	if input.IsMaster != nil {
+		isMaster = *input.IsMaster
+	}
+
+	// If creating a store product directly (is_master is false, store_id is provided, master_product_id is nil)
+	if !isMaster && input.StoreID != nil && input.MasterProductID == nil {
+		// 1. Create Master Product first so it appears in Master Product Catalog
+		masterProduct := models.Product{
+			CategoryID:  input.CategoryID,
+			Name:        input.Name,
+			Artist:      input.Artist,
+			ProductType: input.ProductType,
+			Price:       input.Price,
+			CostPrice:   input.CostPrice,
+			Stock:       input.Stock,
+			Unit:        input.Unit,
+			Barcode:     input.Barcode,
+			ImageURL:    input.ImageURL,
+			IsActive:    true,
+			IsMaster:    true,
+			StoreID:     nil,
+		}
+		if input.IsActive != nil {
+			masterProduct.IsActive = *input.IsActive
+		}
+		if err := database.DB.Create(&masterProduct).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk master"})
+			return
+		}
+
+		// 2. Create Store Product linked to the Master Product
+		masterID := masterProduct.ID
+		storeProduct := models.Product{
+			CategoryID:      input.CategoryID,
+			Name:            input.Name,
+			Artist:          input.Artist,
+			ProductType:     input.ProductType,
+			Price:           input.Price,
+			CostPrice:       input.CostPrice,
+			Stock:           input.Stock,
+			Unit:            input.Unit,
+			Barcode:         input.Barcode,
+			ImageURL:        input.ImageURL,
+			IsActive:        true,
+			IsMaster:        false,
+			MasterProductID: &masterID,
+			StoreID:         input.StoreID,
+		}
+		if input.IsActive != nil {
+			storeProduct.IsActive = *input.IsActive
+		}
+		if err := database.DB.Create(&storeProduct).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk kasir toko"})
+			return
+		}
+
+		if err := database.DB.Preload("Category").Preload("Store").First(&storeProduct, storeProduct.ID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
+			return
+		}
+		c.JSON(http.StatusCreated, storeProduct)
+		return
+	}
+
 	product := models.Product{
 		CategoryID:      input.CategoryID,
 		Name:            input.Name,
@@ -176,12 +242,10 @@ func CreateProduct(c *gin.Context) {
 		ImageURL:        input.ImageURL,
 		StoreID:         input.StoreID,
 		MasterProductID: input.MasterProductID,
+		IsMaster:        isMaster,
 	}
 	if input.IsActive != nil {
 		product.IsActive = *input.IsActive
-	}
-	if input.IsMaster != nil {
-		product.IsMaster = *input.IsMaster
 	}
 	if err := database.DB.Create(&product).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk"})
@@ -233,7 +297,32 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui produk"})
 		return
 	}
-	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
+
+	// Synchronize common catalog fields to master product if editing a store product
+	if !product.IsMaster && product.MasterProductID != nil {
+		database.DB.Model(&models.Product{}).Where("id = ?", *product.MasterProductID).Updates(map[string]interface{}{
+			"category_id":  input.CategoryID,
+			"name":         input.Name,
+			"artist":       input.Artist,
+			"product_type": input.ProductType,
+			"barcode":      input.Barcode,
+			"image_url":    input.ImageURL,
+			"unit":         input.Unit,
+		})
+	} else if product.IsMaster {
+		// Synchronize common catalog fields to all store products linked to this master product
+		database.DB.Model(&models.Product{}).Where("master_product_id = ?", product.ID).Updates(map[string]interface{}{
+			"category_id":  input.CategoryID,
+			"name":         input.Name,
+			"artist":       input.Artist,
+			"product_type": input.ProductType,
+			"barcode":      input.Barcode,
+			"image_url":    input.ImageURL,
+			"unit":         input.Unit,
+		})
+	}
+
+	if err := database.DB.Preload("Category").Preload("Store").First(&product, product.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk diperbarui, tetapi gagal memuat kategorinya"})
 		return
 	}
@@ -242,7 +331,18 @@ func UpdateProduct(c *gin.Context) {
 
 func DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
-	if err := database.DB.Delete(&models.Product{}, id).Error; err != nil {
+	var product models.Product
+	if err := database.DB.First(&product, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
+		return
+	}
+
+	if product.IsMaster {
+		// Delete linked store products when master product is deleted
+		database.DB.Where("master_product_id = ?", product.ID).Delete(&models.Product{})
+	}
+
+	if err := database.DB.Delete(&product).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -62,9 +62,20 @@
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">{{ order.customer_name || "Umum" }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
-              <AppBadge variant="neutral">
-                {{ (order.payment_method || "cash").toUpperCase() }}
-              </AppBadge>
+              <div class="flex flex-col gap-1 items-start">
+                <AppBadge variant="neutral">
+                  {{ (order.payment_method || "cash").toUpperCase() }}
+                </AppBadge>
+                <button 
+                  v-if="order.payment_proof" 
+                  @click="viewProof(order)" 
+                  class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 cursor-pointer transition-colors"
+                  title="Lihat Bukti Foto Pembayaran"
+                >
+                  <CameraIcon class="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Bukti Foto</span>
+                </button>
+              </div>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">Rp {{ formatPrice(order.grand_total) }}</td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-800 dark:text-slate-100">
@@ -77,6 +88,10 @@
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-right">
               <div class="flex justify-end gap-2 whitespace-nowrap">
+                <AppButton v-if="order.payment_proof" @click="viewProof(order)" variant="secondary" size="sm" title="Lihat Foto Bukti Bayar">
+                  <CameraIcon class="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Bukti</span>
+                </AppButton>
                 <AppButton @click="openReceipt(order)" variant="secondary" size="sm">
                   <PrinterIcon class="w-3.5 h-3.5" />
                   <span>Struk</span>
@@ -100,6 +115,38 @@
 
     <!-- Receipt Modal -->
     <ReceiptModal v-if="selectedOrder" :order="selectedOrder" @close="selectedOrder = null" />
+
+    <!-- Payment Proof Image Modal Lightbox -->
+    <div v-if="selectedProofOrder" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" @click.self="selectedProofOrder = null">
+      <div class="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <CameraIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <span>Bukti Pembayaran Transaksi</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Invoice: {{ selectedProofOrder.invoice_no }} ({{ (selectedProofOrder.payment_method || '').toUpperCase() }})</p>
+          </div>
+          <button class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" @click="selectedProofOrder = null">
+            <XMarkIcon class="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div class="p-5 flex flex-col items-center gap-4 max-h-[75vh] overflow-y-auto bg-slate-900">
+          <img :src="selectedProofOrder.payment_proof" alt="Foto Bukti Pembayaran" class="max-w-full max-h-[60vh] object-contain rounded-xl shadow-lg border border-slate-700" />
+        </div>
+
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900">
+          <span class="text-xs text-slate-500 font-semibold">Nominal Bayar: <strong class="text-indigo-600 dark:text-indigo-400 font-extrabold text-sm">Rp {{ formatPrice(selectedProofOrder.grand_total) }}</strong></span>
+          <div class="flex gap-2">
+            <a :href="selectedProofOrder.payment_proof" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-sm">
+              <ArrowDownTrayIcon class="w-3.5 h-3.5" /> Buka Foto Asli
+            </a>
+            <AppButton variant="secondary" size="sm" @click="selectedProofOrder = null">Tutup</AppButton>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -111,14 +158,14 @@ import { ref, onMounted } from "vue";
 import api from '@/utils/api';
 import ReceiptModal from "../components/ReceiptModal.vue";
 import type { Order } from "../types";
-import appButton from "../components/ui/AppButton.vue";
-import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon, UserIcon } from "@heroicons/vue/24/outline";
-import AppBadge from"@/components/ui/AppBadge.vue";
+import { ArrowPathIcon, PrinterIcon, ArrowUturnLeftIcon, UserIcon, CameraIcon, XMarkIcon, ArrowDownTrayIcon } from "@heroicons/vue/24/outline";
+import AppBadge from "@/components/ui/AppBadge.vue";
 import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 
 const orders = ref<Order[]>([]);
 const isLoading = ref(true);
 const selectedOrder = ref<Order | null>(null);
+const selectedProofOrder = ref<Order | null>(null);
 
 const formatPrice = (val: number): string => new Intl.NumberFormat("id-ID").format(val || 0);
 
@@ -149,6 +196,10 @@ onMounted(fetchOrders);
 
 const openReceipt = (order: Order): void => {
   selectedOrder.value = order;
+};
+
+const viewProof = (order: Order): void => {
+  selectedProofOrder.value = order;
 };
 
 const refundOrder = async (order: Order): Promise<void> => {

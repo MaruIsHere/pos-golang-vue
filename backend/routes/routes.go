@@ -61,6 +61,7 @@ func RegisterAPIRoutes(router *gin.Engine) {
 
 			// Orders / Transactions
 			protected.POST("/orders", handlers.CreateOrder)
+			protected.POST("/orders/payment-proof", handlers.UploadPaymentProof)
 			protected.GET("/orders", handlers.GetOrders)
 			protected.GET("/orders/:id", handlers.GetOrderById)
 			protected.POST("/orders/:id/refund", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.RefundOrder)

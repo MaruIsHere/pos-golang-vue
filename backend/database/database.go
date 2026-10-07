@@ -211,9 +211,53 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 		db.First(&defaultStore)
 	}
 
-	// Assign default store_id to existing users and ensure products without master_product_id are set as master products
+	// Assign default store_id to existing users
 	db.Model(&models.User{}).Where("store_id IS NULL AND role != ?", "owner").Update("store_id", defaultStore.ID)
-	db.Model(&models.Product{}).Where("master_product_id IS NULL").Update("is_master", true)
+
+	// Migration / Fix: Find store products created without master_product_id or incorrectly marked as is_master
+	var orphanedStoreProducts []models.Product
+	db.Where("store_id IS NOT NULL AND master_product_id IS NULL").Find(&orphanedStoreProducts)
+	for _, sp := range orphanedStoreProducts {
+		var existingMaster models.Product
+		err := db.Where("is_master = ? AND LOWER(name) = LOWER(?) AND category_id = ?", true, sp.Name, sp.CategoryID).First(&existingMaster).Error
+		if err != nil {
+			// Create master product for this store product
+			m := models.Product{
+				CategoryID:  sp.CategoryID,
+				Name:        sp.Name,
+				Artist:      sp.Artist,
+				ProductType: sp.ProductType,
+				Price:       sp.Price,
+				CostPrice:   sp.CostPrice,
+				Stock:       sp.Stock,
+				Unit:        sp.Unit,
+				Barcode:     sp.Barcode,
+				ImageURL:    sp.ImageURL,
+				IsActive:    true,
+				IsMaster:    true,
+				StoreID:     nil,
+			}
+			if err := db.Create(&m).Error; err == nil {
+				mID := m.ID
+				db.Model(&models.Product{}).Where("id = ?", sp.ID).Updates(map[string]interface{}{
+					"is_master":         false,
+					"master_product_id": mID,
+				})
+			}
+		} else {
+			mID := existingMaster.ID
+			db.Model(&models.Product{}).Where("id = ?", sp.ID).Updates(map[string]interface{}{
+				"is_master":         false,
+				"master_product_id": mID,
+			})
+		}
+	}
+
+	// Ensure store products with master_product_id have is_master = false
+	db.Model(&models.Product{}).Where("store_id IS NOT NULL AND master_product_id IS NOT NULL").Update("is_master", false)
+
+	// Ensure products without store_id and master_product_id are marked as is_master = true
+	db.Model(&models.Product{}).Where("store_id IS NULL AND master_product_id IS NULL").Update("is_master", true)
 
 	// Ensure default store (STORE-001) has store POS products copied from master products if empty
 	var defaultStoreProdCount int64
