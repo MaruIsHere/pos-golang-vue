@@ -39,3 +39,6 @@ clean:
 # Database Migration
 migrate-fresh:
 	cd backend && go run ./cmd/migrate/main.go
+
+db-seed:
+	cd backend && go run ./cmd/seed/main.go
