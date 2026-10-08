@@ -98,7 +98,7 @@ func isValidStockQuantity(quantity float64, unit string) bool {
 
 func GetProducts(c *gin.Context) {
 	var products []models.Product
-	query := database.DB.Preload("Category").Preload("Outlet")
+	query := database.DB.Preload("Category")
 
 	catID := c.Query("category_id")
 	if catID != "" {
@@ -256,7 +256,7 @@ func CreateProduct(c *gin.Context) {
 			return
 		}
 
-		if err := database.DB.Preload("Category").Preload("Outlet").First(&storeProduct, storeProduct.ID).Error; err != nil {
+		if err := database.DB.Preload("Category").First(&storeProduct, storeProduct.ID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
 			return
 		}
@@ -287,7 +287,7 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk"})
 		return
 	}
-	if err := database.DB.Preload("Category").Preload("Outlet").First(&product, product.ID).Error; err != nil {
+	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
 		return
 	}
@@ -358,7 +358,7 @@ func UpdateProduct(c *gin.Context) {
 		})
 	}
 
-	if err := database.DB.Preload("Category").Preload("Store").First(&product, product.ID).Error; err != nil {
+	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk diperbarui, tetapi gagal memuat kategorinya"})
 		return
 	}

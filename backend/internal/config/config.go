@@ -54,6 +54,21 @@ func resolveSQLitePath(cfg Config) Config {
 	return cfg
 }
 
+func applyEnvOverrides(cfg *Config) {
+	if v := os.Getenv("POS_PORT"); v != "" {
+		cfg.Port = v
+	}
+	if v := os.Getenv("POS_DB_ENGINE"); v != "" {
+		cfg.DbEngine = v
+	}
+	if v := os.Getenv("POS_SQLITE_PATH"); v != "" {
+		cfg.SqlitePath = v
+	}
+	if v := os.Getenv("POS_MYSQL_DSN"); v != "" {
+		cfg.MysqlDsn = v
+	}
+}
+
 func LoadConfig() Config {
 	activeConfigDir = findConfigDir()
 	localConfigFile := filepath.Join(activeConfigDir, "config.local.json")
@@ -65,6 +80,7 @@ func LoadConfig() Config {
 	data, err := os.ReadFile(configFile)
 	if err != nil {
 		AppConfig = defaultConfig()
+		applyEnvOverrides(&AppConfig)
 		AppConfig = resolveSQLitePath(AppConfig)
 		if saveErr := SaveConfig(AppConfig); saveErr != nil {
 			log.Printf("Could not save local configuration: %v", saveErr)
@@ -77,6 +93,7 @@ func LoadConfig() Config {
 		log.Printf("Could not parse configuration %s: %v", configFile, err)
 		AppConfig = defaultConfig()
 	}
+	applyEnvOverrides(&AppConfig)
 	AppConfig = resolveSQLitePath(AppConfig)
 	if configFile != localConfigFile {
 		if saveErr := SaveConfig(AppConfig); saveErr != nil {

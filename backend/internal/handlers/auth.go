@@ -36,7 +36,7 @@ func GetProfile(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := database.DB.First(&user, fmt.Sprintf("%v", userID)).Error; err != nil {
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
 		return
 	}
@@ -77,7 +77,7 @@ func UpdateProfile(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := database.DB.First(&user, fmt.Sprintf("%v", userID)).Error; err != nil {
+	if err := database.DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
 		return
 	}
@@ -148,7 +148,7 @@ func GetUsers(c *gin.Context) {
 
 func GetUserProfile(c *gin.Context) {
 	var user models.User
-	if err := database.DB.First(&user, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
 		return
 	}
@@ -187,7 +187,7 @@ func UpdateUserProfile(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := database.DB.First(&user, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Pengguna tidak ditemukan"})
 		return
 	}
@@ -298,7 +298,7 @@ func ChangeUserPassword(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := database.DB.First(&user, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User tidak ditemukan"})
 		return
 	}

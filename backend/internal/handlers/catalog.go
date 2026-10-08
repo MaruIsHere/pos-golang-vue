@@ -65,7 +65,7 @@ func UpdateArtist(c *gin.Context) {
 		return
 	}
 	var artist models.Artist
-	if err := database.DB.First(&artist, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&artist).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Artist tidak ditemukan"})
 		return
 	}
@@ -93,7 +93,7 @@ func UpdateArtist(c *gin.Context) {
 
 func DeleteArtist(c *gin.Context) {
 	var artist models.Artist
-	if err := database.DB.First(&artist, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&artist).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Artist tidak ditemukan"})
 		return
 	}
@@ -150,7 +150,7 @@ func UpdateProductType(c *gin.Context) {
 		return
 	}
 	var productType models.ProductType
-	if err := database.DB.First(&productType, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&productType).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Tipe produk tidak ditemukan"})
 		return
 	}
@@ -178,7 +178,7 @@ func UpdateProductType(c *gin.Context) {
 
 func DeleteProductType(c *gin.Context) {
 	var productType models.ProductType
-	if err := database.DB.First(&productType, c.Param("id")).Error; err != nil {
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&productType).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Tipe produk tidak ditemukan"})
 		return
 	}

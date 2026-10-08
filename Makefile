@@ -33,6 +33,15 @@ build-mac:
 start:
 	npm start
 
+dev-backend:
+	node scripts/dev-backend.mjs
+
+dev-backend-windows:
+	node scripts/dev-backend.mjs --target=windows
+
+dev-backend-wsl:
+	node scripts/dev-backend.mjs --target=wsl
+
 clean:
 	rm -f $(BIN) $(BACKEND_DIR)/pos-backend-linux $(BACKEND_DIR)/pos-backend-win.exe $(BACKEND_DIR)/pos-backend-mac
 

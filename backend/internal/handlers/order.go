@@ -177,7 +177,7 @@ func CreateOrder(c *gin.Context) {
 	if cashierName == "" {
 		if userID, exists := c.Get("user_id"); exists {
 			var u models.User
-			if err := database.DB.First(&u, fmt.Sprintf("%v", userID)).Error; err == nil {
+			if err := database.DB.Where("id = ?", userID).First(&u).Error; err == nil {
 				if u.Name != "" {
 					cashierName = u.Name
 				} else if u.Username != "" {
