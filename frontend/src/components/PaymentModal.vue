@@ -265,6 +265,60 @@
           </div>
         </div>
 
+        <!-- UPLOAD BUKTI PEMBAYARAN (KHUSUS QRIS & TRANSFER BANK) -->
+        <div v-if="paymentMethod === 'qris' || paymentMethod === 'transfer'" class="flex flex-col gap-2.5 p-3.5 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-indigo-900 dark:text-indigo-200 uppercase tracking-wider flex items-center gap-1.5">
+              <CameraIcon class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>Foto Bukti Pembayaran (Struk / Screenshot)</span>
+            </label>
+            <span v-if="paymentProofUrl" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+              ✓ Foto Terunggah
+            </span>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-3">
+            <!-- Pratinjau Foto -->
+            <div v-if="paymentProofPreview" class="relative group w-full sm:w-28 h-28 shrink-0 rounded-xl overflow-hidden border-2 border-indigo-500 shadow-sm bg-slate-900">
+              <img :src="paymentProofPreview" alt="Pratinjau Bukti Pembayaran" class="w-full h-full object-cover" />
+              <button 
+                type="button" 
+                class="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-90 hover:opacity-100 transition-opacity shadow-sm cursor-pointer"
+                title="Hapus Bukti Foto"
+                @click="clearPaymentProof"
+              >
+                <XMarkIcon class="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <!-- Upload Input Area -->
+            <div class="flex-1 w-full flex flex-col gap-1.5">
+              <input 
+                ref="proofInputRef" 
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                class="hidden" 
+                @change="onProofFileSelected" 
+              />
+
+              <button 
+                type="button" 
+                class="w-full py-2.5 px-4 border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition-colors shadow-xs cursor-pointer"
+                :disabled="isUploadingProof"
+                @click="triggerProofUpload"
+              >
+                <PhotoIcon class="w-4 h-4 text-indigo-500" />
+                <span>{{ isUploadingProof ? 'Mengunggah Foto...' : (paymentProofPreview ? 'Ganti Foto Bukti Bayar' : 'Upload / Ambil Foto Bukti Pembayaran') }}</span>
+              </button>
+              
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                Pilih atau ambil foto bukti transfer / QRIS (Maksimal 10 MB).
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- 4. DEBIT / EDC CARD SECTION -->
         <div v-else-if="paymentMethod === 'debit'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
           <div class="flex flex-col gap-3 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
@@ -300,10 +354,10 @@
         <AppButton 
           variant="primary" 
           class="flex-1"
-          :disabled="isSubmitting || (paymentMethod === 'cash' && changeAmount < 0)"
+          :disabled="isSubmitting || isUploadingProof || (paymentMethod === 'cash' && changeAmount < 0)"
           @click="submitPayment"
         >
-          <span v-if="isSubmitting">Memproses Transaksi...</span>
+          <span v-if="isSubmitting || isUploadingProof">{{ isUploadingProof ? 'Mengunggah Bukti Foto...' : 'Memproses Transaksi...' }}</span>
           <span v-else class="flex items-center justify-center gap-1.5">
             <PrinterIcon class="w-4 h-4" />
             <span>Selesaikan & Cetak Struk</span>
@@ -331,7 +385,9 @@ import {
   CheckIcon,
   ClipboardDocumentIcon,
   InformationCircleIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  CameraIcon,
+  PhotoIcon
 } from '@heroicons/vue/24/outline';
 import AppButton from './ui/AppButton.vue';
 import AppInput from './ui/AppInput.vue';
@@ -352,6 +408,49 @@ const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').form
 const customerName = ref('Umum');
 const selectedCustomerOption = ref('Umum');
 const customersList = ref<Customer[]>([]);
+
+const paymentProofUrl = ref('');
+const paymentProofPreview = ref('');
+const proofInputRef = ref<HTMLInputElement | null>(null);
+const isUploadingProof = ref(false);
+
+const triggerProofUpload = () => {
+  if (proofInputRef.value) {
+    proofInputRef.value.click();
+  }
+};
+
+const clearPaymentProof = () => {
+  paymentProofUrl.value = '';
+  if (paymentProofPreview.value.startsWith('blob:')) {
+    URL.revokeObjectURL(paymentProofPreview.value);
+  }
+  paymentProofPreview.value = '';
+  if (proofInputRef.value) {
+    proofInputRef.value.value = '';
+  }
+};
+
+const onProofFileSelected = async (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  paymentProofPreview.value = URL.createObjectURL(file);
+  isUploadingProof.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('proof', file);
+    const { data } = await api.post<{ payment_proof: string }>('/orders/payment-proof', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    paymentProofUrl.value = data.payment_proof;
+  } catch (err: any) {
+    console.error('Error uploading payment proof:', err);
+  } finally {
+    isUploadingProof.value = false;
+  }
+};
 
 const fetchCustomers = async () => {
   try {
@@ -474,7 +573,8 @@ const submitPayment = () => {
   emit('submit-order', {
     customer_name: customerName.value,
     payment_method: methodLabel,
-    paid_amount: paymentMethod.value === 'cash' ? paidAmount.value : finalGrandTotal.value
+    paid_amount: paymentMethod.value === 'cash' ? paidAmount.value : finalGrandTotal.value,
+    payment_proof: (paymentMethod.value === 'qris' || paymentMethod.value === 'transfer') ? paymentProofUrl.value : ''
   });
 };
 </script>

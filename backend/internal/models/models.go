@@ -146,6 +146,7 @@ type Order struct {
 	PaidAmount    float64     `gorm:"type:decimal(12,2);not null" json:"paid_amount"`
 	ChangeAmount  float64     `gorm:"type:decimal(12,2);default:0" json:"change_amount"`
 	PaymentMethod    string      `gorm:"size:50;default:'cash'" json:"payment_method"` // cash, qris, debit, credit
+	PaymentProof     string      `gorm:"type:longtext" json:"payment_proof"`
 	PaymentReference string      `gorm:"size:100" json:"payment_reference"`
 	PlatformFee      float64     `gorm:"type:decimal(12,2);default:0" json:"platform_fee"`
 	Status           string      `gorm:"size:30;default:'completed'" json:"status"`    

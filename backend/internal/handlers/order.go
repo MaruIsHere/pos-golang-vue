@@ -1,12 +1,18 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
+	"os"
+	"path/filepath"
 	"pos-backend/internal/database"
 	"pos-backend/internal/models"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,18 +27,67 @@ type CreateOrderInput struct {
 	CustomerName     string            `json:"customer_name"`
 	CashierName      string            `json:"cashier_name"`
 	PaymentMethod    string            `json:"payment_method"`
+	PaymentProof     string            `json:"payment_proof"`
 	PaymentReference string            `json:"payment_reference"`
 	PlatformFee      float64           `json:"platform_fee"`
 	PaidAmount       float64           `json:"paid_amount"`
 	Discount         float64           `json:"discount"`
 	Tax              float64           `json:"tax"`
-	Items            []CreateOrderItem `json:"items"`
+	Items            []CreateOrderItem `json:"items"
 }
 
 type CreateOrderItem struct {
 	ProductID uuid.UUID `json:"product_id"`
 	Quantity  float64   `json:"quantity"`
 	Notes     string    `json:"notes"`
+}
+
+func UploadPaymentProof(c *gin.Context) {
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10*1024*1024)
+	if err := c.Request.ParseMultipartForm(10 * 1024 * 1024); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Ukuran foto bukti pembayaran terlalu besar (maksimal 10 MB)"})
+		return
+	}
+	if c.Request.MultipartForm != nil {
+		defer c.Request.MultipartForm.RemoveAll()
+	}
+
+	file, header, err := c.Request.FormFile("proof")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Pilih file bukti pembayaran terlebih dahulu"})
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Gagal membaca bukti pembayaran"})
+		return
+	}
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
+		ext = ".jpg"
+	}
+
+	var fileID [16]byte
+	if _, err := rand.Read(fileID[:]); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal membuat nama file"})
+		return
+	}
+	const uploadDir = "uploads/proofs"
+	if err := os.MkdirAll(uploadDir, 0750); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyiapkan direktori bukti pembayaran"})
+		return
+	}
+	filename := fmt.Sprintf("proof_%s%s", hex.EncodeToString(fileID[:]), ext)
+	filePath := filepath.Join(uploadDir, filename)
+	if err := os.WriteFile(filePath, data, 0640); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan file bukti pembayaran"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"payment_proof": fmt.Sprintf("/uploads/proofs/%s", filename)})
 }
 
 func CreateOrder(c *gin.Context) {
@@ -160,6 +215,7 @@ func CreateOrder(c *gin.Context) {
 		PaidAmount:       input.PaidAmount,
 		ChangeAmount:     changeAmount,
 		PaymentMethod:    input.PaymentMethod,
+		PaymentProof:     input.PaymentProof,
 		PaymentReference: input.PaymentReference,
 		PlatformFee:      input.PlatformFee,
 		Status:           "completed",
