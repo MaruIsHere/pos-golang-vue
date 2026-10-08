@@ -33,7 +33,7 @@ type CreateOrderInput struct {
 	PaidAmount       float64           `json:"paid_amount"`
 	Discount         float64           `json:"discount"`
 	Tax              float64           `json:"tax"`
-	Items            []CreateOrderItem `json:"items"
+	Items            []CreateOrderItem `json:"items"`
 }
 
 type CreateOrderItem struct {
