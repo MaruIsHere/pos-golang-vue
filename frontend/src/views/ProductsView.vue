@@ -115,9 +115,19 @@
       </div>
 
       <div class="flex-1 lg:overflow-y-auto p-4 sm:p-5 lg:p-6 custom-scrollbar bg-slate-50/50 dark:bg-slate-900/20">
-        <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 bg-white/40 dark:bg-slate-800/40 rounded-[24px]">
-          <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p class="text-sm font-semibold text-slate-500">Memuat katalog...</p>
+        <!-- Loading Skeleton -->
+        <div v-if="isLoading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+          <div v-for="i in 10" :key="i" class="flex flex-col rounded-[24px] bg-white/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 shadow-sm h-[250px] sm:h-[260px] animate-pulse">
+            <div class="relative w-full h-[140px] sm:h-[150px] p-2 shrink-0">
+               <div class="w-full h-full rounded-[18px] bg-slate-200/70 dark:bg-slate-700/70"></div>
+            </div>
+            <div class="flex flex-col px-4 pb-4 pt-2 flex-1">
+               <div class="h-2.5 w-1/3 bg-slate-200/70 dark:bg-slate-700/70 rounded mb-3"></div>
+               <div class="h-3.5 w-3/4 bg-slate-200/70 dark:bg-slate-700/70 rounded mb-2"></div>
+               <div class="h-3.5 w-1/2 bg-slate-200/70 dark:bg-slate-700/70 rounded mb-3"></div>
+               <div class="h-3.5 w-2/3 bg-indigo-100 dark:bg-indigo-900/30 rounded mt-auto"></div>
+            </div>
+          </div>
         </div>
         <div v-else-if="productsError" class="p-6 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-300" role="alert">
           <p class="font-semibold">Katalog gagal dimuat</p>

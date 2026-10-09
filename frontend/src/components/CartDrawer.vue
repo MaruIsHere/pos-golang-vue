@@ -7,8 +7,8 @@
   ></div>
 
   <aside 
-    class="lg:col-span-1 h-full min-h-0 relative z-20 flex flex-col w-full bg-white dark:bg-slate-800 lg:border lg:border-slate-200/60 lg:dark:border-slate-700/60 lg:rounded-[32px] lg:shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:overflow-hidden max-md:fixed max-md:bottom-[5.5rem] max-md:left-4 max-md:right-4 max-md:w-auto max-md:h-[75vh] max-md:z-[90] max-md:shadow-2xl max-md:rounded-[24px] max-md:border max-md:border-slate-200 max-md:dark:border-slate-700 max-md:translate-y-[120%] max-md:transition-transform max-md:duration-300 max-md:ease-out max-md:overflow-hidden" 
-    :class="{ 'max-md:translate-y-0': isOpenMobile }"
+    class="lg:col-span-1 h-full min-h-0 relative z-20 flex flex-col w-full bg-white dark:bg-slate-800 lg:border lg:border-slate-200/60 lg:dark:border-slate-700/60 lg:rounded-[32px] lg:shadow-[0_8px_30px_rgb(0,0,0,0.04)] lg:overflow-hidden max-md:fixed max-md:bottom-[5.5rem] max-md:left-4 max-md:right-4 max-md:w-auto max-md:h-[75vh] max-md:z-[90] max-md:shadow-2xl max-md:rounded-[24px] max-md:border max-md:border-slate-200 max-md:dark:border-slate-700 max-md:transition-transform max-md:duration-300 max-md:ease-out max-md:overflow-hidden" 
+    :class="isOpenMobile ? 'max-md:translate-y-0' : 'max-md:translate-y-[120%]'"
   >
     <!-- Header -->
     <div class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-900 shrink-0 shadow-sm z-10">

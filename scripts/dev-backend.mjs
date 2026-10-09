@@ -49,8 +49,8 @@ function windowsPathToWsl(p) {
 
 function linuxGoBin() {
   if (process.env.GO && existsSync(process.env.GO)) return process.env.GO;
-  if (has("go")) return "go";
-  const candidates = ["/usr/local/go/bin/go", path.join(process.env.HOME || "", ".local/go/bin/go"), path.join(process.env.HOME || "", "go/bin/go")];
+  if (has("go", ["version"])) return "go";
+  const candidates = ["/usr/bin/go", "/usr/local/go/bin/go", path.join(process.env.HOME || "", ".local/go/bin/go"), path.join(process.env.HOME || "", "go/bin/go")];
   for (const p of candidates) {
     if (p && existsSync(p)) return p;
   }

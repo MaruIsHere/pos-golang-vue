@@ -1,19 +1,19 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="$emit('close')">
-    <div class="w-full max-w-lg bg-white dark:bg-slate-800 rounded-xl shadow-xl flex flex-col overflow-hidden">
+  <div class="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm" @click.self="$emit('close')">
+    <div class="w-full max-w-lg max-h-full bg-white dark:bg-slate-800 rounded-xl shadow-xl flex flex-col overflow-hidden">
       <!-- Header -->
-      <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
+      <div class="flex items-center justify-between p-4 sm:p-5 border-b border-slate-200 dark:border-slate-700 shrink-0">
         <div>
           <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Pembayaran Kasir</h3>
           <p class="text-sm text-slate-500 dark:text-slate-400">Pilih metode pembayaran dan selesaikan transaksi</p>
         </div>
-        <button class="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" @click="$emit('close')">
+        <button class="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors shrink-0" @click="$emit('close')">
           <XMarkIcon class="w-5 h-5" />
         </button>
       </div>
 
       <!-- Body -->
-      <div class="p-5 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+      <div class="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0">
         <!-- Total Display -->
         <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
           <div class="flex flex-col gap-1 items-center">
@@ -293,24 +293,23 @@
 
             <!-- Upload Input Area -->
             <div class="flex-1 w-full flex flex-col gap-1.5">
-              <input 
-                ref="proofInputRef" 
-                type="file" 
-                accept="image/*" 
-                capture="environment" 
-                class="hidden" 
-                @change="onProofFileSelected" 
-              />
-
-              <button 
-                type="button" 
+              <label 
+                for="proof-upload-input"
                 class="w-full py-2.5 px-4 border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition-colors shadow-xs cursor-pointer"
-                :disabled="isUploadingProof"
-                @click="triggerProofUpload"
+                :class="{ 'opacity-50 cursor-not-allowed': isUploadingProof }"
               >
+                <input 
+                  id="proof-upload-input"
+                  ref="proofInputRef"
+                  type="file" 
+                  accept="image/*" 
+                  class="sr-only" 
+                  @change="onProofFileSelected" 
+                  :disabled="isUploadingProof"
+                />
                 <PhotoIcon class="w-4 h-4 text-indigo-500" />
                 <span>{{ isUploadingProof ? 'Mengunggah Foto...' : (paymentProofPreview ? 'Ganti Foto Bukti Bayar' : 'Upload / Ambil Foto Bukti Pembayaran') }}</span>
-              </button>
+              </label>
               
               <p class="text-[11px] text-slate-500 dark:text-slate-400">
                 Pilih atau ambil foto bukti transfer / QRIS (Maksimal 10 MB).
@@ -349,11 +348,11 @@
         </div>
       </div>
 
-      <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-white dark:bg-slate-800">
-        <AppButton variant="secondary" @click="$emit('close')">Batal</AppButton>
+      <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-end gap-3 bg-white dark:bg-slate-800 shrink-0">
+        <AppButton variant="secondary" class="w-full sm:w-auto order-2 sm:order-1" @click="$emit('close')">Batal</AppButton>
         <AppButton 
           variant="primary" 
-          class="flex-1"
+          class="w-full sm:flex-1 order-1 sm:order-2"
           :disabled="isSubmitting || isUploadingProof || (paymentMethod === 'cash' && changeAmount < 0)"
           @click="submitPayment"
         >
@@ -441,10 +440,16 @@ const onProofFileSelected = async (e: Event) => {
   try {
     const formData = new FormData();
     formData.append('proof', file);
-    const { data } = await api.post<{ payment_proof: string }>('/orders/payment-proof', formData, {
+    const { data } = await api.post<{ payment_proof: string, detected_amount?: number }>('/orders/payment-proof', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     paymentProofUrl.value = data.payment_proof;
+    
+    // Auto-fill paid amount from OCR detection!
+    if (data.detected_amount && data.detected_amount > 0) {
+      paidAmount.value = data.detected_amount;
+      console.log('OCR detected amount:', data.detected_amount);
+    }
   } catch (err: any) {
     console.error('Error uploading payment proof:', err);
   } finally {

@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:static print:inset-auto print:bg-transparent print:p-0 print:flex-none print:items-start print:justify-start" @click.self="$emit('close')">
+  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 print:static print:inset-auto print:bg-transparent print:p-0 print:flex-none print:items-start print:justify-start" @click.self="$emit('close')">
     <div :class="['w-full rounded-xl shadow-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 flex flex-col max-h-[90vh] print:shadow-none print:bg-transparent print:text-black print:max-h-none print:max-w-full transition-all duration-200', paperSize === '58mm' ? 'max-w-[360px]' : 'max-w-[440px]']">
       <div class="flex items-center justify-between p-3.5 border-b border-slate-200 dark:border-slate-700 print:hidden">
         <div class="flex items-center gap-2">

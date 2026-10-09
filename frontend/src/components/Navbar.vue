@@ -100,20 +100,31 @@
   </header>
 
   <!-- 3. BOTTOM NAVIGATION (BAWAH) - Khusus Mobile/HP -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 w-full flex items-center justify-around bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe pt-1 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50">
+  <!-- 3. BOTTOM NAVIGATION (BAWAH) - Khusus Mobile/HP -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 w-full flex justify-around bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe pt-1 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] z-50">
     <RouterLink
-      v-for="item in navItems"
+      v-for="item in primaryNavItems"
       :key="item.id"
       :to="item.to"
-      class="flex flex-col items-center gap-1 py-2 px-1 relative w-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+      class="flex flex-col items-center justify-center gap-1 py-2 px-2 flex-1 relative text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
       active-class="!text-indigo-600 dark:!text-indigo-400"
     >
-      <component :is="item.iconComp" class="w-6 h-6 shrink-0" />
-      <span class="text-[10px] font-semibold">{{ item.label }}</span>
-      <span v-if="item.id === 'register' && cartCount > 0" class="absolute top-1 right-2 sm:right-6 w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full border border-white dark:border-slate-900 shadow-sm animate-pulse">
+      <component :is="item.iconComp" class="w-6 h-6 shrink-0" :class="{'text-indigo-600 dark:text-indigo-400': $route.path === item.to || ($route.path.startsWith(item.to) && item.to !== '/')}" />
+      <span class="text-[10px] font-bold whitespace-nowrap" :class="{'text-indigo-600 dark:text-indigo-400': $route.path === item.to || ($route.path.startsWith(item.to) && item.to !== '/')}">{{ item.label }}</span>
+      <span v-if="item.id === 'register' && cartCount > 0" class="absolute top-1 right-[calc(50%-1.25rem)] w-4 h-4 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full border border-white dark:border-slate-900 shadow-sm animate-pulse">
         {{ cartCount }}
       </span>
     </RouterLink>
+
+    <!-- Tombol Lainnya -->
+    <button 
+      v-if="secondaryNavItems.length > 0"
+      @click="isMoreMenuOpen = true"
+      class="flex flex-col items-center justify-center gap-1 py-2 px-2 flex-1 relative text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+    >
+      <EllipsisHorizontalIcon class="w-6 h-6 shrink-0" />
+      <span class="text-[10px] font-bold whitespace-nowrap">Lainnya</span>
+    </button>
   </nav>
 
   <!-- Mobile Top Bar Khusus HP (Untuk Jam & DB Status & Theme) -->
@@ -130,7 +141,51 @@
       <button @click="logout" class="text-xs font-bold text-red-600 dark:text-red-400">Logout</button>
     </div>
   </header>
+
+  <!-- Mobile More Menu Drawer -->
+  <Teleport to="body">
+  <Transition
+    enter-active-class="transition duration-300 ease-out"
+    enter-from-class="opacity-0 translate-y-full"
+    enter-to-class="opacity-100 translate-y-0"
+    leave-active-class="transition duration-200 ease-in"
+    leave-from-class="opacity-100 translate-y-0"
+    leave-to-class="opacity-0 translate-y-full"
+  >
+    <div v-if="isMoreMenuOpen" class="md:hidden fixed inset-0 z-[200] flex flex-col justify-end">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="isMoreMenuOpen = false"></div>
+      
+      <!-- Drawer Content -->
+      <div class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-slate-800 pb-safe">
+        <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+          <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Menu Lainnya</h3>
+          <button @click="isMoreMenuOpen = false" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+            <XMarkIcon class="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div class="grid grid-cols-4 gap-4 p-6">
+          <RouterLink
+            v-for="item in secondaryNavItems"
+            :key="item.id"
+            :to="item.to"
+            @click="isMoreMenuOpen = false"
+            class="flex flex-col items-center justify-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
+            active-class="!text-indigo-600 dark:!text-indigo-400"
+          >
+            <div class="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700 shadow-sm" :class="{'!bg-indigo-50 dark:!bg-indigo-900/30 !border-indigo-100 dark:!border-indigo-800/50': $route.path.startsWith(item.to) && item.to !== '/'}">
+              <component :is="item.iconComp" class="w-6 h-6 shrink-0" />
+            </div>
+            <span class="text-[10px] font-bold text-center leading-tight">{{ item.label }}</span>
+          </RouterLink>
+        </div>
+      </div>
+    </div>
+  </Transition>
+  </Teleport>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
@@ -152,7 +207,9 @@ import {
   ClockIcon,
   SunIcon,
   MoonIcon,
-  UserIcon
+  UserIcon,
+  EllipsisHorizontalIcon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline';
 
 defineProps({
@@ -197,6 +254,19 @@ const allNavItems = [
   { id: 'reports', to: '/reports', label: 'Laporan', iconComp: ChartBarIcon, roles: ['kepala_kasir', 'owner', 'admin'] },
   { id: 'settings', to: '/settings', label: 'Pengaturan', iconComp: Cog6ToothIcon, roles: ['owner', 'admin'] }
 ];
+
+
+const isMoreMenuOpen = ref(false);
+
+const primaryNavItems = computed(() => {
+  if (navItems.value.length <= 4) return navItems.value;
+  return navItems.value.slice(0, 3);
+});
+
+const secondaryNavItems = computed(() => {
+  if (navItems.value.length <= 4) return [];
+  return navItems.value.slice(3);
+});
 
 const navItems = computed(() => {
   const currentRole = authStore.userRole || 'kasir';

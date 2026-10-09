@@ -8,9 +8,12 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"pos-backend/internal/database"
 	"pos-backend/internal/models"
+	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -87,7 +90,63 @@ func UploadPaymentProof(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"payment_proof": fmt.Sprintf("/uploads/proofs/%s", filename)})
+	// Mendeteksi OS untuk memilih file binary OCR yang tepat
+	binaryName := "ocrs"
+	if runtime.GOOS == "windows" {
+		binaryName = "ocrs.exe"
+	}
+	
+	// Coba cari di folder bin/ pada root project (jika run dari root atau backend/)
+	ocrsPath := filepath.Join("..", "bin", binaryName)
+	if _, err := os.Stat(ocrsPath); os.IsNotExist(err) {
+		ocrsPath = filepath.Join(".", "bin", binaryName)
+		if _, err := os.Stat(ocrsPath); os.IsNotExist(err) {
+			// Fallback ke ~/.cargo/bin/ocrs untuk development lokal
+			homeDir, _ := os.UserHomeDir()
+			ocrsPath = filepath.Join(homeDir, ".cargo", "bin", "ocrs")
+		}
+	}
+
+	var detectedText string
+	var detectedAmount float64
+
+	cmd := exec.Command(ocrsPath, filePath)
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		detectedText = string(out)
+
+		// Regex sederhana untuk mencari nominal uang
+		// Contoh: Rp 50.000 atau Rp50.000 atau sekadar 50000
+		// Ini adalah implementasi awal yang bisa disempurnakan nanti
+		re := regexp.MustCompile(`(?i)(?:rp|idr)\s*\.?\s*([0-9.,]+)`)
+		matches := re.FindAllStringSubmatch(detectedText, -1)
+
+		var maxAmount float64
+		for _, match := range matches {
+			if len(match) > 1 {
+				// Bersihkan titik dan koma
+				numStr := strings.ReplaceAll(match[1], ".", "")
+				numStr = strings.ReplaceAll(numStr, ",", "")
+
+				if val, err := strconv.ParseFloat(numStr, 64); err == nil {
+					// Cari nilai terbesar (biasanya total pembayaran)
+					if val > maxAmount {
+						maxAmount = val
+					}
+				}
+			}
+		}
+		detectedAmount = maxAmount
+	} else {
+		// Log error jika OCR gagal, tapi jangan gagalkan upload
+		fmt.Printf("OCR Error: %v, Output: %s\n", err, string(out))
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"payment_proof":   fmt.Sprintf("/uploads/proofs/%s", filename),
+		"detected_amount": detectedAmount,
+		"ocr_raw_text":    detectedText, // Bisa dihapus nanti kalau sudah tidak butuh debugging
+	})
 }
 
 func CreateOrder(c *gin.Context) {

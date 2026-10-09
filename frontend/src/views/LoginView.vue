@@ -15,6 +15,7 @@ const username = ref('')
 const password = ref('')
 const error = ref('')
 const isLoading = ref(false)
+const isLoginSuccess = ref(false)
 let errorTimeout: ReturnType<typeof setTimeout> | undefined
 
 const dismissError = () => {
@@ -35,6 +36,7 @@ const handleLogin = async () => {
     })
 
     const data = res.data
+    isLoginSuccess.value = true
     authStore.setAuth(data.token, data.user)
 
     const userRole = String(data.user?.role || '').toLowerCase()
@@ -44,6 +46,7 @@ const handleLogin = async () => {
       router.push('/')
     }
   } catch (err: any) {
+    isLoginSuccess.value = false
     error.value = err.response?.data?.error || err.message || 'Gagal login'
     errorTimeout = setTimeout(dismissError, 5000)
   } finally {
@@ -53,31 +56,42 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen w-full flex bg-slate-50 dark:bg-slate-950 font-sans">
-    <div class="hidden lg:flex lg:w-1/2 relative bg-indigo-900 overflow-hidden items-center justify-center">
-      <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-indigo-900 opacity-90 z-10"></div>
-      <img
-        src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1000&auto=format&fit=crop"
-        class="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
-      />
-
-      <div class="relative z-20 flex flex-col p-12 text-white max-w-lg">
-        <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-white/30 shadow-xl">
-          <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
-          Sistem POS<br />Kasir Modern
-        </h1>
-        <p class="text-indigo-100 text-lg md:text-xl font-medium">
-          Kelola penjualan, pantau stok, dan pantau laporan bisnis Anda dengan cepat dan elegan.
-        </p>
-      </div>
+  <div class="min-h-screen w-full flex bg-slate-50 dark:bg-slate-950 font-sans relative">
+    <!-- Success Loading Overlay -->
+    <div v-if="isLoginSuccess" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+      <p class="text-slate-600 dark:text-slate-400 font-medium animate-pulse">Memuat workspace...</p>
     </div>
 
-    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
-      <div class="w-full max-w-md flex flex-col bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-[32px] shadow-2xl border border-slate-100 dark:border-slate-800">
+    <!-- Split Screen Login -->
+    <div v-else class="w-full flex">
+      <!-- Left side (hidden on mobile) -->
+      <div class="hidden lg:flex lg:w-1/2 relative bg-indigo-900 overflow-hidden items-center justify-center">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-indigo-900 opacity-90 z-10"></div>
+        <img
+          src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1000&auto=format&fit=crop"
+          class="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+        />
+
+        <div class="relative z-20 flex flex-col p-12 text-white max-w-lg">
+          <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8 border border-white/30 shadow-xl">
+            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-4 leading-tight">
+            Sistem POS<br />Kasir Modern
+          </h1>
+          <p class="text-indigo-100 text-lg md:text-xl font-medium">
+            Kelola penjualan, pantau stok, dan pantau laporan bisnis Anda dengan cepat dan elegan.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right side (Login Form) -->
+      <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+        <div class="w-full max-w-md flex flex-col bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-[32px] shadow-2xl border border-slate-100 dark:border-slate-800">
+
         <Transition
           enter-active-class="transition duration-200 ease-out"
           enter-from-class="opacity-0 -translate-y-2"
@@ -163,6 +177,7 @@ const handleLogin = async () => {
             Masuk ke Sistem
           </AppButton>
         </form>
+      </div>
       </div>
     </div>
   </div>

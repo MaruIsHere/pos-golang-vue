@@ -53,7 +53,11 @@ export default defineConfig({
   ],
   server: {
     host: true,
+    allowedHosts: true,
     port: 3000,
+    hmr: {
+      clientPort: 3000,
+    },
     proxy: {
       "/api": {
         target: process.env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8080",
