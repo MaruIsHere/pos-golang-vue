@@ -7,9 +7,45 @@
       </div>
     </div>
 
+    <!-- Tab Navigation -->
+    <div class="flex gap-2 overflow-x-auto shrink-0 pb-2 custom-scrollbar">
+      <AppButton variant="secondary" 
+        class="whitespace-nowrap" 
+        :class="{ active: activeTab === 'store' }"
+        @click="activeTab = 'store'"
+      >
+        <BuildingStorefrontIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Profil Toko & Akun</span>
+      </AppButton>
+      <AppButton variant="secondary" 
+        class="whitespace-nowrap" 
+        :class="{ active: activeTab === 'voucher' }"
+        @click="activeTab = 'voucher'"
+      >
+        <TicketIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Promo & Voucher</span>
+      </AppButton>
+      <AppButton variant="secondary" 
+        class="whitespace-nowrap" 
+        :class="{ active: activeTab === 'team' }"
+        @click="activeTab = 'team'"
+      >
+        <UserGroupIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Manajemen Tim</span>
+      </AppButton>
+      <AppButton variant="secondary" 
+        class="whitespace-nowrap" 
+        :class="{ active: activeTab === 'system' }"
+        @click="activeTab = 'system'"
+      >
+        <CircleStackIcon class="w-4 h-4 inline-block mr-1.5" />
+        <span>Sistem & Database</span>
+      </AppButton>
+    </div>
+
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <!-- 0. Theme Selection Card -->
-      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
+      <div v-if="activeTab === 'system'" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <SunIcon class="w-5 h-5 text-amber-500" />
@@ -52,7 +88,7 @@
         </div>
       </div>
 
-      <div v-if="canEditProfile" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
+      <div v-if="activeTab === 'store' && canEditProfile" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
         <div class="border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">Profil Akun</h3>
         </div>
@@ -102,7 +138,7 @@
       </div>
 
       <!-- 1. Store Profile & QRIS Settings -->
-      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
+      <div v-if="activeTab === 'store'" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <BuildingStorefrontIcon class="w-5 h-5 text-indigo-600" />
@@ -183,7 +219,7 @@
       </div>
 
       <!-- 2. Manage Voucher Codes -->
-      <div class="flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
+      <div v-if="activeTab === 'voucher'" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <TicketIcon class="w-5 h-5 text-indigo-600" />
@@ -295,7 +331,7 @@
       </div>
 
       <!-- 3. User Management & Registration (Owner & Admin Only) -->
-      <div class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
+      <div v-if="activeTab === 'team'" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-[24px] shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <UserGroupIcon class="w-5 h-5 text-indigo-600" />
@@ -541,7 +577,7 @@
       </div>
 
       <!-- 4. Database Engine Switcher Panel -->
-      <div class="flex flex-col p-6 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 rounded-[24px] shadow-sm mt-6">
+      <div v-if="activeTab === 'system'" class="col-span-1 xl:col-span-2 flex flex-col p-6 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800 rounded-[24px] shadow-sm mt-6">
         <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <h3 class="flex items-center gap-2 text-lg font-bold text-slate-800 dark:text-slate-100">
             <CircleStackIcon class="w-5 h-5 text-indigo-600" />
@@ -643,6 +679,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const emit = defineEmits(['refresh-settings']);
+const activeTab = ref('store');
 
 const { isDarkMode, setDark } = useTheme();
 const authStore = useAuthStore();

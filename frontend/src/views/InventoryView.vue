@@ -8,9 +8,9 @@
     </div>
 
     <!-- Sub Navigation Tabs -->
-    <div class="flex gap-2 overflow-x-auto shrink-0">
+    <div class="flex gap-2 overflow-x-auto shrink-0 pb-2 custom-scrollbar">
       <AppButton variant="secondary" 
-        class="" 
+        class="whitespace-nowrap" 
         :class="{ active: activeTab === 'receive' }"
         @click="activeTab = 'receive'"
       >
@@ -19,7 +19,7 @@
       </AppButton>
 
       <AppButton variant="secondary" 
-        class="" 
+        class="whitespace-nowrap" 
         :class="{ active: activeTab === 'issue' }"
         @click="activeTab = 'issue'"
       >
@@ -28,7 +28,7 @@
       </AppButton>
 
       <AppButton variant="secondary" 
-        class="" 
+        class="whitespace-nowrap" 
         :class="{ active: activeTab === 'history' }"
         @click="activeTab = 'history'"
       >

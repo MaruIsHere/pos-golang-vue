@@ -93,21 +93,21 @@
             {{ catalogMode === 'store' ? 'Produk yang tersedia untuk dijual di kasir toko ini.' : 'Produk master pusat yang bisa diimpor ke kasir tiap toko.' }}
           </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <AppButton 
             v-if="catalogMode === 'store'" 
             variant="secondary" 
-            class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl font-bold border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/30 hover:bg-indigo-100" 
+            class="w-full sm:w-auto min-h-11 flex items-center justify-center gap-2 rounded-xl font-bold border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/30 hover:bg-indigo-100" 
             @click="openBatchImportModal"
           >
             <ArrowDownTrayIcon class="w-4 h-4" />
             <span>Ambil Data Menu</span>
           </AppButton>
-          <AppButton variant="secondary" class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-700 dark:text-slate-200" @click="openCategoryModal">
+          <AppButton variant="secondary" class="w-full sm:w-auto min-h-11 flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-700 dark:text-slate-200" @click="openCategoryModal">
             <PlusIcon class="w-4 h-4" />
             <span>Master Data</span>
           </AppButton>
-          <AppButton variant="primary" class="min-h-11 flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-xl font-bold shadow-indigo-600/20 shadow-lg active:scale-95" @click="openAddModal">
+          <AppButton variant="primary" class="w-full sm:w-auto min-h-11 flex items-center justify-center gap-2 rounded-xl font-bold shadow-indigo-600/20 shadow-lg active:scale-95" @click="openAddModal">
             <PlusIcon class="w-4 h-4 text-indigo-50" />
             <span>{{ catalogMode === 'master' ? 'Produk Utama Baru' : 'Produk Kasir Baru' }}</span>
           </AppButton>

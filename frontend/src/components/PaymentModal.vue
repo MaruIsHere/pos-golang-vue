@@ -13,7 +13,7 @@
       </div>
 
       <!-- Body -->
-      <div class="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0">
+      <div id="payment-scroll-container" class="p-4 sm:p-5 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 scroll-smooth">
         <!-- Total Display -->
         <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center">
           <div class="flex flex-col gap-1 items-center">
@@ -86,7 +86,7 @@
         </div>
 
         <!-- 1. CASH SECTION -->
-        <div v-if="paymentMethod === 'cash'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+        <div id="payment-section-cash" v-if="paymentMethod === 'cash'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Nominal Uang Diterima</label>
             <div class="relative flex items-center">
@@ -127,7 +127,7 @@
         </div>
 
         <!-- 2. QRIS SECTION -->
-        <div v-else-if="paymentMethod === 'qris'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col items-center gap-3 text-center">
+        <div id="payment-section-qris" v-else-if="paymentMethod === 'qris'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col items-center gap-3 text-center">
           <div class="w-full flex justify-between items-center">
             <div class="flex flex-col items-start">
               <span class="text-xl font-black text-red-600 tracking-wide">QRIS</span>
@@ -215,7 +215,7 @@
         </div>
 
         <!-- 3. TRANSFER BANK SECTION -->
-        <div v-else-if="paymentMethod === 'transfer'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-4">
+        <div id="payment-section-transfer" v-else-if="paymentMethod === 'transfer'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-4">
           <!-- Select Bank -->
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Pilih Bank Tujuan</label>
@@ -293,33 +293,33 @@
 
             <!-- Upload Input Area -->
             <div class="flex-1 w-full flex flex-col gap-1.5">
-              <label 
-                for="proof-upload-input"
-                class="w-full py-2.5 px-4 border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition-colors shadow-xs cursor-pointer"
-                :class="{ 'opacity-50 cursor-not-allowed': isUploadingProof }"
-              >
-                <input 
+              <input 
                   id="proof-upload-input"
                   ref="proofInputRef"
                   type="file" 
                   accept="image/*" 
-                  class="sr-only" 
+                  class="hidden" 
                   @change="onProofFileSelected" 
                   :disabled="isUploadingProof"
                 />
+              <button 
+                type="button"
+                @click="triggerProofUpload"
+                class="w-full py-2.5 px-4 border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition-colors shadow-xs cursor-pointer"
+                :class="{ 'opacity-50 cursor-not-allowed': isUploadingProof }"
+                :disabled="isUploadingProof"
+              >
                 <PhotoIcon class="w-4 h-4 text-indigo-500" />
                 <span>{{ isUploadingProof ? 'Mengunggah Foto...' : (paymentProofPreview ? 'Ganti Foto Bukti Bayar' : 'Upload / Ambil Foto Bukti Pembayaran') }}</span>
-              </label>
+              </button>
               
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                Pilih atau ambil foto bukti transfer / QRIS (Maksimal 10 MB).
-              </p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400" v-html="smartUploadLabel"></p>
             </div>
           </div>
         </div>
 
         <!-- 4. DEBIT / EDC CARD SECTION -->
-        <div v-else-if="paymentMethod === 'debit'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
+        <div id="payment-section-debit" v-else-if="paymentMethod === 'debit'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
           <div class="flex flex-col gap-3 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
             <div class="flex justify-between items-center">
               <span class="text-sm font-bold text-slate-900 dark:text-slate-100">MESIN EDC KARTU</span>
@@ -368,7 +368,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import api from '@/utils/api';
 import { storeToRefs } from 'pinia';
 import { useSettingsStore } from '../stores/settings';
@@ -430,11 +430,7 @@ const clearPaymentProof = () => {
   }
 };
 
-const onProofFileSelected = async (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
-
+const processProofFile = async (file: File) => {
   paymentProofPreview.value = URL.createObjectURL(file);
   isUploadingProof.value = true;
   try {
@@ -456,6 +452,33 @@ const onProofFileSelected = async (e: Event) => {
     isUploadingProof.value = false;
   }
 };
+
+const onProofFileSelected = async (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  await processProofFile(file);
+};
+
+// Clipboard Paste Support for Desktop/PC
+const handlePaste = (e: ClipboardEvent) => {
+  if (paymentMethod.value !== 'qris' && paymentMethod.value !== 'transfer') return;
+  
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      e.preventDefault();
+      const blob = items[i].getAsFile();
+      if (blob) {
+        processProofFile(blob);
+      }
+      break;
+    }
+  }
+};
+
 
 const fetchCustomers = async () => {
   try {
@@ -480,9 +503,27 @@ const fetchLatestSettings = async () => {
   }
 };
 
+const smartUploadLabel = computed(() => {
+  const ua = navigator.userAgent.toLowerCase();
+  const isMobile = /android|webos|iphone|ipad|ipod|blackberry|windows phone/.test(ua);
+  
+  if (isMobile) {
+    return 'Ambil foto struk dari kamera atau pilih gambar dari galeri HP (Maksimal 10 MB).';
+  } else if (/macintosh|mac os x/.test(ua)) {
+    return 'Pilih file atau tekan <strong class="text-indigo-600 dark:text-indigo-400">Cmd+V</strong> untuk langsung <em>Paste</em> gambar (Maks. 10 MB).';
+  } else {
+    return 'Pilih file atau tekan <strong class="text-indigo-600 dark:text-indigo-400">Ctrl+V</strong> untuk langsung <em>Paste</em> gambar (Maks. 10 MB).';
+  }
+});
+
 onMounted(() => {
   fetchCustomers();
   fetchLatestSettings();
+  window.addEventListener('paste', handlePaste);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('paste', handlePaste);
 });
 
 const effectiveQrisUrl = computed(() => {
@@ -548,10 +589,23 @@ const copyAccount = (accountNumber: string): void => {
   }
 };
 
-const selectMethod = (method: string): void => {
+const selectMethod = async (method: string): Promise<void> => {
   paymentMethod.value = method;
   if (method !== 'cash') {
     paidAmount.value = finalGrandTotal.value;
+  }
+  
+  await nextTick();
+  
+  // Auto-scroll logic to improve mobile UX
+  const el = document.getElementById(`payment-section-${method}`);
+  const container = document.getElementById('payment-scroll-container');
+  if (el && container) {
+    // Scroll the container so the selected section is near the top
+    container.scrollTo({
+      top: el.offsetTop - 16,
+      behavior: 'smooth'
+    });
   }
 };
 
