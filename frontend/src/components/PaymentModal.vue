@@ -61,6 +61,16 @@
           </p>
         </div>
 
+        <!-- Table Number -->
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Nomor Meja (Opsional)</label>
+          <AppInput 
+            type="text" 
+            v-model="tableNumber" 
+            placeholder="Contoh: Meja 5, A1, VIP" 
+          />
+        </div>
+
         <!-- Payment Method Grid -->
         <div class="flex flex-col gap-2">
           <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Metode Pembayaran</label>
@@ -318,34 +328,6 @@
           </div>
         </div>
 
-        <!-- 4. DEBIT / EDC CARD SECTION -->
-        <div id="payment-section-debit" v-else-if="paymentMethod === 'debit'" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 flex flex-col gap-3">
-          <div class="flex flex-col gap-3 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-bold text-slate-900 dark:text-slate-100">MESIN EDC KARTU</span>
-              <div class="flex gap-1.5">
-                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-blue-800 text-white">VISA</span>
-                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-red-600 text-white">MC</span>
-                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-sky-700 text-white">GPN</span>
-              </div>
-            </div>
-
-            <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-center">
-              <span class="text-xs text-slate-500 font-semibold">TOTAL CHARGE</span>
-              <h3 class="text-2xl font-extrabold text-blue-600 dark:text-blue-400">Rp {{ formatPrice(grandTotal) }}</h3>
-              <span class="text-xs font-bold text-blue-500 dark:text-blue-400">INSERT / SWIPE KARTU DEBIT</span>
-            </div>
-
-            <div class="flex flex-col gap-2 mt-2">
-              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">No. Approval / Ref EDC (Opsional)</label>
-              <AppInput 
-                type="text" 
-                v-model="approvalCode" 
-                placeholder="cth: REF-981240" 
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="p-4 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-end gap-3 bg-white dark:bg-slate-800 shrink-0">
@@ -406,6 +388,7 @@ const formatPrice = (val: number): string => new Intl.NumberFormat('id-ID').form
 
 const customerName = ref('Umum');
 const selectedCustomerOption = ref('Umum');
+const tableNumber = ref('');
 const customersList = ref<Customer[]>([]);
 
 const paymentProofUrl = ref('');
@@ -565,8 +548,7 @@ const approvalCode = ref('');
 const paymentMethods = [
   { id: 'cash', name: 'Tunai', iconComp: BanknotesIcon, desc: 'Uang Tunai' },
   { id: 'qris', name: 'QRIS', iconComp: QrCodeIcon, desc: 'Scan QR All Pay' },
-  { id: 'transfer', name: 'Transfer Bank', iconComp: BuildingLibraryIcon, desc: 'BCA/Mandiri/BRI' },
-  { id: 'debit', name: 'Kartu Debit', iconComp: CreditCardIcon, desc: 'Mesin EDC' }
+  { id: 'transfer', name: 'Transfer Bank', iconComp: BuildingLibraryIcon, desc: 'BCA/Mandiri/BRI' }
 ];
 
 const quickCashAmounts = [10000, 20000, 50000, 100000, 200000];
@@ -625,12 +607,11 @@ const submitPayment = () => {
   let methodLabel = paymentMethod.value;
   if (paymentMethod.value === 'transfer') {
     methodLabel = `transfer (${selectedBank.value})`;
-  } else if (paymentMethod.value === 'debit') {
-    methodLabel = `debit (${approvalCode.value ? approvalCode.value : 'EDC'})`;
   }
 
   emit('submit-order', {
     customer_name: customerName.value,
+    table_number: tableNumber.value,
     payment_method: methodLabel,
     paid_amount: paymentMethod.value === 'cash' ? paidAmount.value : finalGrandTotal.value,
     payment_proof: (paymentMethod.value === 'qris' || paymentMethod.value === 'transfer') ? paymentProofUrl.value : ''

@@ -161,8 +161,8 @@
               <AppBadge class="absolute top-3 right-3 text-[0.65rem] font-bold shadow-sm backdrop-blur-md" :variant="prod.stock > 0 ? 'info' : 'danger'">
                 {{ formatQuantity(prod.stock) }} {{ unitLabel(prod.unit) }}
               </AppBadge>
-              <span v-if="prod.is_master" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-amber-500 text-white shadow-md">
-                Master Pusat
+              <span v-if="prod.is_master" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full shadow-md" :class="prod.original_outlet ? 'bg-indigo-500 text-white' : 'bg-amber-500 text-white'">
+                {{ prod.original_outlet ? `Asal: ${prod.original_outlet.name}` : 'Master Pusat' }}
               </span>
               <span v-else-if="prod.outlet" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md">
                 {{ prod.outlet.name }}
@@ -791,7 +791,7 @@ const filteredProducts = computed(() => {
     if (catalogMode.value === 'master') {
       if (!p.is_master) return false;
       if (masterStoreFilter.value !== null) {
-        if (p.outlet_id && p.outlet_id !== masterStoreFilter.value) {
+        if (p.original_outlet_id !== masterStoreFilter.value) {
           return false;
         }
       }

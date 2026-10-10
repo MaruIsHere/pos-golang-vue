@@ -90,6 +90,8 @@ export interface Product {
   is_active?: boolean;
   is_master?: boolean;
   master_product_id?: string | null;
+  original_outlet_id?: string | null;
+  original_outlet?: Outlet;
   outlet?: Outlet;
   created_at?: string;
   updated_at?: string;
@@ -116,6 +118,7 @@ export interface CreateOrderPayload {
   merchant_id?: string | null;
   outlet_id?: string | null;
   customer_name: string;
+  table_number?: string;
   cashier_name?: string;
   payment_method: string;
   payment_proof?: string;
@@ -155,6 +158,7 @@ export interface Order {
   status: string;
   cashier_name?: string;
   customer_name?: string;
+  table_number?: string;
   created_at?: string;
   order_items?: OrderItem[];
 }

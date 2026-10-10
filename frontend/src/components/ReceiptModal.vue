@@ -63,6 +63,10 @@
               <span>Pelanggan:</span>
               <span>{{ order.customer_name || 'Umum' }}</span>
             </div>
+            <div v-if="order.table_number" class="flex justify-between text-[11.5px]">
+              <span>Meja:</span>
+              <span>{{ order.table_number }}</span>
+            </div>
           </div>
 
           <div class="text-center text-slate-400 print:text-black my-1.5 text-[11px] overflow-hidden whitespace-nowrap">------------------------------------------</div>

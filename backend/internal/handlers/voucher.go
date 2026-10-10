@@ -41,7 +41,7 @@ func CreateVoucher(c *gin.Context) {
 
 func DeleteVoucher(c *gin.Context) {
 	id := c.Param("id")
-	if err := database.DB.Delete(&models.Voucher{}, id).Error; err != nil {
+	if err := database.DB.Delete(&models.Voucher{}, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -1,0 +1,12 @@
+/home/satriyadi/Projects/pos-golang-vue/backend/pos-ocr/target/debug/deps/gif-4ea4ee200535a38a.d: /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/lib.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/common.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/encoder.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/mod.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/converter.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/decoder.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/traits.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/../README.md
+
+/home/satriyadi/Projects/pos-golang-vue/backend/pos-ocr/target/debug/deps/libgif-4ea4ee200535a38a.rmeta: /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/lib.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/common.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/encoder.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/mod.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/converter.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/decoder.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/traits.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/../README.md
+
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/lib.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/common.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/encoder.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/mod.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/converter.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/reader/decoder.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/traits.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gif-0.14.2/src/../README.md:

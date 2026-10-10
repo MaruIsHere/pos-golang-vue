@@ -268,7 +268,7 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := database.DB.First(&user, id).Error; err != nil {
+	if err := database.DB.First(&user, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User tidak ditemukan"})
 		return
 	}

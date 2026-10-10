@@ -28,6 +28,7 @@ type CreateOrderInput struct {
 	MerchantID       *uuid.UUID        `json:"merchant_id"`
 	OutletID         *uuid.UUID        `json:"outlet_id"`
 	CustomerName     string            `json:"customer_name"`
+	TableNumber      string            `json:"table_number"`
 	CashierName      string            `json:"cashier_name"`
 	PaymentMethod    string            `json:"payment_method"`
 	PaymentProof     string            `json:"payment_proof"`
@@ -280,6 +281,7 @@ func CreateOrder(c *gin.Context) {
 		Status:           "completed",
 		CashierName:      cashierName,
 		CustomerName:     custName,
+		TableNumber:      input.TableNumber,
 		OrderItems:       orderItems,
 	}
 

@@ -1,0 +1,13 @@
+/home/satriyadi/Projects/pos-golang-vue/backend/pos-ocr/target/debug/deps/qoi-d7bd29fad5e59c68.d: /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/lib.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/decode.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/encode.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/error.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/header.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/pixel.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/types.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/utils.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/consts.rs
+
+/home/satriyadi/Projects/pos-golang-vue/backend/pos-ocr/target/debug/deps/libqoi-d7bd29fad5e59c68.rmeta: /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/lib.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/decode.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/encode.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/error.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/header.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/pixel.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/types.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/utils.rs /home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/consts.rs
+
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/lib.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/decode.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/encode.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/error.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/header.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/pixel.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/types.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/utils.rs:
+/home/satriyadi/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/qoi-0.4.1/src/consts.rs:

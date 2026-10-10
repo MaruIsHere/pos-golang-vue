@@ -39,7 +39,7 @@ func CreateCustomer(c *gin.Context) {
 func UpdateCustomer(c *gin.Context) {
 	id := c.Param("id")
 	var cust models.Customer
-	if err := database.DB.First(&cust, id).Error; err != nil {
+	if err := database.DB.First(&cust, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Pelanggan tidak ditemukan"})
 		return
 	}
@@ -53,7 +53,7 @@ func UpdateCustomer(c *gin.Context) {
 
 func DeleteCustomer(c *gin.Context) {
 	id := c.Param("id")
-	if err := database.DB.Delete(&models.Customer{}, id).Error; err != nil {
+	if err := database.DB.Delete(&models.Customer{}, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

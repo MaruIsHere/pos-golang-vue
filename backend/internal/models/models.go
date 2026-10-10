@@ -132,6 +132,8 @@ type Product struct {
 	IsActive        bool       `gorm:"default:true" json:"is_active"`
 	IsMaster        bool       `gorm:"default:false;index" json:"is_master"`
 	MasterProductID *uuid.UUID `gorm:"type:char(36);index" json:"master_product_id,omitempty"`
+	OriginalOutletID *uuid.UUID `gorm:"type:char(36);index" json:"original_outlet_id,omitempty"`
+	OriginalOutlet   *Outlet    `gorm:"foreignKey:OriginalOutletID" json:"original_outlet,omitempty"`
 }
 
 type Order struct {
@@ -152,6 +154,7 @@ type Order struct {
 	Status           string      `gorm:"size:30;default:'completed'" json:"status"`    
 	CashierName   string      `gorm:"size:100;default:'Kasir Utama'" json:"cashier_name"`
 	CustomerName  string      `gorm:"size:100;default:'Umum'" json:"customer_name"`
+	TableNumber   string      `gorm:"size:50" json:"table_number"`
 	OrderItems    []OrderItem `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE" json:"order_items"`
 }
 

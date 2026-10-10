@@ -98,7 +98,7 @@ func isValidStockQuantity(quantity float64, unit string) bool {
 
 func GetProducts(c *gin.Context) {
 	var products []models.Product
-	query := database.DB.Preload("Category")
+	query := database.DB.Preload("Category").Preload("OriginalOutlet")
 
 	catID := c.Query("category_id")
 	if catID != "" {
@@ -206,20 +206,21 @@ func CreateProduct(c *gin.Context) {
 	if !isMaster && outletID != nil && input.MasterProductID == nil {
 		// 1. Create Master Product first so it appears in Master Product Catalog
 		masterProduct := models.Product{
-			CategoryID:  input.CategoryID,
-			MerchantID:  merchantID,
-			OutletID:    nil, // Master product is cross-outlet
-			Name:        input.Name,
-			Artist:      input.Artist,
-			ProductType: input.ProductType,
-			Price:       input.Price,
-			CostPrice:   input.CostPrice,
-			Stock:       input.Stock,
-			Unit:        input.Unit,
-			Barcode:     input.Barcode,
-			ImageURL:    input.ImageURL,
-			IsActive:    true,
-			IsMaster:    true,
+			CategoryID:       input.CategoryID,
+			MerchantID:       merchantID,
+			OutletID:         nil, // Master product is cross-outlet
+			OriginalOutletID: outletID,
+			Name:             input.Name,
+			Artist:           input.Artist,
+			ProductType:      input.ProductType,
+			Price:            input.Price,
+			CostPrice:        input.CostPrice,
+			Stock:            input.Stock,
+			Unit:             input.Unit,
+			Barcode:          input.Barcode,
+			ImageURL:         input.ImageURL,
+			IsActive:         true,
+			IsMaster:         true,
 		}
 		if input.IsActive != nil {
 			masterProduct.IsActive = *input.IsActive
@@ -297,7 +298,7 @@ func CreateProduct(c *gin.Context) {
 func UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
 	var product models.Product
-	if err := database.DB.First(&product, id).Error; err != nil {
+	if err := database.DB.First(&product, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
 		return
 	}
@@ -368,7 +369,7 @@ func UpdateProduct(c *gin.Context) {
 func DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
 	var product models.Product
-	if err := database.DB.First(&product, id).Error; err != nil {
+	if err := database.DB.First(&product, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
 		return
 	}
