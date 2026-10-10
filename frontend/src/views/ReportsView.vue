@@ -18,6 +18,11 @@
           <span>Export Excel</span>
         </AppButton>
 
+        <AppButton variant="secondary"  class="flex items-center gap-1.5" @click="handleExportCSV" :disabled="isLoading">
+          <ArrowDownTrayIcon class="w-4 h-4" />
+          <span>Export CSV</span>
+        </AppButton>
+
         <AppButton variant="danger"  class="flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export PDF</span>
@@ -439,7 +444,7 @@ import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { DashboardStats, ProductSalesStat } from '../types';
-import { exportToExcel, exportToPDF } from '../utils/exportReport';
+import { exportToExcel, exportToPDF, exportToCSV } from '../utils/exportReport';
 import { 
   Chart as ChartJS, 
   Title, 
@@ -699,6 +704,10 @@ const doughnutOptions = {
 
 const handleExportExcel = async () => {
   await exportToExcel(stats.value, 'Keseluruhan Penjualan');
+};
+
+const handleExportCSV = () => {
+  exportToCSV(stats.value, 'Keseluruhan Penjualan');
 };
 
 const handleExportPDF = () => {

@@ -754,3 +754,34 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
   const filename = `Laporan_Penjualan_${new Date().toISOString().slice(0, 10)}.pdf`;
   doc.save(filename);
 };
+
+export const exportToCSV = (stats: DashboardStats, dateTitle: string = 'Keseluruhan'): void => {
+  const allSold = stats.all_sold_products || [];
+  
+  const headers = ['No', 'Nama Produk', 'Merk/Artist', 'Tipe Produk', 'Harga Satuan', 'Kuantitas Terjual', 'Total Omset'];
+  const csvRows = [headers.join(',')];
+  
+  allSold.forEach((p, idx) => {
+    const row = [
+      idx + 1,
+      `"${(p.product_name || '').replace(/"/g, '""')}"`,
+      `"${(p.artist || 'Umum').replace(/"/g, '""')}"`,
+      `"${(p.product_type || 'Umum').replace(/"/g, '""')}"`,
+      p.price || 0,
+      p.total_qty || 0,
+      p.total_sales || 0
+    ];
+    csvRows.push(row.join(','));
+  });
+
+  const csvString = csvRows.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Laporan_Penjualan_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
