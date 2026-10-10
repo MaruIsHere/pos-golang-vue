@@ -185,6 +185,8 @@ type StoreSetting struct {
 	DbEngine                 string     `gorm:"size:20;default:'sqlite'" json:"db_engine"`
 	MysqlDsn                 string     `gorm:"size:255;default:'root:@tcp(127.0.0.1:3306)/pos_db?charset=utf8mb4&parseTime=True&loc=Local'" json:"mysql_dsn"`
 	QrisImageUrl             string     `gorm:"type:longtext" json:"qris_image_url"`
+	EnableRealtimeQris       bool       `gorm:"default:false" json:"enable_realtime_qris"`
+	QrisProvider             string     `gorm:"size:50;default:'manual'" json:"qris_provider"` // "manual", "midtrans", "moota"
 }
 
 type Voucher struct {

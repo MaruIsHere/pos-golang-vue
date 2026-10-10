@@ -162,6 +162,20 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
+	merchantID := uuid.Nil
+	if mid, exists := c.Get("merchant_id"); exists && mid != nil {
+		merchantID, _ = uuid.Parse(fmt.Sprintf("%v", mid))
+	} else if input.MerchantID != nil {
+		merchantID = *input.MerchantID
+	}
+
+	outletID := uuid.Nil
+	if oid, exists := c.Get("outlet_id"); exists && oid != nil {
+		outletID, _ = uuid.Parse(fmt.Sprintf("%v", oid))
+	} else if input.OutletID != nil {
+		outletID = *input.OutletID
+	}
+
 	tx := database.DB.Begin()
 
 	var totalAmount float64
@@ -175,7 +189,13 @@ func CreateOrder(c *gin.Context) {
 		}
 
 		var prod models.Product
-		if err := tx.First(&prod, itemInput.ProductID).Error; err != nil {
+		
+		prodQuery := tx.Where("merchant_id = ? AND id = ?", merchantID, itemInput.ProductID)
+		if outletID != uuid.Nil {
+			prodQuery = prodQuery.Where("outlet_id = ?", outletID)
+		}
+		
+		if err := prodQuery.First(&prod).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Produk ID %s tidak ditemukan", itemInput.ProductID)})
 			return
@@ -235,9 +255,10 @@ func CreateOrder(c *gin.Context) {
 
 	cashierName := input.CashierName
 	if cashierName == "" {
-		if userID, exists := c.Get("user_id"); exists {
+		if userID, exists := c.Get("user_id"); exists && userID != nil {
 			var u models.User
-			if err := tx.Where("id = ?", userID).First(&u).Error; err == nil {
+			// Convert userID to string to ensure safe SQLite query binding
+			if err := tx.Where("id = ?", fmt.Sprintf("%v", userID)).First(&u).Error; err == nil {
 				if u.Name != "" {
 					cashierName = u.Name
 				} else if u.Username != "" {
@@ -248,20 +269,6 @@ func CreateOrder(c *gin.Context) {
 	}
 	if cashierName == "" {
 		cashierName = "Kasir"
-	}
-
-	merchantID := uuid.Nil
-	if input.MerchantID != nil {
-		merchantID = *input.MerchantID
-	} else if mid, exists := c.Get("merchant_id"); exists {
-		merchantID, _ = uuid.Parse(fmt.Sprintf("%v", mid))
-	}
-
-	outletID := uuid.Nil
-	if input.OutletID != nil {
-		outletID = *input.OutletID
-	} else if oid, exists := c.Get("outlet_id"); exists {
-		outletID, _ = uuid.Parse(fmt.Sprintf("%v", oid))
 	}
 
 	order := models.Order{

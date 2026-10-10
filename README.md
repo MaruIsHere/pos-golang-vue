@@ -1,96 +1,117 @@
-# 🚀 POS Kasir Pro (Golang + Vue 3 + Tailwind v4 + AI OCR)
+# POS Kasir Pro
 
-POS Kasir Pro adalah aplikasi Point of Sale (POS) modern yang dirancang untuk kecepatan, kemandirian (offline-first), dan efisiensi resource. Dibangun dengan arsitektur **Micro-binary**, seluruh aplikasi (Backend & Frontend) dapat dikemas ke dalam satu *executable file* yang ringan, didukung oleh mesin AI (OCR) bawaan untuk membaca struk tanpa butuh koneksi API eksternal.
+POS Kasir Pro adalah aplikasi kasir berbasis web untuk mengelola penjualan dan operasional toko. Repositori ini berisi frontend Vue 3/TypeScript, backend Go/Gin, database SQLite atau MySQL, serta utilitas OCR lokal untuk membantu membaca nominal pada bukti pembayaran.
 
----
+> PWA menyimpan aset aplikasi untuk membantu membuka shell UI. Proses transaksi tetap memerlukan backend aktif; aplikasi belum menyediakan transaksi offline dan sinkronisasi otomatis.
 
-## 🏗️ Arsitektur & Teknologi
+## Fitur
 
-Sistem dirancang agar kompatibel dengan lingkungan dengan *resource* rendah (seperti CPU lama) namun tetap mempertahankan standar modern.
+- POS dengan katalog, keranjang, pajak/diskon, pembayaran tunai/QRIS/transfer, dan struk.
+- Pencarian barcode dan scanner kamera pada perangkat yang mendukung.
+- Produk master dan katalog produk per toko, kategori, merk, dan tipe.
+- Penerimaan/pengeluaran stok dan riwayat mutasi.
+- Riwayat pesanan, refund sesuai hak akses, pelanggan, voucher, dan pengelolaan toko/staf.
+- Dashboard penjualan dan ekspor Excel, CSV, serta PDF.
+- Role-based access, tema terang/gelap, dan PWA.
 
-*   **Backend:** Go (Golang) 1.22+ dengan Gin Framework dan GORM.
-*   **Frontend:** Vue 3 (Composition API), Vite, Tailwind CSS v4, Pinia.
-*   **Database:** SQLite (Default, *Zero-config* via `glebarez/sqlite`) dengan opsi beralih ke MySQL.
-*   **AI Engine (OCR):** `ocrs-cli` (Pure Rust Tensor Engine). Ukuran binary hanya ~19MB, 100% lokal, didesain untuk mendeteksi nominal uang.
-*   **UI/UX:** Skeleton Loading modern (menghindari spinner *laggy*), PWA-ready, Responsif (Desktop & Mobile), dan Dark Mode.
+## Teknologi
 
----
+- **Frontend:** Vue 3, TypeScript, Vite, Vue Router, Pinia, Tailwind CSS.
+- **Backend:** Go, Gin, GORM.
+- **Database:** SQLite default; MySQL dapat dikonfigurasi.
+- **OCR:** executable lokal `bin/ocrs` / `bin/ocrs.exe` jika tersedia.
 
-## ✨ Fitur Utama
+## Menjalankan untuk development
 
-1.  **🤖 Smart AI OCR Struk & QRIS**
-    Unggah bukti transfer atau struk, dan sistem akan membaca nominal angka secara otomatis dan mengisinya di form pembayaran berkat integrasi Neural Network lokal (`ocrs-cli`).
-2.  **⚡ Micro-binary & Multi-platform**
-    Frontend Vue di-build menjadi file statis (`dist`), kemudian di-*embed* ke dalam binary Go. Anda dapat mendistribusikan aplikasi sebagai satu file tunggal untuk Windows (`.exe`), Linux, atau macOS.
-3.  **📦 Manajemen Inventaris Kasir (POS)**
-    *   Sistem Keranjang, Kalkulasi Pajak, dan Diskon.
-    *   Multi-Metode Pembayaran (Tunai, QRIS, Transfer Bank).
-    *   Mutasi stok keluar-masuk secara *realtime*.
-4.  **🔐 Role-Based Access Control (RBAC)**
-    Akses bertingkat untuk keamanan toko: `OWNER`, `ADMINISTRATOR`, `ADMIN`, `KEPALA_KASIR`, `KASIR`.
-5.  **🗄️ Dynamic Database Switcher**
-    Berjalan langsung dengan SQLite saat diunduh, dan bisa dialihkan ke MySQL/MariaDB dari menu *Settings* untuk kebutuhan multi-kasir (*production* skala menengah).
-
----
-
-## 🛠️ Panduan Instalasi & Development
-
-Proyek ini menggunakan _monorepo style_ dengan folder `backend/` dan `frontend/`.
-
-### Persyaratan
-*   [Go 1.22+](https://go.dev/)
-*   [Node.js 18+](https://nodejs.org/) & `npm`
-*   *(Opsional)* Rust/Cargo jika ingin mengompilasi ulang mesin OCR.
-
-### Menjalankan Mode Development
-Kami telah menyiapkan *script* otomatis (`npm run dev` di *root* folder) untuk menyalakan frontend (Vite) dan backend (Go) secara bersamaan:
+Prasyarat: Go yang memenuhi `backend/go.mod`, Node.js/npm yang mendukung Vite, dan Git.
 
 ```bash
-# Clone repositori
-git clone <url-repo>
+git clone <url-repository>
 cd pos-golang-vue
-
-# Install dependency utama
 npm install
-
-# Jalankan Backend dan Frontend bersamaan
+npm --prefix frontend install
 npm run dev
 ```
 
-*   **Frontend Vite:** Berjalan di `http://localhost:3000` (dengan *proxy* internal ke backend).
-*   **Backend Go API:** Berjalan di `http://localhost:8080`.
+- Frontend Vite: `http://localhost:3000`
+- API Go: `http://localhost:8080`
+- Proxy `/api` dan `/uploads` diarahkan ke `127.0.0.1:8080` secara default.
+- Untuk mengganti target proxy: set `VITE_API_PROXY_TARGET` sebelum menjalankan Vite.
 
-**Pengujian di Mobile via Cloudflare Tunnel:**
-Jika Anda ingin menguji responsivitas UI dari HP secara langsung, jalankan:
-```bash
-cloudflared tunnel --url http://localhost:3000
-```
-Lalu buka *link* `.trycloudflare.com` yang dihasilkan di browser HP Anda.
+Server pertama kali dapat membuat `backend/config.local.json` dan database SQLite sesuai konfigurasi. Jangan commit file config lokal atau gunakan kredensial seed di server publik.
 
----
-
-## ⚙️ Kompilasi Mesin OCR (Opsional)
-
-Kami telah menyertakan *binary* OCR untuk Linux (`bin/ocrs`) dan Windows (`bin/ocrs.exe`). Go akan otomatis mendeteksi OS yang berjalan (melalui `runtime.GOOS`).
-Namun, jika Anda perlu menargetkan arsitektur lain (misalnya Apple Silicon/ARM), Anda bisa melakukan kompilasi ulang dari *source* Rust:
+## Build dan menjalankan server lokal
 
 ```bash
-# Pastikan Rust terinstal (https://rustup.rs/)
-cargo install ocrs-cli
-# Salin binary ke folder aplikasi
-cp ~/.cargo/bin/ocrs ./bin/
+npm run build
+npm start
 ```
 
----
+Build menjalankan typecheck dan Vite, lalu membangun backend Go. Backend menyajikan aset dari `frontend/dist` dan default berjalan pada port 8080. Aset frontend **tidak di-embed** ke binary backend.
 
-## 📖 Dokumentasi Lanjutan
+Perintah lintas platform tersedia melalui Makefile:
 
-Untuk memahami lebih dalam mengenai aturan *commit*, rancangan sistem, dan spesifikasi API, silakan lihat file-file berikut di folder `docs/`:
+```bash
+make run
+make build
+make build-linux
+make build-win
+make build-mac
+```
 
-*   [Spesifikasi Kebutuhan Produk (PRD)](docs/PRD.md)
-*   [Desain & Arsitektur Sistem](docs/DESIGN.md)
-*   [Panduan Penggunaan](PANDUAN_PENGGUNAAN.md)
-*   [OpenAPI/Swagger Spec](backend/docs/openapi.yaml)
+## Akun demo lokal
 
----
-*Dibuat dengan ❤️ untuk performa maksimal pada resource minimal.*
+Seed backend membuat akun `owner`, `admin`, `kepalakasir`, dan `kasir` dengan password awal masing-masing `owner123`, `admin123`, `kepala123`, dan `kasir123` jika akun tersebut belum ada. Akun ini untuk development/demo; ganti password atau hapus sebelum server dibuka ke jaringan.
+
+## Konfigurasi backend
+
+Default ada di `backend/config.json`. Konfigurasi lokal disimpan ke `backend/config.local.json` (diabaikan Git). Environment variable yang didukung:
+
+| Variable | Fungsi |
+|---|---|
+| `POS_PORT` | Port HTTP backend |
+| `POS_DB_ENGINE` | `sqlite` atau `mysql` |
+| `POS_SQLITE_PATH` | Path database SQLite |
+| `POS_MYSQL_DSN` | DSN koneksi MySQL |
+| `VITE_API_PROXY_TARGET` | Target proxy API/upload Vite |
+
+Backup database sebelum migrasi atau perubahan engine. Untuk deployment jaringan publik, gunakan HTTPS, ganti akun default, dan batasi konfigurasi CORS sesuai domain yang dipercaya.
+
+## Struktur kode
+
+```text
+frontend/src/views/       # Halaman aplikasi
+frontend/src/components/  # Komponen UI
+frontend/src/stores/      # State autentikasi, toko, pengaturan
+backend/cmd/api/          # Entrypoint backend
+backend/internal/         # Route, handler, model, middleware, config, database
+scripts/                  # Runner development/start lintas platform
+docs/                     # PRD, desain, system, panduan, API, dan audit
+```
+
+## Pemeriksaan
+
+```bash
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+cd backend && go test ./...
+```
+
+## Dokumentasi
+
+Mulai dari [indeks dokumentasi](docs/README.md).
+
+- [PRD — kebutuhan produk](docs/product/PRD.md)
+- [Desain produk dan UI](docs/design/DESIGN.md)
+- [System overview untuk belajar arsitektur](docs/system/SYSTEM_OVERVIEW.md)
+- [Roadmap arsitektur SaaS](docs/system/SAAS_ROADMAP.md)
+- [Panduan penggunaan lengkap](docs/guides/USER_GUIDE.md)
+- [Spesifikasi API OpenAPI](docs/api/openapi.yaml)
+- [Audit frontend](docs/audits/FRONTEND_AUDIT.md)
+- [Jalur belajar developer](docs/development/LEARNING_GUIDE.md)
+- [Pedoman kontribusi](docs/development/GUIDELINE.md)
+- [Panduan maintenance](docs/development/MAINTENANCE.md)
+
+## Catatan status
+
+Dokumen desain dan roadmap dapat memuat rencana yang belum diimplementasikan. Periksa [System Overview](docs/system/SYSTEM_OVERVIEW.md), route API aktif, dan UI aktual sebelum mengandalkan fitur untuk operasi produksi.

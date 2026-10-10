@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"pos-backend/internal/config"
 	"pos-backend/internal/handlers"
+	"pos-backend/internal/websocket"
 	"pos-backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +14,10 @@ func RegisterAPIRoutes(router *gin.Engine) {
 	api := router.Group("/api")
 	api.GET("/settings", handlers.GetSettings)
 	{
+		// WebSocket & Webhooks
+		api.GET("/ws", websocket.HandleWebSocket)
+		api.POST("/webhooks/qris", handlers.HandleQrisWebhook)
+
 		// Status endpoint
 		api.GET("/health", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{

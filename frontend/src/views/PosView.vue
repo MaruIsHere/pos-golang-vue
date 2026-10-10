@@ -184,7 +184,7 @@
     />
 
     <!-- Floating Mobile Cart Trigger (Khusus Layar Kecil) -->
-    <div v-if="cart.length > 0" class="lg:hidden fixed bottom-[5.5rem] left-4 right-4 flex items-center justify-between p-4 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.15)] font-bold cursor-pointer z-[60] active:scale-[0.98] transition-all" @click="isMobileCartOpen = true">
+    <div v-if="cart.length > 0" class="lg:hidden fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 flex items-center justify-between p-4 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.15)] font-bold cursor-pointer z-[60] active:scale-[0.98] transition-all" @click="isMobileCartOpen = true">
       <div class="flex items-center gap-3">
         <div class="relative">
           <ShoppingCartIcon class="w-6 h-6" />
@@ -223,7 +223,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { setProducts, getProducts, addOfflineOrder, getOfflineOrders, deleteOfflineOrder } from '../utils/idb';
 import api from '@/utils/api';
 import { storeToRefs } from 'pinia';
 import ProductCard from '../components/ProductCard.vue';
@@ -344,11 +345,64 @@ const fetchProducts = async () => {
     }
     const res = await api.get('/products', { params });
     products.value = res.data;
+    try { await setProducts(res.data); } catch(e) {}
   } catch (err: any) {
-    console.error('Fetch products error:', err.response?.data?.error || err.message || 'Error occurred');
+    if (err.message.includes('terputus') || err.message.includes('Offline')) {
+      try { products.value = await getProducts(); } catch(e) {}
+    } else {
+      console.error('Fetch products error:', err.response?.data?.error || err.message || 'Error occurred');
+    }
   } finally {
     isLoading.value = false;
   }
+};
+
+const syncOfflineOrders = async () => {
+  if (!navigator.onLine) return;
+  const offlineOrders = await getOfflineOrders();
+  if (offlineOrders.length === 0) return;
+  
+  let successCount = 0;
+  for (const order of offlineOrders) {
+    try {
+      await api.post('/orders', order);
+      await deleteOfflineOrder(order.id);
+      successCount++;
+    } catch (err) {
+      console.error('Gagal sinkronisasi order offline');
+    }
+  }
+  if (successCount > 0) {
+    await showAppAlert(`Berhasil sinkronisasi ${successCount} transaksi offline.`, 'success');
+  }
+};
+
+
+let ws: WebSocket | null = null;
+const initWebSocket = () => {
+  if (ws) ws.close();
+  const token = authStore.token;
+  if (!token) return;
+  
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${protocol}//${window.location.host}/api/ws?token=${token}`);
+  
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'PAYMENT_SUCCESS') {
+        showAppAlert(data.message || `Pembayaran masuk: Rp ${data.amount}`, 'success');
+        
+        // If payment modal is open and the amount matches or we just want to force success
+        if (isPaymentModalOpen.value && cart.value.length > 0) {
+          // Auto complete the order if it's waiting for QRIS
+          // For now, just notify cashier, since the cashier might need to finalize
+        }
+      }
+    } catch (e) {
+      console.error('WS Error parsing', e);
+    }
+  };
 };
 
 onMounted(() => {
@@ -356,7 +410,18 @@ onMounted(() => {
   fetchCategories();
   fetchCatalogs();
   fetchProducts();
+  window.addEventListener('online', syncOfflineOrders);
+  syncOfflineOrders();
+  initWebSocket();
 });
+
+onUnmounted(() => {
+  window.removeEventListener('online', syncOfflineOrders);
+  if (ws) ws.close();
+});
+
+
+
 
 watch(() => storeContextStore.activeStoreId, () => {
   cart.value = [];
@@ -459,27 +524,26 @@ const authStore = useAuthStore();
 // Checkout API handler
 const handleCheckout = async ({ customer_name, table_number, payment_method, paid_amount, payment_proof }: { customer_name: string; table_number?: string; payment_method: string; paid_amount: number; payment_proof?: string }): Promise<void> => {
   isSubmittingOrder.value = true;
+  const activeUser = authStore.user;
+  const cashierName = activeUser?.name || activeUser?.Name || activeUser?.username || activeUser?.Username || 'Kasir';
+  const payload: CreateOrderPayload = {
+    outlet_id: storeContextStore.activeStoreId || null,
+    customer_name,
+    table_number,
+    cashier_name: cashierName,
+    payment_method,
+    payment_proof: payment_proof || '',
+    paid_amount,
+    discount: discount.value,
+    tax: taxAmount.value,
+    items: cart.value.map(i => ({
+      product_id: i.product.id,
+      quantity: i.quantity,
+      notes: i.notes
+    }))
+  };
+
   try {
-    const activeUser = authStore.user;
-    const cashierName = activeUser?.name || activeUser?.Name || activeUser?.username || activeUser?.Username || 'Kasir';
-
-    const payload: CreateOrderPayload = {
-      outlet_id: storeContextStore.activeStoreId || null,
-      customer_name,
-      table_number,
-      cashier_name: cashierName,
-      payment_method,
-      payment_proof: payment_proof || '',
-      paid_amount,
-      discount: discount.value,
-      tax: taxAmount.value,
-      items: cart.value.map(i => ({
-        product_id: i.product.id,
-        quantity: i.quantity,
-        notes: i.notes
-      }))
-    };
-
     const res = await api.post('/orders', payload);
     const completedOrder = res.data as Order;
     lastCompletedOrder.value = completedOrder;
@@ -489,8 +553,16 @@ const handleCheckout = async ({ customer_name, table_number, payment_method, pai
     clearCart();
     fetchProducts(); // refresh stock counts
   } catch (err: any) {
-    const errorMsg = err.response?.data?.error || err.message || 'Error occurred';
-    await showAppAlert('Gagal memproses transaksi: ' + errorMsg, 'error');
+    if (err.message.includes('terputus') || err.message.includes('Offline')) {
+      await addOfflineOrder(payload);
+      await showAppAlert('Transaksi offline tersimpan. Akan disinkronkan saat koneksi pulih.', 'success');
+      isPaymentModalOpen.value = false;
+      isMobileCartOpen.value = false;
+      clearCart();
+    } else {
+      const errorMsg = err.response?.data?.error || err.message || 'Error occurred';
+      await showAppAlert('Gagal memproses transaksi: ' + errorMsg, 'error');
+    }
   } finally {
     isSubmittingOrder.value = false;
   }

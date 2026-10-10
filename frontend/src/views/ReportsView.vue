@@ -444,7 +444,7 @@ import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { DashboardStats, ProductSalesStat } from '../types';
-import { exportToExcel, exportToPDF, exportToCSV } from '../utils/exportReport';
+import { exportToCSV } from '../utils/csvExporter';
 import { showAppAlert } from '@/composables/useAppDialog';
 import { 
   Chart as ChartJS, 
@@ -706,6 +706,7 @@ const doughnutOptions = {
 };
 
 const handleExportExcel = async () => {
+  const { exportToExcel } = await import('../utils/exportReport');
   await exportToExcel(stats.value, 'Keseluruhan Penjualan');
 };
 
@@ -713,7 +714,8 @@ const handleExportCSV = () => {
   exportToCSV(stats.value, 'Keseluruhan Penjualan');
 };
 
-const handleExportPDF = () => {
+const handleExportPDF = async () => {
+  const { exportToPDF } = await import('../utils/exportReport');
   exportToPDF(stats.value, 'Keseluruhan Penjualan');
 };
 </script>

@@ -1,4 +1,6 @@
-# TODO — Login Page & Autentikasi (`pos-golang-vue`)
+# Arsip TODO historis — Login Page & Autentikasi
+
+> Arsip historis. Isinya sudah kedaluwarsa: login, model User, JWT middleware, dan route autentikasi kini sudah ada. Jangan gunakan checklist ini sebagai status tugas saat ini.
 
 Status: OPEN (untuk dikerjakan rekan — MaruIsHere)
 Tanggal: 22 Sep 2026

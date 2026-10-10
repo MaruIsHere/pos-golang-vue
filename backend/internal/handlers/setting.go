@@ -51,6 +51,8 @@ func UpdateSettings(c *gin.Context) {
 	setting.TaxPercentage = input.TaxPercentage
 	setting.MemberDiscountPercentage = input.MemberDiscountPercentage
 	setting.QrisImageUrl = input.QrisImageUrl
+	setting.EnableRealtimeQris = input.EnableRealtimeQris
+	setting.QrisProvider = input.QrisProvider
 
 	database.DB.Save(&setting)
 	c.JSON(http.StatusOK, setting)

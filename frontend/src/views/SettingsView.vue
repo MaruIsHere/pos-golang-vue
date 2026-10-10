@@ -178,8 +178,29 @@
             <AppInput  rows="2" v-model="storeForm.receipt_footer"></AppInput>
           </div>
 
+          <!-- Realtime QRIS Settings -->
+          <div class="flex flex-col gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <h3 class="font-bold text-slate-800 dark:text-slate-100">Integrasi Gateway QRIS (Real-Time)</h3>
+            <p class="input-hint">Jika diaktifkan, layar Kasir akan mendengarkan notifikasi webhook secara langsung. Pembayaran otomatis tercatat tanpa kasir harus memeriksa foto/nominal manual.</p>
+            
+            <div class="flex items-center gap-2 mt-2">
+              <input type="checkbox" id="enableRealtime" v-model="storeForm.enable_realtime_qris" class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              <label for="enableRealtime" class="font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">Aktifkan QRIS Real-Time (WebSocket)</label>
+            </div>
+
+            <div v-if="storeForm.enable_realtime_qris" class="flex flex-col gap-1.5 mt-2">
+              <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Provider QRIS</label>
+              <select v-model="storeForm.qris_provider" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="manual">Manual (Hanya Notifikasi Statis)</option>
+                <option value="midtrans">Midtrans</option>
+                <option value="xendit">Xendit</option>
+                <option value="moota">Moota (Mutasi)</option>
+              </select>
+            </div>
+          </div>
+
           <!-- QRIS Image Section -->
-          <div class="flex flex-col gap-2 qris-upload-section">
+          <div class="flex flex-col gap-2 qris-upload-section mt-2">
             <label class="text-sm font-semibold text-slate-700 dark:text-slate-300">Foto QRIS Pembayaran Toko</label>
             <p class="input-hint">Upload foto/gambar QRIS resmi toko Anda agar muncul di layar Kasir saat pelanggan memilih metode QRIS.</p>
             
@@ -756,7 +777,9 @@ const storeForm = ref({
   tax_percentage: 10,
   member_discount_percentage: 5,
   receipt_footer: '',
-  qris_image_url: ''
+  qris_image_url: '',
+  enable_realtime_qris: false,
+  qris_provider: 'manual'
 });
 
 // Vouchers State
@@ -810,7 +833,9 @@ const loadSettings = async () => {
       tax_percentage: data.tax_percentage,
       member_discount_percentage: data.member_discount_percentage ?? 5,
       receipt_footer: data.receipt_footer,
-      qris_image_url: data.qris_image_url || ''
+      qris_image_url: data.qris_image_url || '',
+      enable_realtime_qris: data.enable_realtime_qris || false,
+      qris_provider: data.qris_provider || 'manual'
     };
   } catch (err: any) {
     console.error(err.response?.data?.error || err.message || 'Error occurred');

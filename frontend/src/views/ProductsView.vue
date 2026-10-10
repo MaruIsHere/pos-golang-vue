@@ -25,7 +25,6 @@
           <select 
             class="w-full px-4 py-2.5 bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-[14px] text-sm font-bold text-indigo-900 dark:text-indigo-200 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
             v-model="selectedStoreFilter"
-            @change="fetchProducts"
           >
             <option :value="null">Semua Toko (Semua Master)</option>
             <option v-for="st in storeContextStore.stores" :key="st.id" :value="st.id">
@@ -194,7 +193,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <!-- Product Form Modal (Add / Edit) -->
     <div v-if="isProductModalOpen" class="modal-overlay" @click.self="closeProductModal">
@@ -561,6 +559,7 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -589,9 +588,6 @@ const selectedStoreFilter = computed({
   set(val: string | null) {
     if (catalogMode.value === 'master') {
       masterStoreFilter.value = val;
-      if (val !== null) {
-        storeContextStore.setActiveStore(val);
-      }
     } else {
       if (val !== null) {
         storeContextStore.setActiveStore(val);

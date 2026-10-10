@@ -352,7 +352,7 @@ curl -X POST https://hooks.slack.com/services/... -d '{"text":"✅ POS Deployed 
 
 ## 13. CATATAN UNTUK TIM (`MaruIsHere` / Kontributor)
 
-File ini (`docs/deployment/production-standard.md`) adalah **referensi industri** — bukan sekadar catatan internal. Jika kamu (`MaruIsHere`) atau kontributor menambahkan fitur:
+File ini adalah referensi aspiratif untuk deployment produksi, bukan bukti bahwa seluruh kontrol sudah diterapkan. Path dokumen saat ini `docs/development/deployment/production-standard.md`. Jika kontributor menambahkan fitur:
 
 1. **Baca checklist (Bagian 11)** sebelum deploy
 2. **Jika fitur besar** → buat ADR (`docs/decisions/`) dulu

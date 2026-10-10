@@ -13,6 +13,8 @@ export interface StoreSetting {
   db_engine: string;
   mysql_dsn?: string;
   qris_image_url?: string;
+  enable_realtime_qris?: boolean;
+  qris_provider?: string;
 }
 
 export interface Merchant {

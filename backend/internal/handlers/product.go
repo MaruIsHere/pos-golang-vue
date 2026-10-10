@@ -140,9 +140,9 @@ func GetProducts(c *gin.Context) {
 		}
 	} else {
 		if outletID != "" {
-			query = query.Where("outlet_id = ?", outletID)
+			query = query.Where("(outlet_id = ? OR is_master = ?)", outletID, true)
 		} else if ctxOutletID, exists := c.Get("outlet_id"); exists {
-			query = query.Where("outlet_id = ?", ctxOutletID)
+			query = query.Where("(outlet_id = ? OR is_master = ?)", ctxOutletID, true)
 		}
 	}
 

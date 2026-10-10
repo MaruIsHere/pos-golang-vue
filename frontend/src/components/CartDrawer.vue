@@ -50,11 +50,11 @@
 
           <div class="flex items-center justify-between mt-1 pt-3 border-t border-slate-100 dark:border-slate-700/50">
             <div v-if="item.product.unit !== 'gram' && item.product.unit !== 'liter'" class="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 border border-slate-200/60 dark:border-slate-700/60">
-              <button class="w-8 h-8 rounded-[10px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center hover:bg-slate-50 shadow-sm active:scale-95 transition-all" @click="$emit('update-qty', { index, delta: -1 })">
+              <button class="w-11 h-11 rounded-[12px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center hover:bg-slate-50 shadow-sm active:scale-95 transition-all" @click="$emit('update-qty', { index, delta: -1 })">
                 <MinusIcon class="w-4 h-4" />
               </button>
               <span class="text-sm font-extrabold min-w-[32px] text-center text-slate-800 dark:text-slate-200">{{ formatQuantity(item.quantity) }}</span>
-              <button class="w-8 h-8 rounded-[10px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center hover:bg-slate-50 shadow-sm active:scale-95 transition-all" @click="$emit('update-qty', { index, delta: 1 })">
+              <button class="w-11 h-11 rounded-[12px] bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center hover:bg-slate-50 shadow-sm active:scale-95 transition-all" @click="$emit('update-qty', { index, delta: 1 })">
                 <PlusIcon class="w-4 h-4" />
               </button>
             </div>

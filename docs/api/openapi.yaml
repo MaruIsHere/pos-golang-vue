@@ -5,11 +5,11 @@ info:
     REST API sistem kasir (POS). Backend Go + Gin + GORM.
     Base URL dev: http://localhost:8080/api (Vite proxy /api -> 8080).
     Semua response error memakai bentuk {"error": "pesan"}.
-    Sumber kebenaran: backend/main.go (routes), backend/handlers/handlers.go, backend/models/models.go.
+    Referensi ini belum dijamin selaras dengan seluruh route dan model aktif. Sumber implementasi: backend/internal/routes/routes.go, backend/internal/handlers/, backend/internal/models/models.go.
   version: 1.0.0
 servers:
   - url: http://localhost:8080/api
-    description: Backend dev (go run . dari folder backend/)
+    description: Backend dev (go run ./cmd/api dari folder backend/)
   - url: /api
     description: Production (disajikan Gin dari folder backend/ + frontend/dist)
 security: []
