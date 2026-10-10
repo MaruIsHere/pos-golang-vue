@@ -66,15 +66,7 @@
                 <AppBadge variant="neutral">
                   {{ (order.payment_method || "cash").toUpperCase() }}
                 </AppBadge>
-                <button 
-                  v-if="order.payment_proof" 
-                  @click="viewProof(order)" 
-                  class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 cursor-pointer transition-colors"
-                  title="Lihat Bukti Foto Pembayaran"
-                >
-                  <CameraIcon class="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Bukti Foto</span>
-                </button>
+
               </div>
             </td>
             <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp {{ formatPrice(order.grand_total) }}</td>
