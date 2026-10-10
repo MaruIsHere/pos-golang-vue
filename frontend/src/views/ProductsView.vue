@@ -89,8 +89,9 @@
             {{ catalogMode === 'store' ? 'Produk Toko Kasir' : 'Produk Utama Pusat' }}
             <span class="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-xs font-black">{{ filteredProducts.length }}</span>
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {{ catalogMode === 'store' ? 'Produk yang tersedia untuk dijual di kasir toko ini.' : 'Produk master pusat yang bisa diimpor ke kasir tiap toko.' }}
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md">
+            <span v-if="catalogMode === 'master'" class="font-bold text-slate-600 dark:text-slate-300">Master Data:</span>
+            {{ catalogMode === 'store' ? 'Produk yang tersedia untuk dijual di kasir toko ini.' : 'Produk di sini adalah katalog pusat. Anda dapat menugaskannya ke toko cabang lewat pengaturan "Jual di Toko".' }}
           </p>
         </div>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">

@@ -356,7 +356,7 @@
         </div>
 
         <div v-else-if="movements.length === 0" class="p-12 text-center text-slate-500">
-          <p class="text-sm text-slate-500 dark:text-slate-400">Belum ada riwayat mutasi stok barang.</p>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Belum ada riwayat mutasi manual. Mutasi otomatis dari penjualan kasir tidak ditampilkan di sini.</p>
         </div>
 
         <div v-else class="overflow-x-auto p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl">
