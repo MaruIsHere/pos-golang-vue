@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // === REPORT & DASHBOARD HANDLERS ===
@@ -27,18 +28,18 @@ func GetDashboardStats(c *gin.Context) {
 		orderQuery = orderQuery.Where("outlet_id = ?", outletID)
 	}
 
-	orderItemQuery := database.DB.Model(&models.OrderItem{})
-	if merchantID != nil || outletID != nil {
-		// order_items does not have merchant/outlet id directly in the struct, wait!
-		// Wait, OrderItem has OrderID. Order has merchant/outlet.
-		// Let's join orders
-		orderItemQuery = orderItemQuery.Joins("INNER JOIN orders ON orders.id = order_items.order_id")
-		if merchantID != nil {
-			orderItemQuery = orderItemQuery.Where("orders.merchant_id = ?", merchantID)
+	getOrderItemQuery := func() *gorm.DB {
+		q := database.DB.Model(&models.OrderItem{})
+		if merchantID != nil || outletID != nil {
+			q = q.Joins("INNER JOIN orders ON orders.id = order_items.order_id")
+			if merchantID != nil {
+				q = q.Where("orders.merchant_id = ?", merchantID)
+			}
+			if outletID != nil {
+				q = q.Where("orders.outlet_id = ?", outletID)
+			}
 		}
-		if outletID != nil {
-			orderItemQuery = orderItemQuery.Where("orders.outlet_id = ?", outletID)
-		}
+		return q
 	}
 
 	orderQuery.Count(&totalOrders)
@@ -62,7 +63,7 @@ func GetDashboardStats(c *gin.Context) {
 	`).Scan(&paymentStats)
 
 	totalRevenue = paymentStats.TotalRevenue
-	orderItemQuery.Select("COALESCE(SUM(order_items.quantity), 0)").Scan(&totalItemsSold)
+	getOrderItemQuery().Select("COALESCE(SUM(order_items.quantity), 0)").Scan(&totalItemsSold)
 
 	type ProductSalesStat struct {
 		ProductID   uuid.UUID `json:"product_id"`
@@ -77,58 +78,63 @@ func GetDashboardStats(c *gin.Context) {
 	}
 
 	// Top Selling Products (Barang Paling Laku)
-	var topProducts []ProductSalesStat
+	topProducts := []ProductSalesStat{}
 	topProdQ := database.DB.Table("products p").
 		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
 		Joins("INNER JOIN order_items oi ON oi.product_id = p.id").
-		Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
-		Order("total_qty desc").
-		Limit(10)
+		Joins("INNER JOIN orders o ON o.id = oi.order_id").
+		Where("o.status = 'completed'")
 	if merchantID != nil { topProdQ = topProdQ.Where("p.merchant_id = ?", merchantID) }
 	if outletID != nil { topProdQ = topProdQ.Where("p.outlet_id = ?", outletID) }
-	topProdQ.Scan(&topProducts)
+	topProdQ.Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
+		Order("total_qty desc").
+		Limit(10).
+		Scan(&topProducts)
 
 	// Slow Moving / Least Sold Products (Barang Kurang Laku)
-	var leastProducts []ProductSalesStat
+	leastProducts := []ProductSalesStat{}
 	leastProdQ := database.DB.Table("products p").
 		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
 		Joins("LEFT JOIN order_items oi ON oi.product_id = p.id").
-		Where("p.is_active = ?", true).
-		Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
-		Order("total_qty asc, p.stock desc").
-		Limit(10)
+		Where("p.is_active = ?", true)
 	if merchantID != nil { leastProdQ = leastProdQ.Where("p.merchant_id = ?", merchantID) }
 	if outletID != nil { leastProdQ = leastProdQ.Where("p.outlet_id = ?", outletID) }
-	leastProdQ.Scan(&leastProducts)
+	leastProdQ.Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
+		Order("total_qty asc, p.stock desc").
+		Limit(10).
+		Scan(&leastProducts)
 
 	// All Sold Products List (List Seluruh Barang Laku)
-	var allSoldProducts []ProductSalesStat
-	allSoldQ := orderItemQuery.
+	allSoldProducts := []ProductSalesStat{}
+	getOrderItemQuery().
 		Select("order_items.product_id, order_items.product_name, COALESCE(NULLIF(order_items.artist, ''), 'Umum') as artist, COALESCE(NULLIF(order_items.product_type, ''), 'Umum') as product_type, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales, MAX(order_items.product_price) as price, MAX(order_items.unit) as unit").
+		Where("orders.status = 'completed'").
 		Group("order_items.product_id, order_items.product_name, order_items.artist, order_items.product_type, order_items.unit").
-		Order("total_qty desc")
-	allSoldQ.Scan(&allSoldProducts)
+		Order("total_qty desc").
+		Scan(&allSoldProducts)
 
 	// Sub-category Sales Summaries
 	type SubGroupStat struct {
 		Name       string  `json:"name"`
-		TotalQty   float64 `json:"total_qty"`
-		TotalSales float64 `json:"total_sales"`
+		TotalQty   float64   `json:"total_qty"`
+		TotalSales float64   `json:"total_sales"`
 	}
 
-	var salesByArtist []SubGroupStat
-	artistQ := orderItemQuery.
+	salesByArtist := []SubGroupStat{}
+	getOrderItemQuery().
 		Select("COALESCE(NULLIF(order_items.artist, ''), 'Lainnya / Umum') as name, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales").
+		Where("orders.status = 'completed'").
 		Group("name").
-		Order("total_sales desc")
-	artistQ.Scan(&salesByArtist)
+		Order("total_sales desc").
+		Scan(&salesByArtist)
 
-	var salesByType []SubGroupStat
-	typeQ := orderItemQuery.
+	salesByType := []SubGroupStat{}
+	getOrderItemQuery().
 		Select("COALESCE(NULLIF(order_items.product_type, ''), 'Lainnya / Umum') as name, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales").
+		Where("orders.status = 'completed'").
 		Group("name").
-		Order("total_sales desc")
-	typeQ.Scan(&salesByType)
+		Order("total_sales desc").
+		Scan(&salesByType)
 
 	// Recent Orders
 	var recentOrders []models.Order
