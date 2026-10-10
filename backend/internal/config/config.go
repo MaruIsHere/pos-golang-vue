@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -69,7 +71,25 @@ func applyEnvOverrides(cfg *Config) {
 	}
 }
 
+// loadDotEnv memuat variabel dari file .env bila file itu ada. Godotenv hanya
+// mengisi variabel yang belum diset di environment proses, jadi env eksplisit
+// (mis. POS_SQLITE_PATH dari scripts/dev-backend.mjs) tetap menang atas .env.
+func loadDotEnv() {
+	for _, candidate := range []string{".env", filepath.Join("backend", ".env")} {
+		if _, err := os.Stat(candidate); err != nil {
+			continue
+		}
+		if err := godotenv.Load(candidate); err != nil {
+			log.Printf("Gagal memuat %s: %v", candidate, err)
+			return
+		}
+		log.Printf("Variabel environment dimuat dari %s", candidate)
+		return
+	}
+}
+
 func LoadConfig() Config {
+	loadDotEnv()
 	activeConfigDir = findConfigDir()
 	localConfigFile := filepath.Join(activeConfigDir, "config.local.json")
 	configFile := localConfigFile
