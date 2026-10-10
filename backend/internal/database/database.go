@@ -47,8 +47,9 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 		ensureMySQLDatabaseExists(mysqlDsn)
 		dialector = mysql.Open(mysqlDsn)
 	} else {
-		log.Printf("Connecting to SQLite Database file: %s", sqlitePath)
-		dialector = sqlite.Open(sqlitePath)
+		sqliteDSN := sqlitePath + "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)"
+		log.Printf("Connecting to SQLite Database file: %s", sqliteDSN)
+		dialector = sqlite.Open(sqliteDSN)
 	}
 
 	db, err := gorm.Open(dialector, &gorm.Config{
@@ -56,6 +57,14 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database: %w", err)
+	}
+
+	// SQLite: serialize all DB access through a single connection.
+	// WAL mode allows concurrent reads, but writes must be serialized.
+	// This lets Go's connection pool queue writes instead of SQLite rejecting them.
+	if engine != "mysql" {
+		sqlDB, _ := db.DB()
+		sqlDB.SetMaxOpenConns(1)
 	}
 
 	// Auto Migration SaaS (UUID Multi-Tenant)
