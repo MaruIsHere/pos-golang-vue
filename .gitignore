@@ -32,6 +32,8 @@ pos_backend
 # ========== DATABASE / DATA ==========
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 *.log
