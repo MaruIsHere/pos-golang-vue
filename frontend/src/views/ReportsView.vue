@@ -445,6 +445,7 @@ import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { DashboardStats, ProductSalesStat } from '../types';
 import { exportToExcel, exportToPDF, exportToCSV } from '../utils/exportReport';
+import { showAppAlert } from '@/composables/useAppDialog';
 import { 
   Chart as ChartJS, 
   Title, 
@@ -632,7 +633,9 @@ const fetchStats = async () => {
     const res = await api.get('/reports/dashboard');
     stats.value = res.data;
   } catch (err: any) {
-    console.error('Fetch stats error:', err.response?.data?.error || err.message || 'Error occurred');
+    const errMsg = err.response?.data?.error || err.message || 'Error occurred';
+    console.error('Fetch stats error:', errMsg);
+    await showAppAlert('Gagal memuat data laporan: ' + errMsg, 'warning');
   } finally {
     isLoading.value = false;
   }

@@ -26,6 +26,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Intercept Network Error or Server Offline
+    if (!error.response || error.message === 'Network Error') {
+      error.message = 'Ups, koneksi terputus! Pastikan perangkatmu terhubung ke jaringan/server.';
+    } else if (error.response && error.response.status >= 500) {
+      error.message = 'Ups, koneksi ke server bermasalah (Server Offline). Coba lagi nanti.';
+    }
+
     if (error.response && error.response.status === 401) {
       // Abaikan jika error terjadi di halaman login
       if (!error.config.url.includes('/auth/')) {
