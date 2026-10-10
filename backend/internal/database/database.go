@@ -90,6 +90,7 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 
 	DB = db
 	SeedInitialData(db, engine, mysqlDsn)
+	BackfillMasterProducts(db)
 	return db, nil
 }
 
@@ -270,7 +271,24 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Berdua (2 Kopi + 1 Snack)", ProductType: "FNB", Price: 55000, CostPrice: 25000, Stock: 30},
 		}
 		for _, prod := range products {
-			db.Create(&prod)
+			// Tiap produk seed dibuat berpasangan, mengikuti pola CreateProduct:
+			// satu produk master (katalog pusat, cross-outlet) dan satu salinan
+			// toko yang tertaut, agar Katalog Produk Utama tidak kosong.
+			master := prod
+			master.IsMaster = true
+			master.OutletID = nil
+			master.OriginalOutletID = &defaultOutlet.ID
+			if err := db.Create(&master).Error; err != nil {
+				log.Printf("Gagal membuat produk master %q: %v", prod.Name, err)
+				continue
+			}
+
+			storeCopy := prod
+			storeCopy.IsMaster = false
+			storeCopy.MasterProductID = &master.ID
+			if err := db.Create(&storeCopy).Error; err != nil {
+				log.Printf("Gagal membuat produk toko %q: %v", prod.Name, err)
+			}
 		}
 	}
 }

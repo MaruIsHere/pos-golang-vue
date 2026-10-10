@@ -138,13 +138,12 @@ func GetProducts(c *gin.Context) {
 		} else if ctxOutletID, exists := c.Get("outlet_id"); exists {
 			query = query.Where("outlet_id = ?", ctxOutletID)
 		}
-	} else {
-		if outletID != "" {
-			query = query.Where("(outlet_id = ? OR is_master = ?)", outletID, true)
-		} else if ctxOutletID, exists := c.Get("outlet_id"); exists {
-			query = query.Where("(outlet_id = ? OR is_master = ?)", ctxOutletID, true)
-		}
+	} else if outletID != "" {
+		query = query.Where("outlet_id = ?", outletID)
 	}
+	// Tanpa parameter is_master/outlet_id, seluruh produk milik merchant dikembalikan
+	// (termasuk produk master yang outlet_id-nya NULL). Filter outlet konteks JWT hanya
+	// berlaku ketika memang meminta produk toko (is_master=false).
 
 	if err := query.Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -200,6 +199,14 @@ func CreateProduct(c *gin.Context) {
 	isMaster := false
 	if input.IsMaster != nil {
 		isMaster = *input.IsMaster
+	}
+
+	// Produk master bersifat cross-outlet, jadi tidak menempel pada satu outlet.
+	// Jejak asal toko tetap terlacak lewat original_outlet_id.
+	originalOutletID := (*uuid.UUID)(nil)
+	if isMaster {
+		originalOutletID = outletID
+		outletID = nil
 	}
 
 	// If creating a store product directly (is_master is false, outlet_id is provided, master_product_id is nil)
@@ -266,20 +273,21 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	product := models.Product{
-		CategoryID:      input.CategoryID,
-		MerchantID:      merchantID,
-		OutletID:        outletID,
-		Name:            input.Name,
-		Artist:          input.Artist,
-		ProductType:     input.ProductType,
-		Price:           input.Price,
-		CostPrice:       input.CostPrice,
-		Stock:           input.Stock,
-		Unit:            input.Unit,
-		Barcode:         input.Barcode,
-		ImageURL:        input.ImageURL,
-		MasterProductID: input.MasterProductID,
-		IsMaster:        isMaster,
+		CategoryID:        input.CategoryID,
+		MerchantID:        merchantID,
+		OutletID:          outletID,
+		OriginalOutletID:  originalOutletID,
+		Name:              input.Name,
+		Artist:            input.Artist,
+		ProductType:       input.ProductType,
+		Price:             input.Price,
+		CostPrice:         input.CostPrice,
+		Stock:             input.Stock,
+		Unit:              input.Unit,
+		Barcode:           input.Barcode,
+		ImageURL:          input.ImageURL,
+		MasterProductID:   input.MasterProductID,
+		IsMaster:          isMaster,
 	}
 	if input.IsActive != nil {
 		product.IsActive = *input.IsActive
