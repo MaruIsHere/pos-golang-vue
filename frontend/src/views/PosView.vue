@@ -68,8 +68,8 @@
           </button>
         </div>
 
-        <!-- Row 2: Merk Filter (Show if availableArtists has items) -->
-        <div v-if="availableArtists.length > 0" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar snap-x py-0.5 border-t border-slate-100 dark:border-slate-700/50 pt-2">
+        <!-- Row 2: Merk Filter (Show if availableMerks has items) -->
+        <div v-if="availableMerks.length > 0" class="flex items-center gap-2.5 overflow-x-auto no-scrollbar snap-x py-0.5 border-t border-slate-100 dark:border-slate-700/50 pt-2">
           <div class="flex items-center gap-1.5 shrink-0 px-2.5 py-1 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
             <BookmarkIcon class="w-3.5 h-3.5 text-emerald-500" />
             <span>Merk</span>
@@ -78,19 +78,19 @@
 
           <button 
             class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
-            :class="selectedArtist === null ? 'bg-emerald-600 text-white shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-            @click="selectedArtist = null"
+            :class="selectedMerk === null ? 'bg-emerald-600 text-white shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectedMerk = null"
           >
             Semua Merk
           </button>
           <button 
-            v-for="artist in availableArtists" 
-            :key="artist.id" 
+            v-for="merk in availableMerks" 
+            :key="merk.id" 
             class="px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 shadow-xs shrink-0 snap-start" 
-            :class="selectedArtist === artist.name ? 'bg-emerald-600 text-white shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
-            @click="selectedArtist = artist.name"
+            :class="selectedMerk === merk.name ? 'bg-emerald-600 text-white shadow-emerald-600/20' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'"
+            @click="selectedMerk = merk.name"
           >
-            {{ artist.name }}
+            {{ merk.name }}
           </button>
         </div>
 
@@ -121,7 +121,7 @@
         </div>
 
         <!-- Filter Reset Action Row -->
-        <div v-if="selectedCategoryId !== null || selectedArtist !== null || selectedProductType !== null" class="flex items-center justify-between border-t border-slate-100 dark:border-slate-700/50 pt-2 px-1">
+        <div v-if="selectedCategoryId !== null || selectedMerk !== null || selectedProductType !== null" class="flex items-center justify-between border-t border-slate-100 dark:border-slate-700/50 pt-2 px-1">
           <span class="text-[11px] font-medium text-slate-400">Filter aktif diterapkan</span>
           <button class="px-2.5 py-1 text-[11px] font-bold text-red-600 hover:text-red-700 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 rounded-lg transition-colors flex items-center gap-1" @click="resetAllFilters">
             <XMarkIcon class="w-3.5 h-3.5" />
@@ -235,7 +235,7 @@ import BarcodeScannerModal from '../components/BarcodeScannerModal.vue';
 import { useSettingsStore } from '../stores/settings';
 import { useAuthStore } from '../stores/auth';
 import { useStoreContextStore } from '../stores/storeContext';
-import type { Artist, Category, Product, ProductType, CartItem, Order, CreateOrderPayload } from '../types';
+import type { Merk, Category, Product, ProductType, CartItem, Order, CreateOrderPayload } from '../types';
 import { MagnifyingGlassIcon, CameraIcon, XMarkIcon, ShoppingCartIcon, ArrowUpIcon, TagIcon, BookmarkIcon, Squares2X2Icon, BuildingStorefrontIcon } from '@heroicons/vue/24/outline';
 import { showAppAlert } from '@/composables/useAppDialog';
 
@@ -246,7 +246,7 @@ const { settings: storeSetting } = storeToRefs(settingsStore);
 const storeContextStore = useStoreContextStore();
 
 const categories = ref<Category[]>([]);
-const artists = ref<Artist[]>([]);
+const merks = ref<Merk[]>([]);
 const productTypes = ref<ProductType[]>([]);
 const products = ref<Product[]>([]);
 const isLoading = ref(true);
@@ -254,11 +254,11 @@ const catalogError = ref('');
 
 const searchQuery = ref('');
 const selectedCategoryId = ref<string | null>(null);
-const selectedArtist = ref<string | null>(null);
+const selectedMerk = ref<string | null>(null);
 const selectedProductType = ref<string | null>(null);
 
 const rootCategories = computed(() => categories.value.filter(category => !category.parent_id));
-const availableArtists = computed(() => artists.value);
+const availableMerks = computed(() => merks.value);
 const availableProductTypes = computed(() => productTypes.value);
 
 const categoryLabel = (category: Category): string => {
@@ -276,13 +276,13 @@ const categoryLabel = (category: Category): string => {
 };
 
 const resetSubFilters = () => {
-  selectedArtist.value = null;
+  selectedMerk.value = null;
   selectedProductType.value = null;
 };
 
 const resetAllFilters = () => {
   selectedCategoryId.value = null;
-  selectedArtist.value = null;
+  selectedMerk.value = null;
   selectedProductType.value = null;
 };
 
@@ -320,19 +320,19 @@ const fetchCategories = async () => {
 const fetchCatalogs = async () => {
   catalogError.value = '';
   try {
-    const [artistResponse, typeResponse] = await Promise.all([
-      api.get('/artists'),
+    const [merkResponse, typeResponse] = await Promise.all([
+      api.get('/merks'),
       api.get('/product-types')
     ]);
-    if (!Array.isArray(artistResponse.data) || !Array.isArray(typeResponse.data)) {
-      throw new Error('Server API belum menyediakan master Artist dan Tipe Produk. Mulai ulang backend dengan versi terbaru.');
+    if (!Array.isArray(merkResponse.data) || !Array.isArray(typeResponse.data)) {
+      throw new Error('Server API belum menyediakan master Merk dan Tipe Produk. Mulai ulang backend dengan versi terbaru.');
     }
-    artists.value = artistResponse.data.filter((item: Artist) => item && item.id && item.name?.trim());
+    merks.value = merkResponse.data.filter((item: Merk) => item && item.id && item.name?.trim());
     productTypes.value = typeResponse.data.filter((item: ProductType) => item && item.id && item.name?.trim());
   } catch (err: any) {
-    artists.value = [];
+    merks.value = [];
     productTypes.value = [];
-    catalogError.value = err.response?.data?.error || err.message || 'Gagal mengambil master Artist dan Tipe Produk.';
+    catalogError.value = err.response?.data?.error || err.message || 'Gagal mengambil master Merk dan Tipe Produk.';
   }
 };
 
@@ -438,17 +438,17 @@ const filteredProducts = computed(() => {
     }
 
     const matchesCat = selectedCategoryId.value === null || p.category_id === selectedCategoryId.value;
-    const matchesArt = !selectedArtist.value || p.artist === selectedArtist.value;
+    const matchesMerk = !selectedMerk.value || (p.merk || p.artist) === selectedMerk.value;
     const matchesType = !selectedProductType.value || p.product_type === selectedProductType.value;
 
     const q = searchQuery.value.toLowerCase();
     const matchesQuery = !q || 
       p.name.toLowerCase().includes(q) || 
       (p.barcode && p.barcode.toLowerCase().includes(q)) ||
-      (p.artist && p.artist.toLowerCase().includes(q)) ||
+      ((p.merk || p.artist) && (p.merk || p.artist)!.toLowerCase().includes(q)) ||
       (p.product_type && p.product_type.toLowerCase().includes(q));
 
-    return matchesCat && matchesArt && matchesType && matchesQuery;
+    return matchesCat && matchesMerk && matchesType && matchesQuery;
   });
 });
 

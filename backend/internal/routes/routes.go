@@ -40,11 +40,17 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.GET("/profile", middleware.RoleMiddleware("owner", "admin"), handlers.GetProfile)
 			protected.PUT("/profile", middleware.RoleMiddleware("owner", "admin"), handlers.UpdateProfile)
 
-			// Reusable product catalogs
-			protected.GET("/artists", handlers.GetArtists)
-			protected.POST("/artists", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateArtist)
-			protected.PUT("/artists/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateArtist)
-			protected.DELETE("/artists/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteArtist)
+			// Reusable product catalogs (Merks / Brands)
+			protected.GET("/merks", handlers.GetMerks)
+			protected.POST("/merks", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateMerk)
+			protected.PUT("/merks/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateMerk)
+			protected.DELETE("/merks/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteMerk)
+
+			// Backward compatibility: /artists aliases
+			protected.GET("/artists", handlers.GetMerks)
+			protected.POST("/artists", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateMerk)
+			protected.PUT("/artists/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateMerk)
+			protected.DELETE("/artists/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteMerk)
 			protected.GET("/product-types", handlers.GetProductTypes)
 			protected.POST("/product-types", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateProductType)
 			protected.PUT("/product-types/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateProductType)

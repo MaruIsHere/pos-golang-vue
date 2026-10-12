@@ -67,6 +67,9 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 		sqlDB.SetMaxOpenConns(1)
 	}
 
+	// Migrasi otomatis tabel artists -> merks dan kolom artist -> merk jika masih ada
+	migrateArtistToMerk(db)
+
 	// Auto Migration SaaS (UUID Multi-Tenant)
 	err = db.AutoMigrate(
 		&models.Merchant{},
@@ -74,7 +77,7 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 		&models.Expense{},
 		&models.User{},
 		&models.Category{},
-		&models.Artist{},
+		&models.Merk{},
 		&models.ProductType{},
 		&models.Product{},
 		&models.Order{},
@@ -289,6 +292,59 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 			if err := db.Create(&storeCopy).Error; err != nil {
 				log.Printf("Gagal membuat produk toko %q: %v", prod.Name, err)
 			}
+		}
+	}
+}
+
+func migrateArtistToMerk(db *gorm.DB) {
+	// 1. Rename table 'artists' to 'merks'
+	if db.Migrator().HasTable("artists") {
+		if !db.Migrator().HasTable("merks") {
+			log.Println("Migrasi: Mengubah nama tabel 'artists' menjadi 'merks'...")
+			if err := db.Migrator().RenameTable("artists", "merks"); err != nil {
+				log.Printf("Gagal rename table artists via migrator: %v, mencoba SQL mentah...", err)
+				_ = db.Exec("ALTER TABLE artists RENAME TO merks").Error
+			} else {
+				log.Println("✔️ Tabel 'artists' berhasil diubah menjadi 'merks'.")
+			}
+		} else {
+			// Tabel merks sudah ada, salin data jika merks masih kosong lalu drop artists
+			var merksCount int64
+			db.Table("merks").Count(&merksCount)
+			if merksCount == 0 {
+				_ = db.Exec("INSERT INTO merks SELECT * FROM artists").Error
+			}
+			_ = db.Migrator().DropTable("artists")
+		}
+	}
+
+	// 2. Rename column 'artist' to 'merk' in 'products' table
+	if db.Migrator().HasColumn("products", "artist") && !db.Migrator().HasColumn("products", "merk") {
+		log.Println("Migrasi: Mengubah kolom 'artist' menjadi 'merk' pada tabel 'products'...")
+		if err := db.Migrator().RenameColumn("products", "artist", "merk"); err != nil {
+			_ = db.Exec("ALTER TABLE products CHANGE artist merk VARCHAR(100)").Error
+			_ = db.Exec("ALTER TABLE products RENAME COLUMN artist TO merk").Error
+			if !db.Migrator().HasColumn("products", "merk") {
+				_ = db.Exec("ALTER TABLE products ADD COLUMN merk VARCHAR(100)").Error
+				_ = db.Exec("UPDATE products SET merk = artist WHERE (merk IS NULL OR merk = '') AND artist IS NOT NULL").Error
+			}
+		} else {
+			log.Println("✔️ Kolom 'artist' pada tabel 'products' berhasil diubah menjadi 'merk'.")
+		}
+	}
+
+	// 3. Rename column 'artist' to 'merk' in 'order_items' table
+	if db.Migrator().HasColumn("order_items", "artist") && !db.Migrator().HasColumn("order_items", "merk") {
+		log.Println("Migrasi: Mengubah kolom 'artist' menjadi 'merk' pada tabel 'order_items'...")
+		if err := db.Migrator().RenameColumn("order_items", "artist", "merk"); err != nil {
+			_ = db.Exec("ALTER TABLE order_items CHANGE artist merk VARCHAR(100)").Error
+			_ = db.Exec("ALTER TABLE order_items RENAME COLUMN artist TO merk").Error
+			if !db.Migrator().HasColumn("order_items", "merk") {
+				_ = db.Exec("ALTER TABLE order_items ADD COLUMN merk VARCHAR(100)").Error
+				_ = db.Exec("UPDATE order_items SET merk = artist WHERE (merk IS NULL OR merk = '') AND artist IS NOT NULL").Error
+			}
+		} else {
+			log.Println("✔️ Kolom 'artist' pada tabel 'order_items' berhasil diubah menjadi 'merk'.")
 		}
 	}
 }

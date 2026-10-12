@@ -17,7 +17,8 @@ type productInput struct {
 	MerchantID      *uuid.UUID `json:"merchant_id"`
 	OutletID        *uuid.UUID `json:"outlet_id"`
 	Name            string     `json:"name"`
-	Artist          string     `json:"artist"`
+	Merk            string     `json:"merk"`
+	Artist          string     `json:"artist"` // fallback backward compatibility
 	ProductType     string     `json:"product_type"`
 	Price           float64    `json:"price"`
 	CostPrice       float64    `json:"cost_price"`
@@ -33,7 +34,10 @@ type productInput struct {
 
 func validateProductInput(input *productInput) (string, error) {
 	input.Name = strings.TrimSpace(input.Name)
-	input.Artist = strings.TrimSpace(input.Artist)
+	if input.Merk == "" && input.Artist != "" {
+		input.Merk = input.Artist
+	}
+	input.Merk = strings.TrimSpace(input.Merk)
 	input.ProductType = strings.TrimSpace(input.ProductType)
 	input.Unit = strings.TrimSpace(input.Unit)
 	if input.Unit == "" {
@@ -61,13 +65,13 @@ func validateProductInput(input *productInput) (string, error) {
 	if categoryCount == 0 {
 		return "Kategori produk tidak ditemukan", nil
 	}
-	if input.Artist != "" {
-		var artistCount int64
-		if err := database.DB.Model(&models.Artist{}).Where("LOWER(name) = LOWER(?)", input.Artist).Count(&artistCount).Error; err != nil {
+	if input.Merk != "" {
+		var merkCount int64
+		if err := database.DB.Model(&models.Merk{}).Where("LOWER(name) = LOWER(?)", input.Merk).Count(&merkCount).Error; err != nil {
 			return "", err
 		}
-		if artistCount == 0 {
-			return "Artist tidak ditemukan. Tambahkan artist melalui master artist terlebih dahulu", nil
+		if merkCount == 0 {
+			return "Merk tidak ditemukan. Tambahkan merk melalui master merk terlebih dahulu", nil
 		}
 	}
 	if input.ProductType != "" {
@@ -106,8 +110,12 @@ func GetProducts(c *gin.Context) {
 		query = query.Where("category_id = ?", catID)
 	}
 
-	if artist := c.Query("artist"); artist != "" {
-		query = query.Where("artist = ?", artist)
+	merk := c.Query("merk")
+	if merk == "" {
+		merk = c.Query("artist")
+	}
+	if merk != "" {
+		query = query.Where("merk = ?", merk)
 	}
 
 	if productType := c.Query("product_type"); productType != "" {
@@ -117,7 +125,7 @@ func GetProducts(c *gin.Context) {
 	search := c.Query("search")
 	if search != "" {
 		s := "%" + search + "%"
-		query = query.Where("name LIKE ? OR barcode LIKE ? OR artist LIKE ? OR product_type LIKE ?", s, s, s, s)
+		query = query.Where("name LIKE ? OR barcode LIKE ? OR merk LIKE ? OR product_type LIKE ?", s, s, s, s)
 	}
 
 	isMaster := c.Query("is_master")
@@ -154,14 +162,15 @@ func GetProducts(c *gin.Context) {
 }
 
 func GetProductFilters(c *gin.Context) {
-	var artists []string
+	var merks []string
 	var productTypes []string
 
-	database.DB.Model(&models.Artist{}).Order("name").Pluck("name", &artists)
+	database.DB.Model(&models.Merk{}).Order("name").Pluck("name", &merks)
 	database.DB.Model(&models.ProductType{}).Order("name").Pluck("name", &productTypes)
 
 	c.JSON(http.StatusOK, gin.H{
-		"artists":       artists,
+		"merks":         merks,
+		"artists":       merks, // backward-compat fallback
 		"product_types": productTypes,
 	})
 }
@@ -223,7 +232,7 @@ func CreateProduct(c *gin.Context) {
 			OutletID:         nil, // Master product is cross-outlet
 			OriginalOutletID: outletID,
 			Name:             input.Name,
-			Artist:           input.Artist,
+			Merk:             input.Merk,
 			ProductType:      input.ProductType,
 			Price:            input.Price,
 			CostPrice:        input.CostPrice,
@@ -249,7 +258,7 @@ func CreateProduct(c *gin.Context) {
 			MerchantID:      merchantID,
 			OutletID:        outletID,
 			Name:            input.Name,
-			Artist:          input.Artist,
+			Merk:            input.Merk,
 			ProductType:     input.ProductType,
 			Price:           input.Price,
 			CostPrice:       input.CostPrice,
@@ -283,7 +292,7 @@ func CreateProduct(c *gin.Context) {
 		OutletID:          outletID,
 		OriginalOutletID:  originalOutletID,
 		Name:              input.Name,
-		Artist:            input.Artist,
+		Merk:              input.Merk,
 		ProductType:       input.ProductType,
 		Price:             input.Price,
 		CostPrice:         input.CostPrice,
@@ -331,7 +340,7 @@ func UpdateProduct(c *gin.Context) {
 	updates := map[string]interface{}{
 		"category_id":  input.CategoryID,
 		"name":         input.Name,
-		"artist":       input.Artist,
+		"merk":         input.Merk,
 		"product_type": input.ProductType,
 		"price":        input.Price,
 		"cost_price":   input.CostPrice,
@@ -353,7 +362,7 @@ func UpdateProduct(c *gin.Context) {
 		database.DB.Model(&models.Product{}).Where("id = ?", *product.MasterProductID).Updates(map[string]interface{}{
 			"category_id":  input.CategoryID,
 			"name":         input.Name,
-			"artist":       input.Artist,
+			"merk":         input.Merk,
 			"product_type": input.ProductType,
 			"barcode":      input.Barcode,
 			"image_url":    input.ImageURL,
@@ -364,7 +373,7 @@ func UpdateProduct(c *gin.Context) {
 		database.DB.Model(&models.Product{}).Where("master_product_id = ?", product.ID).Updates(map[string]interface{}{
 			"category_id":  input.CategoryID,
 			"name":         input.Name,
-			"artist":       input.Artist,
+			"merk":         input.Merk,
 			"product_type": input.ProductType,
 			"barcode":      input.Barcode,
 			"image_url":    input.ImageURL,

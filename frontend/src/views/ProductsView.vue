@@ -42,9 +42,9 @@
         </div>
         <div class="flex flex-col gap-2">
           <label class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider">Merk</label>
-          <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedArtist">
+          <select class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-700/60 rounded-[14px] text-sm font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer" v-model="selectedMerk">
             <option value="">Semua Merk</option>
-            <option v-for="a in availableArtists" :key="a" :value="a">{{ a }}</option>
+            <option v-for="a in availableMerks" :key="a" :value="a">{{ a }}</option>
           </select>
         </div>
         <div class="flex flex-col gap-2">
@@ -225,10 +225,10 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Merk Produk</label>
-              <select v-model="form.artist" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100">
+              <select v-model="form.merk" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100">
                 <option value="">Pilih Merk</option>
-                <option v-for="artist in artists" :key="artist.id" :value="artist.name">{{ artist.name }}</option>
-                <option v-if="form.artist && !artists.some(artist => artist.name === form.artist)" :value="form.artist">{{ form.artist }}</option>
+                <option v-for="merk in merks" :key="merk.id" :value="merk.name">{{ merk.name }}</option>
+                <option v-if="form.merk && !merks.some(merk => merk.name === form.merk)" :value="form.merk">{{ form.merk }}</option>
               </select>
             </div>
             <div class="form-group">
@@ -376,29 +376,29 @@
           </ul>
         </div>
 
-        <form v-if="activeCatalogTab === 'artists'" @submit.prevent="saveArtist" class="modal-body">
+        <form v-if="activeCatalogTab === 'merks'" @submit.prevent="saveMerk" class="modal-body">
           <div class="form-group">
             <label class="form-label">Nama Merk</label>
-            <AppInput v-model="artistForm.name" required maxlength="100" placeholder="Contoh: Indofood, Unilever, Nestle, dll" />
+            <AppInput v-model="merkForm.name" required maxlength="100" placeholder="Contoh: Indofood, Unilever, Nestle, dll" />
           </div>
           <p v-if="categoryError" class="text-sm font-medium text-rose-600 dark:text-rose-400" role="alert">{{ categoryError }}</p>
           <div class="modal-footer"><AppButton variant="primary" type="submit" :disabled="isSavingCategory">Tambah Merk</AppButton></div>
         </form>
-        <div v-if="activeCatalogTab === 'artists'" class="px-5 pb-5">
-          <h4 class="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Merk Terdaftar ({{ artists.length }})</h4>
-          <p v-if="artists.length === 0" class="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">Belum ada merk.</p>
+        <div v-if="activeCatalogTab === 'merks'" class="px-5 pb-5">
+          <h4 class="mb-3 text-sm font-bold text-slate-700 dark:text-slate-200">Merk Terdaftar ({{ merks.length }})</h4>
+          <p v-if="merks.length === 0" class="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">Belum ada merk.</p>
           <ul v-else class="divide-y divide-slate-200 rounded-lg border border-slate-200 dark:divide-slate-700 dark:border-slate-700">
-            <li v-for="artist in artists" :key="artist.id" class="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
-              <form v-if="editingArtistId === artist.id" class="flex min-w-[240px] flex-1 items-center gap-2" @submit.prevent="updateArtist(artist.id)">
-                <AppInput v-model="editingArtistName" class="min-w-0 flex-1" required maxlength="100" aria-label="Nama merk" />
+            <li v-for="merk in merks" :key="merk.id" class="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5">
+              <form v-if="editingMerkId === merk.id" class="flex min-w-[240px] flex-1 items-center gap-2" @submit.prevent="updateMerk(merk.id)">
+                <AppInput v-model="editingMerkName" class="min-w-0 flex-1" required maxlength="100" aria-label="Nama merk" />
                 <AppButton variant="primary" type="submit" size="sm" :disabled="isSavingCategory">Simpan</AppButton>
-                <AppButton variant="secondary" type="button" size="sm" @click="editingArtistId = null">Batal</AppButton>
+                <AppButton variant="secondary" type="button" size="sm" @click="editingMerkId = null">Batal</AppButton>
               </form>
               <template v-else>
-                <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ artist.name }}</span>
+                <span class="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ merk.name }}</span>
                 <div class="flex gap-2">
-                  <AppButton variant="secondary" size="sm" title="Ubah merk" @click="startArtistEdit(artist)"><PencilIcon class="h-4 w-4" /></AppButton>
-                  <AppButton variant="danger" size="sm" title="Hapus merk" @click="deleteArtist(artist)"><TrashIcon class="h-4 w-4" /></AppButton>
+                  <AppButton variant="secondary" size="sm" title="Ubah merk" @click="startMerkEdit(merk)"><PencilIcon class="h-4 w-4" /></AppButton>
+                  <AppButton variant="danger" size="sm" title="Hapus merk" @click="deleteMerk(merk)"><TrashIcon class="h-4 w-4" /></AppButton>
                 </div>
               </template>
             </li>
@@ -571,7 +571,7 @@ import AppBadge from '@/components/ui/AppBadge.vue';
 
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
-import type { Artist, Category, Product, ProductType } from '../types';
+import type { Category, Merk, Product, ProductType } from '../types';
 import { MagnifyingGlassIcon, PencilIcon, TrashIcon, PlusIcon, XMarkIcon, BuildingStorefrontIcon, SparklesIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 import { useStoreContextStore } from '@/stores/storeContext';
@@ -636,25 +636,25 @@ const toggleSelectAllBatch = () => {
 
 const products = ref<Product[]>([]);
 const categories = ref<Category[]>([]);
-const artists = ref<Artist[]>([]);
+const merks = ref<Merk[]>([]);
 const productTypes = ref<ProductType[]>([]);
 const isLoading = ref(true);
 
 const searchQuery = ref('');
 const selectedCatId = ref<string | null>(null);
-const selectedArtist = ref<string>('');
+const selectedMerk = ref<string>('');
 const selectedProductType = ref<string>('');
 
 const isProductModalOpen = ref(false);
 const isCategoryModalOpen = ref(false);
-const activeCatalogTab = ref<'categories' | 'artists' | 'productTypes'>('categories');
+const activeCatalogTab = ref<'categories' | 'merks' | 'productTypes'>('categories');
 const isSaving = ref(false);
 const isCompressingImage = ref(false);
 const isSavingCategory = ref(false);
 const editingId = ref<string | null>(null);
 const editingCategoryId = ref<string | null>(null);
-const editingArtistId = ref<string | null>(null);
-const editingArtistName = ref('');
+const editingMerkId = ref<string | null>(null);
+const editingMerkName = ref('');
 const editingProductTypeId = ref<string | null>(null);
 const editingProductTypeName = ref('');
 const productsError = ref('');
@@ -667,10 +667,10 @@ const productImageInput = ref<HTMLInputElement | null>(null);
 const form = ref({
   name: '',
   category_id: '' as string,
-  artist: '',
+  merk: '',
   product_type: '',
-  price: 0,
-  cost_price: 0,
+  price: 10000,
+  cost_price: 5000,
   stock: 0,
   unit: 'pcs' as Product['unit'],
   barcode: '',
@@ -678,11 +678,11 @@ const form = ref({
 });
 
 const categoryForm = ref({ name: '' });
-const artistForm = ref({ name: '' });
+const merkForm = ref({ name: '' });
 const productTypeForm = ref({ name: '' });
 const catalogTabs = [
   { id: 'categories' as const, label: 'Kategori' },
-  { id: 'artists' as const, label: 'Merk' },
+  { id: 'merks' as const, label: 'Merk' },
   { id: 'productTypes' as const, label: 'Tipe Produk' }
 ];
 const rootCategories = computed(() => categories.value.filter(category => !category.parent_id));
@@ -708,15 +708,15 @@ const maxProductImageBytes = 300 * 1024;
 const maxProductImageSourceBytes = 10 * 1024 * 1024;
 const maxProductImageDimension = 1200;
 
-const availableArtists = computed(() => {
-  return artists.value.map(artist => artist.name);
+const availableMerks = computed(() => {
+  return merks.value.map(merk => merk.name);
 });
 
 const availableProductTypes = computed(() => {
   return productTypes.value.map(productType => productType.name);
 });
 
-const normalizeCatalog = <T extends Artist | ProductType>(data: unknown, label: string): T[] => {
+const normalizeCatalog = <T extends Merk | ProductType>(data: unknown, label: string): T[] => {
   if (!Array.isArray(data)) {
     throw new Error(`API ${label} belum aktif. Restart backend dengan versi terbaru.`);
   }
@@ -757,16 +757,16 @@ const fetchCategories = async () => {
 
 const fetchCatalogs = async () => {
   try {
-    const [artistResponse, typeResponse] = await Promise.all([
-      api.get('/artists'),
+    const [merkResponse, typeResponse] = await Promise.all([
+      api.get('/merks'),
       api.get('/product-types')
     ]);
-    artists.value = normalizeCatalog<Artist>(artistResponse.data, 'Artist');
+    merks.value = normalizeCatalog<Merk>(merkResponse.data, 'Merk');
     productTypes.value = normalizeCatalog<ProductType>(typeResponse.data, 'Tipe Produk');
   } catch (err: any) {
-    artists.value = [];
+    merks.value = [];
     productTypes.value = [];
-    categoryError.value = err.response?.data?.error || err.message || 'Gagal mengambil master artist dan tipe produk.';
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal mengambil master merk dan tipe produk.';
   }
 };
 
@@ -780,7 +780,7 @@ onMounted(() => {
 const resetFilters = () => {
   searchQuery.value = '';
   selectedCatId.value = null;
-  selectedArtist.value = '';
+  selectedMerk.value = '';
   selectedProductType.value = '';
   masterStoreFilter.value = null;
 };
@@ -809,17 +809,18 @@ const filteredProducts = computed(() => {
     }
 
     const matchCat = selectedCatId.value === null || matchesCategoryBranch(p.category_id, selectedCatId.value);
-    const matchArt = !selectedArtist.value || p.artist === selectedArtist.value;
+    const matchMerk = !selectedMerk.value || p.merk === selectedMerk.value || p.artist === selectedMerk.value;
     const matchType = !selectedProductType.value || p.product_type === selectedProductType.value;
 
     const q = searchQuery.value.toLowerCase();
     const matchQ = !q || 
       p.name.toLowerCase().includes(q) || 
       (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+      (p.merk && p.merk.toLowerCase().includes(q)) ||
       (p.artist && p.artist.toLowerCase().includes(q)) ||
       (p.product_type && p.product_type.toLowerCase().includes(q));
 
-    return matchCat && matchArt && matchType && matchQ;
+    return matchCat && matchMerk && matchType && matchQ;
   });
 });
 
@@ -889,10 +890,10 @@ const openCategoryModal = (): void => {
   categoryError.value = '';
   activeCatalogTab.value = 'categories';
   categoryForm.value = { name: '' };
-  artistForm.value = { name: '' };
+  merkForm.value = { name: '' };
   productTypeForm.value = { name: '' };
   editingCategoryId.value = null;
-  editingArtistId.value = null;
+  editingMerkId.value = null;
   editingProductTypeId.value = null;
   isCategoryModalOpen.value = true;
 };
@@ -903,7 +904,7 @@ const openAddModal = () => {
   form.value = {
     name: '',
     category_id: rootCategories.value[0]?.id ?? '',
-    artist: '',
+    merk: '',
     product_type: '',
     price: 10000,
     cost_price: 5000,
@@ -921,7 +922,7 @@ const openEditModal = (prod: Product): void => {
   form.value = {
     name: prod.name,
     category_id: prod.category_id ?? "",
-    artist: prod.artist ?? '',
+    merk: prod.merk ?? prod.artist ?? '',
     product_type: prod.product_type ?? '',
     price: prod.price,
     cost_price: prod.cost_price ?? 0,
@@ -1132,52 +1133,52 @@ const deleteCategory = async (category: Category): Promise<void> => {
   }
 };
 
-const saveArtist = async (): Promise<void> => {
+const saveMerk = async (): Promise<void> => {
   categoryError.value = '';
   isSavingCategory.value = true;
   try {
-    await api.post('/artists', { name: artistForm.value.name.trim() });
-    artistForm.value = { name: '' };
+    await api.post('/merks', { name: merkForm.value.name.trim() });
+    merkForm.value = { name: '' };
     await fetchCatalogs();
   } catch (err: any) {
-    categoryError.value = err.response?.data?.error || err.message || 'Gagal menyimpan artist.';
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal menyimpan merk.';
   } finally {
     isSavingCategory.value = false;
   }
 };
 
-const startArtistEdit = (artist: Artist): void => {
+const startMerkEdit = (merk: Merk): void => {
   categoryError.value = '';
-  editingArtistId.value = artist.id;
-  editingArtistName.value = artist.name;
+  editingMerkId.value = merk.id;
+  editingMerkName.value = merk.name;
 };
 
-const updateArtist = async (id: string): Promise<void> => {
+const updateMerk = async (id: string): Promise<void> => {
   categoryError.value = '';
   isSavingCategory.value = true;
   try {
-    await api.put(`/artists/${id}`, { name: editingArtistName.value.trim() });
-    editingArtistId.value = null;
+    await api.put(`/merks/${id}`, { name: editingMerkName.value.trim() });
+    editingMerkId.value = null;
     await Promise.all([fetchCatalogs(), fetchProducts()]);
   } catch (err: any) {
-    categoryError.value = err.response?.data?.error || err.message || 'Gagal memperbarui artist.';
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal memperbarui merk.';
   } finally {
     isSavingCategory.value = false;
   }
 };
 
-const deleteArtist = async (artist: Artist): Promise<void> => {
-  if (!await showAppConfirm(`Hapus merk "${artist.name}"?`, {
+const deleteMerk = async (merk: Merk): Promise<void> => {
+  if (!await showAppConfirm(`Hapus merk "${merk.name}"?`, {
     title: 'Hapus Merk?',
     confirmLabel: 'Ya, Hapus',
     tone: 'danger'
   })) return;
   categoryError.value = '';
   try {
-    await api.delete(`/artists/${artist.id}`);
+    await api.delete(`/merks/${merk.id}`);
     await fetchCatalogs();
   } catch (err: any) {
-    categoryError.value = err.response?.data?.error || err.message || 'Gagal menghapus artist.';
+    categoryError.value = err.response?.data?.error || err.message || 'Gagal menghapus merk.';
   }
 };
 

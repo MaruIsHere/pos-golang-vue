@@ -226,7 +226,7 @@ func CreateOrder(c *gin.Context) {
 		orderItems = append(orderItems, models.OrderItem{
 			ProductID:    prod.ID,
 			ProductName:  prod.Name,
-			Artist:       prod.Artist,
+			Merk:         prod.Merk,
 			ProductType:  prod.ProductType,
 			ProductPrice: prod.Price,
 			Quantity:     itemInput.Quantity,

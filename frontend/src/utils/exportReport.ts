@@ -165,7 +165,7 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
 
     // Table 1: Top Sellers (Row 8 Header, Row 9 Cols)
     ['🔥 10 BARANG PALING LAKU (TOP SELLERS)'],
-    ['Rank', 'Nama Produk', 'Artist / Merk', 'Tipe Produk', 'Harga Satuan', 'Terjual', 'Total Omset']
+    ['Rank', 'Nama Produk', 'Merk', 'Tipe Produk', 'Harga Satuan', 'Terjual', 'Total Omset']
   ];
 
   // Populate Top 10 Products
@@ -174,7 +174,7 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     sheet1Data.push([
       `#${idx + 1}`,
       p.product_name,
-      p.artist || 'Umum',
+      p.merk || p.artist || 'Umum',
       p.product_type || 'Umum',
       p.price || 0,
       `${formatQuantity(p.total_qty)} ${unitLabel(p.unit)}`,
@@ -187,14 +187,14 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
   const slowHeaderRowIdx = sheet1Data.length;
   sheet1Data.push(['⚠️ 10 BARANG KURANG LAKU (SLOW MOVING / EVALUASI STOK)']);
   const slowColsRowIdx = sheet1Data.length;
-  sheet1Data.push(['No', 'Nama Produk', 'Artist / Merk', 'Tipe Produk', 'Harga Satuan', 'Terjual', 'Stok Gudang']);
+  sheet1Data.push(['No', 'Nama Produk', 'Merk', 'Tipe Produk', 'Harga Satuan', 'Terjual', 'Stok Gudang']);
 
   const leastList = (stats.least_products || []).slice(0, 10);
   leastList.forEach((p, idx) => {
     sheet1Data.push([
       `#${idx + 1}`,
       p.product_name,
-      p.artist || 'Umum',
+      p.merk || p.artist || 'Umum',
       p.product_type || 'Umum',
       p.price || 0,
       `${formatQuantity(p.total_qty)} ${unitLabel(p.unit)}`,
@@ -224,7 +224,7 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
   ws1['!cols'] = [
     { wch: 10 }, // Rank / No
     { wch: 34 }, // Nama Produk
-    { wch: 20 }, // Artist / Merk
+    { wch: 20 }, // Merk
     { wch: 20 }, // Tipe Produk
     { wch: 18 }, // Harga Satuan
     { wch: 20 }, // Qty Terjual
@@ -331,7 +331,7 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     sheet2Data.push([
       idx + 1,
       p.product_name,
-      p.artist || 'Umum',
+      p.merk || p.artist || 'Umum',
       p.product_type || 'Umum',
       p.price || 0,
       `${formatQuantity(p.total_qty)} ${unitLabel(p.unit)}`,
@@ -358,8 +358,8 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
   const merkColsRowIdx = sheet2Data.length;
   sheet2Data.push(['No', 'Nama Merk', 'Total Kuantitas Terjual', 'Total Sales (Omset)']);
 
-  const artistSales = stats.sales_by_artist || [];
-  artistSales.forEach((a, idx) => {
+  const merkSales = stats.sales_by_merk || stats.sales_by_artist || [];
+  merkSales.forEach((a, idx) => {
     sheet2Data.push([
       idx + 1,
       a.name,
@@ -461,7 +461,7 @@ export const exportToExcel = async (stats: DashboardStats, dateTitle: string = '
     }
   }
 
-  artistSales.forEach((_, idx) => {
+  merkSales.forEach((_, idx) => {
     const r = merkColsRowIdx + 2 + idx;
     const bg = idx % 2 === 0 ? 'FFFBEB' : 'FFFFFF';
     for (let c = 0; c < 4; c++) {
@@ -658,7 +658,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
   const topTableData = (stats.top_products || []).map((p, idx) => [
     `#${idx + 1}`,
     p.product_name,
-    p.artist || 'Umum',
+    p.merk || p.artist || 'Umum',
     p.product_type || 'Umum',
     `Rp ${formatPrice(p.price || 0)}`,
     `${p.total_qty} ${unitLabel(p.unit)}`,
@@ -667,7 +667,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
 
   autoTable(doc, {
     startY: startY + 3,
-    head: [['Rank', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga', 'Terjual', 'Total Omset']],
+    head: [['Rank', 'Nama Produk', 'Merk', 'Tipe Produk', 'Harga', 'Terjual', 'Total Omset']],
     body: topTableData,
     theme: 'striped',
     headStyles: { fillColor: [79, 70, 229], fontSize: 8, fontStyle: 'bold' },
@@ -687,7 +687,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
   const leastTableData = (stats.least_products || []).map((p, idx) => [
     `#${idx + 1}`,
     p.product_name,
-    p.artist || 'Umum',
+    p.merk || p.artist || 'Umum',
     p.product_type || 'Umum',
     `Rp ${formatPrice(p.price || 0)}`,
     `${p.total_qty} ${unitLabel(p.unit)}`,
@@ -696,7 +696,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
 
   autoTable(doc, {
     startY: startY + 3,
-    head: [['No', 'Nama Produk', 'Artist', 'Tipe Produk', 'Harga', 'Terjual', 'Stok Gudang']],
+    head: [['No', 'Nama Produk', 'Merk', 'Tipe Produk', 'Harga', 'Terjual', 'Stok Gudang']],
     body: leastTableData,
     theme: 'striped',
     headStyles: { fillColor: [225, 29, 72], fontSize: 8, fontStyle: 'bold' },
@@ -722,7 +722,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
   const allSoldTableData = (stats.all_sold_products || []).map((p, idx) => [
     `${idx + 1}`,
     p.product_name,
-    p.artist || 'Umum',
+    p.merk || p.artist || 'Umum',
     p.product_type || 'Umum',
     `Rp ${formatPrice(p.price || 0)}`,
     `${p.total_qty} ${unitLabel(p.unit)}`,
@@ -731,7 +731,7 @@ export const exportToPDF = (stats: DashboardStats, dateTitle: string = 'Keseluru
 
   autoTable(doc, {
     startY: startY + 3,
-    head: [['No', 'Nama Produk', 'Artist', 'Tipe', 'Harga Satuan', 'Kuantitas', 'Subtotal Sales']],
+    head: [['No', 'Nama Produk', 'Merk', 'Tipe', 'Harga Satuan', 'Kuantitas', 'Subtotal Sales']],
     body: allSoldTableData,
     theme: 'grid',
     headStyles: { fillColor: [15, 23, 42], fontSize: 8, fontStyle: 'bold' },

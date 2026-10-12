@@ -55,7 +55,7 @@ Respons `401` akan mengakhiri sesi frontend. Validasi dan izin di UI bukan batas
 - **Outlet:** lokasi toko yang terkait merchant.
 - **User:** staf dengan role dan kemungkinan outlet.
 - **Product:** produk katalog master atau produk toko; produk toko dapat terhubung ke master melalui `master_product_id`.
-- **Category, Artist, ProductType:** atribut katalog.
+- **Category, Merk, ProductType:** atribut katalog.
 - **Order dan OrderItem:** transaksi serta snapshot item saat transaksi.
 - **StockMovement:** catatan perubahan stok masuk/keluar.
 - **Customer, Voucher, StoreSetting:** data pendukung penjualan dan konfigurasi.

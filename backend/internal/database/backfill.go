@@ -37,7 +37,7 @@ func BackfillMasterProducts(db *gorm.DB) {
 				OriginalOutletID: storeProd.OutletID,
 				CategoryID:       storeProd.CategoryID,
 				Name:             storeProd.Name,
-				Artist:           storeProd.Artist,
+				Merk:             storeProd.Merk,
 				ProductType:      storeProd.ProductType,
 				Price:            storeProd.Price,
 				CostPrice:        storeProd.CostPrice,

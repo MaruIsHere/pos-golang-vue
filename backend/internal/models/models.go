@@ -102,11 +102,14 @@ type Category struct {
 	ParentID   *uuid.UUID `gorm:"type:char(36);index" json:"parent_id,omitempty"`
 }
 
-type Artist struct {
+type Merk struct {
 	BaseModel
 	MerchantID *uuid.UUID `gorm:"type:char(36);index" json:"merchant_id,omitempty"`
 	Name       string     `gorm:"size:100;not null" json:"name"`
 }
+
+// Alias Artist to Merk for backwards compatibility
+type Artist = Merk
 
 type ProductType struct {
 	BaseModel
@@ -121,7 +124,7 @@ type Product struct {
 	CategoryID      *uuid.UUID `gorm:"type:char(36);index" json:"category_id"`
 	Category        Category   `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 	Name            string     `gorm:"size:150;not null" json:"name"`
-	Artist          string     `gorm:"size:100;index" json:"artist"`
+	Merk            string     `gorm:"size:100;index" json:"merk"`
 	ProductType     string     `gorm:"size:100;index" json:"product_type"` // 'retail' atau 'fnb'
 	Price           float64    `gorm:"type:decimal(12,2);not null" json:"price"`
 	CostPrice       float64    `gorm:"type:decimal(12,2);default:0" json:"cost_price"` // HPP Terakhir
@@ -163,7 +166,7 @@ type OrderItem struct {
 	OrderID      uuid.UUID `gorm:"type:char(36);index;not null" json:"order_id"`
 	ProductID    uuid.UUID `gorm:"type:char(36);index;not null" json:"product_id"`
 	ProductName  string    `gorm:"size:150;not null" json:"product_name"`
-	Artist       string    `gorm:"size:100" json:"artist"`
+	Merk         string    `gorm:"size:100" json:"merk"`
 	ProductType  string    `gorm:"size:100" json:"product_type"`
 	ProductPrice float64   `gorm:"type:decimal(12,2);not null" json:"product_price"`
 	Quantity     float64   `gorm:"type:decimal(12,3);not null" json:"quantity"`

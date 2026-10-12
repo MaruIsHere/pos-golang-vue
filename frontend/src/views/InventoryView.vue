@@ -50,7 +50,7 @@
             <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-medium" v-model.number="receiveForm.product_id" @change="onProductSelect('in')" required>
               <option value="" disabled>-- Pilih Produk --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }}{{ p.artist ? ' [Merk: ' + p.artist + ']' : '' }} (Stok Saat Ini: {{ formatQuantity(p.stock) }} {{ unitLabel(p.unit) }})
+                {{ p.name }}{{ (p.merk || p.artist) ? ' [Merk: ' + (p.merk || p.artist) + ']' : '' }} (Stok Saat Ini: {{ formatQuantity(p.stock) }} {{ unitLabel(p.unit) }})
               </option>
             </select>
           </div>
@@ -202,7 +202,7 @@
             <select class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 font-medium" v-model.number="issueForm.product_id" @change="onProductSelect('out')" required>
               <option value="" disabled>-- Pilih Produk --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">
-                {{ p.name }}{{ p.artist ? ' [Merk: ' + p.artist + ']' : '' }} (Stok Tersedia: {{ formatQuantity(p.stock) }} {{ unitLabel(p.unit) }})
+                {{ p.name }}{{ (p.merk || p.artist) ? ' [Merk: ' + (p.merk || p.artist) + ']' : '' }} (Stok Tersedia: {{ formatQuantity(p.stock) }} {{ unitLabel(p.unit) }})
               </option>
             </select>
           </div>
@@ -384,7 +384,7 @@
                 </td>
                 <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
                   <strong class="product-name">{{ m.product ? m.product.name : 'Produk ID ' + m.product_id }}</strong>
-                  <span v-if="m.product && m.product.artist" class="text-xs text-slate-400 ml-1.5">[Merk: {{ m.product.artist }}]</span>
+                  <span v-if="m.product && (m.product.merk || m.product.artist)" class="text-xs text-slate-400 ml-1.5">[Merk: {{ m.product.merk || m.product.artist }}]</span>
                 </td>
                 <td class="p-3 border-b border-slate-200 dark:border-slate-700 align-middle text-slate-900 dark:text-slate-100">
                   <span class="font-bold text-sm" :class="m.type">

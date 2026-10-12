@@ -107,7 +107,7 @@
               <div class="w-8 h-8 flex shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-slate-400 text-xs"">#{{ index + 1 }}</div>
               <div class="flex flex-col flex-1 min-w-0">
                 <span class="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">{{ p.product_name }}</span>
-                <span class="text-xs text-slate-500 truncate mt-0.5">{{ p.artist }} • {{ p.product_type }}</span>
+                <span class="text-xs text-slate-500 truncate mt-0.5">{{ p.merk || p.artist }} • {{ p.product_type }}</span>
               </div>
               <div class="text-right">
                 <div class="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">Rp {{ formatPrice(p.total_sales) }}</div>
@@ -170,10 +170,10 @@
           </div>
 
           <!-- Active Filter Badge & Reset -->
-          <div v-if="mainTableFilter.artist || mainTableFilter.productType" class="flex items-center gap-2">
+          <div v-if="mainTableFilter.merk || mainTableFilter.productType" class="flex items-center gap-2">
             <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-400 rounded-lg text-xs font-bold border border-indigo-200 dark:border-indigo-800/40 flex items-center gap-1">
               <FunnelIcon class="w-3.5 h-3.5" />
-              <span>{{ mainTableFilter.artist ? `Merk: ${mainTableFilter.artist}` : `Tipe: ${mainTableFilter.productType}` }}</span>
+              <span>{{ mainTableFilter.merk ? `Merk: ${mainTableFilter.merk}` : `Tipe: ${mainTableFilter.productType}` }}</span>
             </span>
             <button class="px-2 py-1 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/30 rounded-lg transition-colors" @click="resetMainTableFilter">
               Reset
@@ -206,7 +206,7 @@
             <tr v-else v-for="(p, idx) in filteredMainTableProducts" :key="idx" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
               <td class="py-3 px-3 text-slate-400 font-bold text-xs">{{ idx + 1 }}</td>
               <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-100">{{ p.product_name }}</td>
-              <td class="py-3 px-3"><span class="px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-[10px] font-bold border border-purple-200 dark:border-purple-800/50">{{ p.artist || 'Umum' }}</span></td>
+              <td class="py-3 px-3"><span class="px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-[10px] font-bold border border-purple-200 dark:border-purple-800/50">{{ p.merk || p.artist || 'Umum' }}</span></td>
               <td class="py-3 px-3"><span class="px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-md text-[10px] font-bold border border-amber-200 dark:border-amber-800/50">{{ p.product_type || 'Umum' }}</span></td>
               <td class="py-3 px-3 text-slate-700 dark:text-slate-300">Rp {{ formatPrice(p.price || 0) }}</td>
               <td class="py-3 px-3"><span class="px-2.5 py-1 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700">{{ formatQuantity(p.total_qty) }} {{ unitLabel(p.unit) }}</span></td>
@@ -219,7 +219,7 @@
 
     <!-- Section 4: Breakdown Sales Per Merk & Tipe Produk -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-      <!-- Sales by Artist / Merk -->
+      <!-- Sales by Merk -->
       <AppCard>
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
           <div>
@@ -229,19 +229,19 @@
             <span class="text-[11px] text-slate-400 font-medium">Klik item untuk melihat rincian detail barang</span>
           </div>
           <span class="px-2 py-0.5 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[10px] font-bold rounded-md border border-amber-200 dark:border-amber-800/40">
-            {{ stats.sales_by_artist?.length || 0 }} Merk
+            {{ (stats.sales_by_merk || stats.sales_by_artist)?.length || 0 }} Merk
           </span>
         </div>
         <div class="flex flex-col">
-          <div v-if="!stats.sales_by_artist || stats.sales_by_artist.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
+          <div v-if="!(stats.sales_by_merk || stats.sales_by_artist) || (stats.sales_by_merk || stats.sales_by_artist)!.length === 0" class="text-sm text-slate-400 italic p-6 text-center">
             Belum ada data merk
           </div>
           <div v-else class="flex flex-col gap-3">
             <div 
-              v-for="(item, idx) in stats.sales_by_artist" 
+              v-for="(item, idx) in (stats.sales_by_merk || stats.sales_by_artist)" 
               :key="idx" 
               class="flex justify-between items-center p-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-500 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer group"
-              @click="openDetailModal('artist', item.name)"
+              @click="openDetailModal('merk', item.name)"
             >
               <div class="flex flex-col flex-1 min-w-0 pr-2">
                 <div class="flex items-center gap-2">
@@ -307,14 +307,14 @@
         <!-- Modal Header -->
         <div class="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/80">
           <div class="flex items-center gap-3">
-            <div class="p-3 rounded-2xl" :class="activeDetailModal.type === 'artist' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' : 'bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400'">
-              <UserIcon v-if="activeDetailModal.type === 'artist'" class="w-6 h-6" />
+            <div class="p-3 rounded-2xl" :class="activeDetailModal.type === 'merk' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' : 'bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400'">
+              <UserIcon v-if="activeDetailModal.type === 'merk'" class="w-6 h-6" />
               <TagIcon v-else class="w-6 h-6" />
             </div>
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  {{ activeDetailModal.type === 'artist' ? 'Rincian Penjualan Per Merk' : 'Rincian Penjualan Per Tipe Produk' }}
+                  {{ activeDetailModal.type === 'merk' ? 'Rincian Penjualan Per Merk' : 'Rincian Penjualan Per Tipe Produk' }}
                 </span>
               </div>
               <h3 class="text-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -394,7 +394,7 @@
                   <td class="py-3.5 px-4 font-bold text-slate-800 dark:text-slate-100">{{ p.product_name }}</td>
                   <td class="py-3.5 px-4">
                     <span class="px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-md text-[10px] font-bold border border-purple-200 dark:border-purple-800/50">
-                      {{ p.artist || 'Umum' }}
+                      {{ p.merk || p.artist || 'Umum' }}
                     </span>
                   </td>
                   <td class="py-3.5 px-4">
@@ -478,6 +478,7 @@ const stats = ref<DashboardStats>({
   top_products: [],
   least_products: [],
   all_sold_products: [],
+  sales_by_merk: [],
   sales_by_artist: [],
   sales_by_type: [],
   recent_orders: []
@@ -486,13 +487,13 @@ const stats = ref<DashboardStats>({
 // Modal detail state
 interface DetailModalState {
   isOpen: boolean;
-  type: 'artist' | 'product_type';
+  type: 'merk' | 'product_type';
   name: string;
 }
 
 const activeDetailModal = ref<DetailModalState>({
   isOpen: false,
-  type: 'artist',
+  type: 'merk',
   name: ''
 });
 
@@ -501,11 +502,11 @@ const detailSearchQuery = ref('');
 // Main table filter state
 const mainTableFilter = ref<{
   search: string;
-  artist: string | null;
+  merk: string | null;
   productType: string | null;
 }>({
   search: '',
-  artist: null,
+  merk: null,
   productType: null
 });
 
@@ -514,16 +515,16 @@ const formatQuantity = (val: number): string => new Intl.NumberFormat('id-ID', {
 const unitLabel = (unit?: string): string => unit === 'gram' ? 'gr' : unit === 'liter' ? 'L' : 'pcs';
 
 // Matching helpers for brand / type (handles 'Umum' and 'Lainnya / Umum')
-const isMatchingArtist = (artistInProduct?: string, filterArtistName?: string): boolean => {
-  if (!filterArtistName) return true;
-  const pArtist = (artistInProduct || '').trim().toLowerCase();
-  const fArtist = filterArtistName.trim().toLowerCase();
+const isMatchingMerk = (merkInProduct?: string, filterMerkName?: string): boolean => {
+  if (!filterMerkName) return true;
+  const pMerk = (merkInProduct || '').trim().toLowerCase();
+  const fMerk = filterMerkName.trim().toLowerCase();
   
-  const isDefaultP = !pArtist || pArtist === 'umum' || pArtist === 'lainnya / umum' || pArtist === '-';
-  const isDefaultF = !fArtist || fArtist === 'umum' || fArtist === 'lainnya / umum' || fArtist === '-';
+  const isDefaultP = !pMerk || pMerk === 'umum' || pMerk === 'lainnya / umum' || pMerk === '-';
+  const isDefaultF = !fMerk || fMerk === 'umum' || fMerk === 'lainnya / umum' || fMerk === '-';
 
   if (isDefaultF) return isDefaultP;
-  return pArtist === fArtist;
+  return pMerk === fMerk;
 };
 
 const isMatchingProductType = (typeInProduct?: string, filterTypeName?: string): boolean => {
@@ -538,7 +539,7 @@ const isMatchingProductType = (typeInProduct?: string, filterTypeName?: string):
   return pType === fType;
 };
 
-const openDetailModal = (type: 'artist' | 'product_type', name: string) => {
+const openDetailModal = (type: 'merk' | 'product_type', name: string) => {
   activeDetailModal.value = {
     isOpen: true,
     type,
@@ -552,12 +553,12 @@ const closeDetailModal = () => {
 };
 
 const applyFilterToMainTable = () => {
-  if (activeDetailModal.value.type === 'artist') {
-    mainTableFilter.value.artist = activeDetailModal.value.name;
+  if (activeDetailModal.value.type === 'merk') {
+    mainTableFilter.value.merk = activeDetailModal.value.name;
     mainTableFilter.value.productType = null;
   } else {
     mainTableFilter.value.productType = activeDetailModal.value.name;
-    mainTableFilter.value.artist = null;
+    mainTableFilter.value.merk = null;
   }
   closeDetailModal();
   
@@ -570,7 +571,7 @@ const applyFilterToMainTable = () => {
 
 const resetMainTableFilter = () => {
   mainTableFilter.value.search = '';
-  mainTableFilter.value.artist = null;
+  mainTableFilter.value.merk = null;
   mainTableFilter.value.productType = null;
 };
 
@@ -578,8 +579,8 @@ const resetMainTableFilter = () => {
 const rawDetailProducts = computed<ProductSalesStat[]>(() => {
   if (!activeDetailModal.value.isOpen) return [];
   const allProds = stats.value.all_sold_products || [];
-  if (activeDetailModal.value.type === 'artist') {
-    return allProds.filter(p => isMatchingArtist(p.artist, activeDetailModal.value.name));
+  if (activeDetailModal.value.type === 'merk') {
+    return allProds.filter(p => isMatchingMerk(p.merk || p.artist, activeDetailModal.value.name));
   } else {
     return allProds.filter(p => isMatchingProductType(p.product_type, activeDetailModal.value.name));
   }
@@ -590,7 +591,7 @@ const filteredDetailProducts = computed<ProductSalesStat[]>(() => {
   if (!q) return rawDetailProducts.value;
   return rawDetailProducts.value.filter(p => 
     p.product_name.toLowerCase().includes(q) ||
-    (p.artist && p.artist.toLowerCase().includes(q)) ||
+    ((p.merk || p.artist) && (p.merk || p.artist)!.toLowerCase().includes(q)) ||
     (p.product_type && p.product_type.toLowerCase().includes(q))
   );
 });
@@ -612,12 +613,12 @@ const filteredMainTableProducts = computed<ProductSalesStat[]>(() => {
   return allProds.filter(p => {
     const matchesSearch = !mainTableFilter.value.search || 
       p.product_name.toLowerCase().includes(mainTableFilter.value.search.toLowerCase());
-    const matchesArtist = !mainTableFilter.value.artist || 
-      isMatchingArtist(p.artist, mainTableFilter.value.artist);
+    const matchesMerk = !mainTableFilter.value.merk || 
+      isMatchingMerk(p.merk || p.artist, mainTableFilter.value.merk);
     const matchesType = !mainTableFilter.value.productType || 
       isMatchingProductType(p.product_type, mainTableFilter.value.productType);
 
-    return matchesSearch && matchesArtist && matchesType;
+    return matchesSearch && matchesMerk && matchesType;
   });
 });
 

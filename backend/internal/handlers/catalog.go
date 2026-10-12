@@ -28,90 +28,96 @@ func normalizeCatalogInput(c *gin.Context) (catalogInput, bool) {
 	return input, true
 }
 
-func GetArtists(c *gin.Context) {
-	var artists []models.Artist
-	if err := database.DB.Order("name").Find(&artists).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil daftar artist"})
+func GetMerks(c *gin.Context) {
+	var merks []models.Merk
+	if err := database.DB.Order("name").Find(&merks).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil daftar merk"})
 		return
 	}
-	c.JSON(http.StatusOK, artists)
+	c.JSON(http.StatusOK, merks)
 }
 
-func CreateArtist(c *gin.Context) {
+func CreateMerk(c *gin.Context) {
 	input, ok := normalizeCatalogInput(c)
 	if !ok {
 		return
 	}
 	var count int64
-	if err := database.DB.Model(&models.Artist{}).Where("LOWER(name) = LOWER(?)", input.Name).Count(&count).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa nama artist"})
+	if err := database.DB.Model(&models.Merk{}).Where("LOWER(name) = LOWER(?)", input.Name).Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa nama merk"})
 		return
 	}
 	if count > 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": "Artist sudah tersedia"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Merk sudah tersedia"})
 		return
 	}
-	artist := models.Artist{Name: input.Name}
-	if err := database.DB.Create(&artist).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan artist"})
+	merk := models.Merk{Name: input.Name}
+	if err := database.DB.Create(&merk).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan merk"})
 		return
 	}
-	c.JSON(http.StatusCreated, artist)
+	c.JSON(http.StatusCreated, merk)
 }
 
-func UpdateArtist(c *gin.Context) {
+func UpdateMerk(c *gin.Context) {
 	input, ok := normalizeCatalogInput(c)
 	if !ok {
 		return
 	}
-	var artist models.Artist
-	if err := database.DB.Where("id = ?", c.Param("id")).First(&artist).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Artist tidak ditemukan"})
+	var merk models.Merk
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&merk).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Merk tidak ditemukan"})
 		return
 	}
 	var count int64
-	if err := database.DB.Model(&models.Artist{}).Where("LOWER(name) = LOWER(?) AND id <> ?", input.Name, artist.ID).Count(&count).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa nama artist"})
+	if err := database.DB.Model(&models.Merk{}).Where("LOWER(name) = LOWER(?) AND id <> ?", input.Name, merk.ID).Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa nama merk"})
 		return
 	}
 	if count > 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": "Nama artist sudah digunakan"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Nama merk sudah digunakan"})
 		return
 	}
 	if err := database.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&models.Product{}).Where("artist = ?", artist.Name).Update("artist", input.Name).Error; err != nil {
+		if err := tx.Model(&models.Product{}).Where("merk = ?", merk.Name).Update("merk", input.Name).Error; err != nil {
 			return err
 		}
-		return tx.Model(&artist).Update("name", input.Name).Error
+		return tx.Model(&merk).Update("name", input.Name).Error
 	}); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui artist"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memperbarui merk"})
 		return
 	}
-	artist.Name = input.Name
-	c.JSON(http.StatusOK, artist)
+	merk.Name = input.Name
+	c.JSON(http.StatusOK, merk)
 }
 
-func DeleteArtist(c *gin.Context) {
-	var artist models.Artist
-	if err := database.DB.Where("id = ?", c.Param("id")).First(&artist).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Artist tidak ditemukan"})
+func DeleteMerk(c *gin.Context) {
+	var merk models.Merk
+	if err := database.DB.Where("id = ?", c.Param("id")).First(&merk).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Merk tidak ditemukan"})
 		return
 	}
 	var count int64
-	if err := database.DB.Model(&models.Product{}).Where("artist = ?", artist.Name).Count(&count).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa penggunaan artist"})
+	if err := database.DB.Model(&models.Product{}).Where("merk = ?", merk.Name).Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal memeriksa penggunaan merk"})
 		return
 	}
 	if count > 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": "Artist masih digunakan produk"})
+		c.JSON(http.StatusConflict, gin.H{"error": "Merk masih digunakan produk"})
 		return
 	}
-	if err := database.DB.Delete(&artist).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus artist"})
+	if err := database.DB.Delete(&merk).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghapus merk"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Artist berhasil dihapus"})
+	c.JSON(http.StatusOK, gin.H{"message": "Merk berhasil dihapus"})
 }
+
+// Backward-compatible aliases for legacy routes
+var GetArtists = GetMerks
+var CreateArtist = CreateMerk
+var UpdateArtist = UpdateMerk
+var DeleteArtist = DeleteMerk
 
 func GetProductTypes(c *gin.Context) {
 	var productTypes []models.ProductType

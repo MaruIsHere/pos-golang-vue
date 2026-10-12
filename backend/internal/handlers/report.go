@@ -68,7 +68,8 @@ func GetDashboardStats(c *gin.Context) {
 	type ProductSalesStat struct {
 		ProductID   uuid.UUID `json:"product_id"`
 		ProductName string    `json:"product_name"`
-		Artist      string    `json:"artist"`
+		Merk        string    `json:"merk"`
+		Artist      string    `json:"artist,omitempty"` // fallback backward compatibility
 		ProductType string    `json:"product_type"`
 		TotalQty    float64   `json:"total_qty"`
 		TotalSales  float64   `json:"total_sales"`
@@ -80,13 +81,13 @@ func GetDashboardStats(c *gin.Context) {
 	// Top Selling Products (Barang Paling Laku)
 	topProducts := []ProductSalesStat{}
 	topProdQ := database.DB.Table("products p").
-		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
+		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.merk, ''), 'Umum') as merk, COALESCE(NULLIF(p.merk, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
 		Joins("INNER JOIN order_items oi ON oi.product_id = p.id").
 		Joins("INNER JOIN orders o ON o.id = oi.order_id").
 		Where("o.status = 'completed'")
 	if merchantID != nil { topProdQ = topProdQ.Where("p.merchant_id = ?", merchantID) }
 	if outletID != nil { topProdQ = topProdQ.Where("p.outlet_id = ?", outletID) }
-	topProdQ.Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
+	topProdQ.Group("p.id, p.name, p.merk, p.product_type, p.stock, p.price, p.unit").
 		Order("total_qty desc").
 		Limit(10).
 		Scan(&topProducts)
@@ -94,12 +95,12 @@ func GetDashboardStats(c *gin.Context) {
 	// Slow Moving / Least Sold Products (Barang Kurang Laku)
 	leastProducts := []ProductSalesStat{}
 	leastProdQ := database.DB.Table("products p").
-		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.artist, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
+		Select("p.id as product_id, p.name as product_name, COALESCE(NULLIF(p.merk, ''), 'Umum') as merk, COALESCE(NULLIF(p.merk, ''), 'Umum') as artist, COALESCE(NULLIF(p.product_type, ''), 'Umum') as product_type, COALESCE(SUM(oi.quantity), 0) as total_qty, COALESCE(SUM(oi.subtotal), 0) as total_sales, p.stock, p.price, p.unit").
 		Joins("LEFT JOIN order_items oi ON oi.product_id = p.id").
 		Where("p.is_active = ?", true)
 	if merchantID != nil { leastProdQ = leastProdQ.Where("p.merchant_id = ?", merchantID) }
 	if outletID != nil { leastProdQ = leastProdQ.Where("p.outlet_id = ?", outletID) }
-	leastProdQ.Group("p.id, p.name, p.artist, p.product_type, p.stock, p.price, p.unit").
+	leastProdQ.Group("p.id, p.name, p.merk, p.product_type, p.stock, p.price, p.unit").
 		Order("total_qty asc, p.stock desc").
 		Limit(10).
 		Scan(&leastProducts)
@@ -107,9 +108,9 @@ func GetDashboardStats(c *gin.Context) {
 	// All Sold Products List (List Seluruh Barang Laku)
 	allSoldProducts := []ProductSalesStat{}
 	getOrderItemQuery().
-		Select("order_items.product_id, order_items.product_name, COALESCE(NULLIF(order_items.artist, ''), 'Umum') as artist, COALESCE(NULLIF(order_items.product_type, ''), 'Umum') as product_type, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales, MAX(order_items.product_price) as price, MAX(order_items.unit) as unit").
+		Select("order_items.product_id, order_items.product_name, COALESCE(NULLIF(order_items.merk, ''), 'Umum') as merk, COALESCE(NULLIF(order_items.merk, ''), 'Umum') as artist, COALESCE(NULLIF(order_items.product_type, ''), 'Umum') as product_type, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales, MAX(order_items.product_price) as price, MAX(order_items.unit) as unit").
 		Where("orders.status = 'completed'").
-		Group("order_items.product_id, order_items.product_name, order_items.artist, order_items.product_type, order_items.unit").
+		Group("order_items.product_id, order_items.product_name, order_items.merk, order_items.product_type, order_items.unit").
 		Order("total_qty desc").
 		Scan(&allSoldProducts)
 
@@ -120,13 +121,13 @@ func GetDashboardStats(c *gin.Context) {
 		TotalSales float64   `json:"total_sales"`
 	}
 
-	salesByArtist := []SubGroupStat{}
+	salesByMerk := []SubGroupStat{}
 	getOrderItemQuery().
-		Select("COALESCE(NULLIF(order_items.artist, ''), 'Lainnya / Umum') as name, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales").
+		Select("COALESCE(NULLIF(order_items.merk, ''), 'Lainnya / Umum') as name, SUM(order_items.quantity) as total_qty, SUM(order_items.subtotal) as total_sales").
 		Where("orders.status = 'completed'").
 		Group("name").
 		Order("total_sales desc").
-		Scan(&salesByArtist)
+		Scan(&salesByMerk)
 
 	salesByType := []SubGroupStat{}
 	getOrderItemQuery().
@@ -161,7 +162,8 @@ func GetDashboardStats(c *gin.Context) {
 		"top_products":       topProducts,
 		"least_products":     leastProducts,
 		"all_sold_products":  allSoldProducts,
-		"sales_by_artist":    salesByArtist,
+		"sales_by_merk":      salesByMerk,
+		"sales_by_artist":    salesByMerk, // backward-compat fallback
 		"sales_by_type":      salesByType,
 		"recent_orders":      recentOrders,
 		"store_setting":      storeSetting,

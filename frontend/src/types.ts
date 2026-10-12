@@ -60,12 +60,14 @@ export interface Category {
   created_at?: string;
 }
 
-export interface Artist {
+export interface Merk {
   id: string;
   merchant_id?: string;
   name: string;
   created_at?: string;
 }
+
+export type Artist = Merk;
 
 export interface ProductType {
   id: string;
@@ -81,6 +83,7 @@ export interface Product {
   category_id: string | null;
   category?: Category;
   name: string;
+  merk?: string;
   artist?: string;
   product_type?: string;
   price: number;
@@ -100,7 +103,8 @@ export interface Product {
 }
 
 export interface ProductFilters {
-  artists: string[];
+  merks: string[];
+  artists?: string[];
   product_types: string[];
 }
 
@@ -135,6 +139,7 @@ export interface OrderItem {
   order_id: string;
   product_id: string;
   product_name: string;
+  merk?: string;
   artist?: string;
   product_type?: string;
   product_price: number;
@@ -210,6 +215,7 @@ export interface SubGroupStat {
 export interface ProductSalesStat {
   product_id: string;
   product_name: string;
+  merk?: string;
   artist?: string;
   product_type?: string;
   total_qty: number;
@@ -226,6 +232,7 @@ export interface DashboardStats {
   top_products: ProductSalesStat[];
   least_products?: ProductSalesStat[];
   all_sold_products?: ProductSalesStat[];
+  sales_by_merk?: SubGroupStat[];
   sales_by_artist?: SubGroupStat[];
   sales_by_type?: SubGroupStat[];
   recent_orders: Order[];

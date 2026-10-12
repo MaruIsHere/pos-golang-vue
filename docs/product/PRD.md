@@ -39,7 +39,7 @@ Hak akses route frontend dan middleware API tidak sepenuhnya memakai daftar role
 
 ### 4.2 Katalog dan inventori
 
-- Kelola produk, kategori bertingkat, merk/artist, dan tipe produk.
+- Kelola produk, kategori bertingkat, merk, dan tipe produk.
 - Pisahkan produk toko dari katalog produk master; impor produk master ke toko.
 - Kelola stok masuk/keluar dan lihat histori mutasi.
 - Satuan stok yang didukung: pcs, gram, dan liter.
