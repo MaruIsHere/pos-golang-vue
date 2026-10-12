@@ -27,6 +27,7 @@ type productInput struct {
 	ImageURL        string     `json:"image_url"`
 	IsActive        *bool      `json:"is_active"`
 	IsMaster        *bool      `json:"is_master"`
+	OriginalOutletID *uuid.UUID `json:"original_outlet_id"`
 	MasterProductID *uuid.UUID `json:"master_product_id"`
 }
 
@@ -202,10 +203,14 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	// Produk master bersifat cross-outlet, jadi tidak menempel pada satu outlet.
-	// Jejak asal toko tetap terlacak lewat original_outlet_id.
+	// Jika produk ditambahkan dari Katalog Produk Utama (isMaster == true),
+	// asalnya adalah Master Pusat langsung (bukan dari toko kasir), sehingga originalOutletID nil.
 	originalOutletID := (*uuid.UUID)(nil)
+	if input.OriginalOutletID != nil {
+		originalOutletID = input.OriginalOutletID
+	}
+
 	if isMaster {
-		originalOutletID = outletID
 		outletID = nil
 	}
 

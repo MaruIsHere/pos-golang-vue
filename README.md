@@ -52,11 +52,10 @@ Build menjalankan typecheck dan Vite, lalu membangun backend Go. Backend menyaji
 Perintah lintas platform tersedia melalui Makefile:
 
 ```bash
-make run
-make build
-make build-linux
-make build-win
-make build-mac
+make run          # backend + frontend secara bersamaan
+make build        # build frontend dist + backend binary
+make migrate:fresh# reset database & seed data awal
+make db:seed      # jalankan seed data awal
 ```
 
 ## Akun demo lokal

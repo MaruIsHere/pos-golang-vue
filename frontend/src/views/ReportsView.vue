@@ -13,17 +13,12 @@
           <span>Refresh</span>
         </AppButton>
 
-        <AppButton variant="success"  class="flex items-center gap-1.5" @click="handleExportExcel" :disabled="isLoading">
+        <AppButton variant="success" class="flex items-center gap-1.5" @click="handleExportExcel" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export Excel</span>
         </AppButton>
 
-        <AppButton variant="secondary"  class="flex items-center gap-1.5" @click="handleExportCSV" :disabled="isLoading">
-          <ArrowDownTrayIcon class="w-4 h-4" />
-          <span>Export CSV</span>
-        </AppButton>
-
-        <AppButton variant="danger"  class="flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
+        <AppButton variant="danger" class="flex items-center gap-1.5" @click="handleExportPDF" :disabled="isLoading">
           <ArrowDownTrayIcon class="w-4 h-4" />
           <span>Export PDF</span>
         </AppButton>
@@ -444,7 +439,6 @@ import AppInput from '@/components/ui/AppInput.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { DashboardStats, ProductSalesStat } from '../types';
-import { exportToCSV } from '../utils/csvExporter';
 import { showAppAlert } from '@/composables/useAppDialog';
 import { 
   Chart as ChartJS, 
@@ -708,10 +702,6 @@ const doughnutOptions = {
 const handleExportExcel = async () => {
   const { exportToExcel } = await import('../utils/exportReport');
   await exportToExcel(stats.value, 'Keseluruhan Penjualan');
-};
-
-const handleExportCSV = () => {
-  exportToCSV(stats.value, 'Keseluruhan Penjualan');
 };
 
 const handleExportPDF = async () => {

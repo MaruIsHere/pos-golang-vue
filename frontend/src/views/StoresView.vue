@@ -247,6 +247,7 @@ import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Outlet, UserProfile, Product } from '@/types';
 import { useStoreContextStore } from '@/stores/storeContext';
+import { useAuthStore } from '@/stores/auth';
 import { 
   BuildingStorefrontIcon, 
   PlusIcon, 
@@ -261,6 +262,7 @@ import {
 } from '@heroicons/vue/24/outline';
 
 const storeContextStore = useStoreContextStore();
+const authStore = useAuthStore();
 
 const stores = ref<Outlet[]>([]);
 const allProducts = ref<Product[]>([]);
@@ -351,10 +353,14 @@ const saveStore = async () => {
 
   isSubmitting.value = true;
   try {
+    const payload = {
+      ...form.value,
+      merchant_id: authStore.user?.merchant_id || undefined
+    };
     if (editingStoreId.value) {
-      await api.put(`/stores/${editingStoreId.value}`, form.value);
+      await api.put(`/stores/${editingStoreId.value}`, payload);
     } else {
-      await api.post('/stores', form.value);
+      await api.post('/stores', payload);
     }
     isModalOpen.value = false;
     await fetchStores();

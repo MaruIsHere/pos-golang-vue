@@ -11,6 +11,10 @@
     "dev:frontend": "npm --prefix frontend run dev",
     "build": "npm --prefix frontend run build && npm run build:backend",
     "build:backend": "cd backend && go build -o pos-backend ./cmd/api",
-    "start": "node scripts/start-backend.mjs"
+    "start": "node scripts/start-backend.mjs",
+    "migrate:fresh": "cd backend && go run ./cmd/migrate/main.go",
+    "migrate-fresh": "npm run migrate:fresh",
+    "db:seed": "cd backend && go run ./cmd/seed/main.go",
+    "db-seed": "npm run db:seed"
   }
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"pos-backend/internal/database"
 	"pos-backend/internal/models"
@@ -44,7 +45,7 @@ func GetStores(c *gin.Context) {
 
 // CreateOutletPayload Input structure
 type CreateOutletPayload struct {
-	MerchantID  string `json:"merchant_id" binding:"required"`
+	MerchantID  string `json:"merchant_id"`
 	Name        string `json:"name" binding:"required"`
 	Code        string `json:"code"`
 	Address     string `json:"address"`
@@ -66,10 +67,29 @@ func CreateStore(c *gin.Context) {
 		return
 	}
 
-	merchantID, err := uuid.Parse(payload.MerchantID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Merchant ID tidak valid"})
-		return
+	var merchantID uuid.UUID
+	if strings.TrimSpace(payload.MerchantID) != "" {
+		parsed, err := uuid.Parse(payload.MerchantID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Merchant ID tidak valid"})
+			return
+		}
+		merchantID = parsed
+	} else if midRaw, exists := c.Get("merchant_id"); exists && midRaw != nil {
+		parsed, err := uuid.Parse(fmt.Sprintf("%v", midRaw))
+		if err == nil {
+			merchantID = parsed
+		}
+	}
+
+	if merchantID == uuid.Nil {
+		var firstMerchant models.Merchant
+		if err := database.DB.First(&firstMerchant).Error; err == nil {
+			merchantID = firstMerchant.ID
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Merchant ID tidak ditemukan"})
+			return
+		}
 	}
 
 	code := strings.TrimSpace(payload.Code)

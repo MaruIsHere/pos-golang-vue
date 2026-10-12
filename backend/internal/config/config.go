@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -42,7 +44,31 @@ func defaultConfig() Config {
 	}
 }
 
+func normalizeCrossPlatformPath(p string) string {
+	if p == "" || p == ":memory:" || (len(p) >= 5 && p[:5] == "file:") {
+		return p
+	}
+
+	// Running on Windows, but path is WSL/Linux style: /mnt/c/... or /mnt/d/...
+	if runtime.GOOS == "windows" {
+		if strings.HasPrefix(p, "/mnt/") && len(p) >= 7 && (p[6] == '/' || p[6] == '\\') {
+			drive := strings.ToUpper(string(p[5])) + ":"
+			rest := filepath.FromSlash(p[6:])
+			return drive + rest
+		}
+	} else {
+		// Running on Linux/WSL, but path is Windows style: C:\... or C:/...
+		if len(p) >= 3 && p[1] == ':' && (p[2] == '/' || p[2] == '\\') {
+			drive := strings.ToLower(string(p[0]))
+			rest := filepath.ToSlash(p[2:])
+			return "/mnt/" + drive + rest
+		}
+	}
+	return p
+}
+
 func resolveSQLitePath(cfg Config) Config {
+	cfg.SqlitePath = normalizeCrossPlatformPath(cfg.SqlitePath)
 	if cfg.SqlitePath == "" || cfg.SqlitePath == ":memory:" || filepath.IsAbs(cfg.SqlitePath) {
 		return cfg
 	}
@@ -127,14 +153,17 @@ func SaveConfig(cfg Config) error {
 	if activeConfigDir == "" {
 		activeConfigDir = findConfigDir()
 	}
-	cfg = resolveSQLitePath(cfg)
-	data, err := json.MarshalIndent(cfg, "", "  ")
+	saveCfg := cfg
+	if filepath.Base(saveCfg.SqlitePath) == "pos.db" {
+		saveCfg.SqlitePath = "pos.db"
+	}
+	data, err := json.MarshalIndent(saveCfg, "", "  ")
 	if err != nil {
 		return err
 	}
 	if err := os.WriteFile(filepath.Join(activeConfigDir, "config.local.json"), data, 0644); err != nil {
 		return err
 	}
-	AppConfig = cfg
+	AppConfig = resolveSQLitePath(cfg)
 	return nil
 }

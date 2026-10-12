@@ -61,15 +61,17 @@ func main() {
 		log.Printf("Engine terdeteksi: SQLite. Mencoba menghapus file...")
 		
 		if cfg.SqlitePath != "" && cfg.SqlitePath != ":memory:" {
-			// Jika file ada, hapus
-			if _, err := os.Stat(cfg.SqlitePath); err == nil {
-				err := os.Remove(cfg.SqlitePath)
-				if err != nil {
-					log.Fatalf("Gagal menghapus file SQLite %s: %v", cfg.SqlitePath, err)
+			if dir := filepath.Dir(cfg.SqlitePath); dir != "" && dir != "." {
+				_ = os.MkdirAll(dir, 0755)
+			}
+			for _, target := range []string{cfg.SqlitePath, cfg.SqlitePath + "-wal", cfg.SqlitePath + "-shm"} {
+				if _, err := os.Stat(target); err == nil {
+					if err := os.Remove(target); err != nil {
+						log.Printf("Peringatan: Gagal menghapus %s: %v", filepath.Base(target), err)
+					} else {
+						log.Printf("✔️ File SQLite '%s' berhasil dihapus.", filepath.Base(target))
+					}
 				}
-				log.Printf("✔️ File SQLite '%s' berhasil dihapus.", filepath.Base(cfg.SqlitePath))
-			} else {
-				log.Printf("File SQLite '%s' belum ada. Aman.", filepath.Base(cfg.SqlitePath))
 			}
 		}
 	} else {

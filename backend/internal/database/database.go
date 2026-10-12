@@ -277,7 +277,7 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 			master := prod
 			master.IsMaster = true
 			master.OutletID = nil
-			master.OriginalOutletID = &defaultOutlet.ID
+			master.OriginalOutletID = nil
 			if err := db.Create(&master).Error; err != nil {
 				log.Printf("Gagal membuat produk master %q: %v", prod.Name, err)
 				continue

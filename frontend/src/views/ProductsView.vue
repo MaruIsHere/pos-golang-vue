@@ -20,15 +20,16 @@
         </div>
         <div class="flex flex-col gap-2" v-if="catalogMode === 'master'">
           <label class="text-[0.7rem] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1">
-            <BuildingStorefrontIcon class="w-3.5 h-3.5" /> Filter Toko Utama
+            <SparklesIcon class="w-3.5 h-3.5" /> Filter Asal / Master
           </label>
           <select 
             class="w-full px-4 py-2.5 bg-indigo-50/50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-[14px] text-sm font-bold text-indigo-900 dark:text-indigo-200 outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
             v-model="selectedStoreFilter"
           >
-            <option :value="null">Semua Toko (Semua Master)</option>
+            <option :value="null">Semua Produk (Master & Toko)</option>
+            <option value="master">Master</option>
             <option v-for="st in storeContextStore.stores" :key="st.id" :value="st.id">
-              {{ st.name }} ({{ st.code }})
+              Asal: {{ st.name }} ({{ st.code }})
             </option>
           </select>
         </div>
@@ -161,8 +162,9 @@
               <AppBadge class="absolute top-3 right-3 text-[0.65rem] font-bold shadow-sm backdrop-blur-md" :variant="prod.stock > 0 ? 'info' : 'danger'">
                 {{ formatQuantity(prod.stock) }} {{ unitLabel(prod.unit) }}
               </AppBadge>
-              <span v-if="prod.is_master" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full shadow-md" :class="prod.original_outlet ? 'bg-indigo-500 text-white' : 'bg-amber-500 text-white'">
-                {{ prod.original_outlet ? `Asal: ${prod.original_outlet.name}` : 'Master Pusat' }}
+              <span v-if="prod.is_master" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1" :class="prod.original_outlet ? 'bg-indigo-500 text-white' : 'bg-amber-500 text-white'">
+                <SparklesIcon v-if="!prod.original_outlet" class="w-3.5 h-3.5" />
+                <span>{{ prod.original_outlet ? `Asal: ${prod.original_outlet.name}` : 'Master' }}</span>
               </span>
               <span v-else-if="prod.outlet" class="absolute top-3 left-3 text-[0.7rem] font-extrabold px-3 py-1 rounded-full bg-indigo-600 text-white shadow-md">
                 {{ prod.outlet.name }}
@@ -780,6 +782,7 @@ const resetFilters = () => {
   selectedCatId.value = null;
   selectedArtist.value = '';
   selectedProductType.value = '';
+  masterStoreFilter.value = null;
 };
 
 const filteredProducts = computed(() => {
@@ -788,7 +791,12 @@ const filteredProducts = computed(() => {
     if (catalogMode.value === 'master') {
       if (!p.is_master) return false;
       if (masterStoreFilter.value !== null) {
-        if (p.original_outlet_id !== masterStoreFilter.value) {
+        if (masterStoreFilter.value === 'master') {
+          // Hanya tampilkan produk yang asalnya Master (bukan dari toko kasir)
+          if (p.original_outlet_id || p.original_outlet) {
+            return false;
+          }
+        } else if (p.original_outlet_id !== masterStoreFilter.value) {
           return false;
         }
       }
@@ -1028,7 +1036,8 @@ const saveProduct = async () => {
     const productPayload: any = { 
       ...form.value,
       is_master: catalogMode.value === 'master',
-      outlet_id: catalogMode.value === 'master' ? null : (storeContextStore.activeStoreId || null)
+      outlet_id: catalogMode.value === 'master' ? null : (storeContextStore.activeStoreId || null),
+      original_outlet_id: null
     };
     if (selectedProductImage.value) {
       const imageForm = new FormData();
