@@ -723,7 +723,8 @@ const normalizeCatalog = <T extends Merk | ProductType>(data: unknown, label: st
 
   const seen = new Set<string>();
   return data.reduce<T[]>((cleaned, item) => {
-    if (!item || typeof item.id !== 'number' || typeof item.name !== 'string') return cleaned;
+    // id bisa berupa UUID string atau number (backward compat)
+    if (!item || (typeof item.id !== 'string' && typeof item.id !== 'number') || typeof item.name !== 'string') return cleaned;
     const name = item.name.trim();
     const key = name.toLocaleLowerCase();
     if (!name || seen.has(key)) return cleaned;

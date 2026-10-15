@@ -52,16 +52,19 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 		dialector = sqlite.Open(sqliteDSN)
 	}
 
-	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
-	})
+	// MySQL: DisableForeignKeyConstraintWhenMigrating mencegah GORM membuat FK
+	// constraint baru saat AutoMigrate, sehingga kolom bebas dimodifikasi.
+	gormCfg := &gorm.Config{
+		Logger:                                   logger.Default.LogMode(logger.Info),
+		DisableForeignKeyConstraintWhenMigrating: engine == "mysql",
+	}
+
+	db, err := gorm.Open(dialector, gormCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database: %w", err)
 	}
 
-	// SQLite: serialize all DB access through a single connection.
-	// WAL mode allows concurrent reads, but writes must be serialized.
-	// This lets Go's connection pool queue writes instead of SQLite rejecting them.
+	// SQLite: serialize semua akses DB lewat satu koneksi.
 	if engine != "mysql" {
 		sqlDB, _ := db.DB()
 		sqlDB.SetMaxOpenConns(1)
@@ -69,6 +72,14 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 
 	// Migrasi otomatis tabel artists -> merks dan kolom artist -> merk jika masih ada
 	migrateArtistToMerk(db)
+
+	// MySQL: hapus semua FK constraints yang sudah ada sebelum AutoMigrate.
+	// Ini solusi definitif error 1025 (errno 150): MySQL tidak bisa ALTER TABLE
+	// pada kolom yang terikat FK, bahkan dengan FOREIGN_KEY_CHECKS=0.
+	// Karena DisableForeignKeyConstraintWhenMigrating=true, FK tidak akan dibuat ulang.
+	if engine == "mysql" {
+		dropAllMySQLForeignKeys(db)
+	}
 
 	// Auto Migration SaaS (UUID Multi-Tenant)
 	err = db.AutoMigrate(
@@ -95,6 +106,33 @@ func InitDB(engine string, mysqlDsn string, sqlitePath string) (*gorm.DB, error)
 	SeedInitialData(db, engine, mysqlDsn)
 	BackfillMasterProducts(db)
 	return db, nil
+}
+
+// dropAllMySQLForeignKeys menghapus semua FK constraints di database aktif.
+// Diperlukan sebelum AutoMigrate agar MySQL bisa ALTER TABLE bebas (error 1025 errno 150).
+// FK tidak akan dibuat ulang karena DisableForeignKeyConstraintWhenMigrating=true.
+func dropAllMySQLForeignKeys(db *gorm.DB) {
+	var constraints []struct {
+		TableName      string `gorm:"column:TABLE_NAME"`
+		ConstraintName string `gorm:"column:CONSTRAINT_NAME"`
+	}
+	if err := db.Raw(`
+		SELECT TABLE_NAME, CONSTRAINT_NAME
+		FROM information_schema.TABLE_CONSTRAINTS
+		WHERE CONSTRAINT_TYPE = 'FOREIGN KEY'
+		AND TABLE_SCHEMA = DATABASE()
+	`).Scan(&constraints).Error; err != nil {
+		log.Printf("[warn] gagal query FK constraints: %v", err)
+		return
+	}
+	for _, c := range constraints {
+		sql := fmt.Sprintf("ALTER TABLE `%s` DROP FOREIGN KEY `%s`", c.TableName, c.ConstraintName)
+		if err := db.Exec(sql).Error; err != nil {
+			log.Printf("[warn] gagal drop FK %s.%s: %v", c.TableName, c.ConstraintName, err)
+		} else {
+			log.Printf("[info] FK constraint `%s`.`%s` berhasil dihapus", c.TableName, c.ConstraintName)
+		}
+	}
 }
 
 func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
@@ -274,9 +312,7 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Berdua (2 Kopi + 1 Snack)", ProductType: "FNB", Price: 55000, CostPrice: 25000, Stock: 30},
 		}
 		for _, prod := range products {
-			// Tiap produk seed dibuat berpasangan, mengikuti pola CreateProduct:
-			// satu produk master (katalog pusat, cross-outlet) dan satu salinan
-			// toko yang tertaut, agar Katalog Produk Utama tidak kosong.
+			// Buat produk master (katalog) terlebih dahulu
 			master := prod
 			master.IsMaster = true
 			master.OutletID = nil
@@ -286,10 +322,12 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 				continue
 			}
 
-			storeCopy := prod
-			storeCopy.IsMaster = false
-			storeCopy.MasterProductID = &master.ID
-			if err := db.Create(&storeCopy).Error; err != nil {
+			// Buat produk toko yang langsung terhubung ke master,
+			// sehingga BackfillMasterProducts tidak akan buat duplikat.
+			storeProd := prod
+			storeProd.IsMaster = false
+			storeProd.MasterProductID = &master.ID
+			if err := db.Create(&storeProd).Error; err != nil {
 				log.Printf("Gagal membuat produk toko %q: %v", prod.Name, err)
 			}
 		}
