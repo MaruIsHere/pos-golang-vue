@@ -576,7 +576,7 @@ const formatReason = (reason: string): string => {
 
 const fetchProducts = async () => {
   try {
-    const params: Record<string, any> = { is_master: false };
+    const params: Record<string, any> = {};
     if (storeContextStore.activeStoreId) {
       params.outlet_id = storeContextStore.activeStoreId;
     }

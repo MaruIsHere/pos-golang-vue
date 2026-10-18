@@ -339,7 +339,7 @@ const fetchCatalogs = async () => {
 const fetchProducts = async () => {
   isLoading.value = true;
   try {
-    const params: Record<string, any> = { is_master: false };
+    const params: Record<string, any> = {};
     if (storeContextStore.activeStoreId) {
       params.outlet_id = storeContextStore.activeStoreId;
     }
@@ -431,8 +431,6 @@ watch(() => storeContextStore.activeStoreId, () => {
 // Filtering
 const filteredProducts = computed(() => {
   return products.value.filter(p => {
-    // Filter out master products from POS (POS only displays store POS products)
-    if (p.is_master) return false;
     if (storeContextStore.activeStoreId && p.outlet_id && p.outlet_id !== storeContextStore.activeStoreId) {
       return false;
     }

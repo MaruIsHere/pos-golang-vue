@@ -287,17 +287,7 @@ const assignForm = ref<{ user_id: string | null }>({
 });
 
 const totalCashiers = computed(() => stores.value.reduce((sum: number, s: Outlet) => sum + (s.total_cashiers || 0), 0));
-const totalProducts = computed(() => {
-  if (!allProducts.value.length) return 0;
-  const storeProds = allProducts.value.filter(p => !p.is_master);
-  if (storeProds.length === 0) {
-    return allProducts.value.filter(p => p.is_master).length;
-  }
-  const uniqueKeys = new Set(
-    storeProds.map(p => p.master_product_id ? `master_${p.master_product_id}` : `name_${p.name.trim().toLowerCase()}`)
-  );
-  return uniqueKeys.size;
-});
+const totalProducts = computed(() => allProducts.value.length);
 
 const fetchStores = async () => {
   isLoading.value = true;

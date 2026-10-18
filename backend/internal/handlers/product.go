@@ -103,7 +103,7 @@ func isValidStockQuantity(quantity float64, unit string) bool {
 
 func GetProducts(c *gin.Context) {
 	var products []models.Product
-	query := database.DB.Preload("Category").Preload("OriginalOutlet")
+	query := database.DB.Preload("Category")
 
 	catID := c.Query("category_id")
 	if catID != "" {
@@ -128,7 +128,6 @@ func GetProducts(c *gin.Context) {
 		query = query.Where("name LIKE ? OR barcode LIKE ? OR merk LIKE ? OR product_type LIKE ?", s, s, s, s)
 	}
 
-	isMaster := c.Query("is_master")
 	outletID := c.Query("outlet_id")
 	merchantID, _ := c.Get("merchant_id")
 
@@ -138,21 +137,11 @@ func GetProducts(c *gin.Context) {
 		query = query.Where("merchant_id = ?", qMerchantID)
 	}
 
-	if isMaster == "true" {
-		query = query.Where("is_master = ?", true)
-	} else if isMaster == "false" {
-		query = query.Where("is_master = ?", false)
-		if outletID != "" {
-			query = query.Where("outlet_id = ?", outletID)
-		} else if ctxOutletID, exists := c.Get("outlet_id"); exists {
-			query = query.Where("outlet_id = ?", ctxOutletID)
-		}
-	} else if outletID != "" {
+	if outletID != "" {
 		query = query.Where("outlet_id = ?", outletID)
+	} else if ctxOutletID, exists := c.Get("outlet_id"); exists && ctxOutletID != nil && fmt.Sprintf("%v", ctxOutletID) != "" {
+		query = query.Where("outlet_id = ?", ctxOutletID)
 	}
-	// Tanpa parameter is_master/outlet_id, seluruh produk milik merchant dikembalikan
-	// (termasuk produk master yang outlet_id-nya NULL). Filter outlet konteks JWT hanya
-	// berlaku ketika memang meminta produk toko (is_master=false).
 
 	if err := query.Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -199,117 +188,43 @@ func CreateProduct(c *gin.Context) {
 	var outletID *uuid.UUID
 	if input.OutletID != nil {
 		outletID = input.OutletID
-	} else if oidRaw, exists := c.Get("outlet_id"); exists {
+	} else if oidRaw, exists := c.Get("outlet_id"); exists && oidRaw != nil {
 		parsed, err := uuid.Parse(fmt.Sprintf("%v", oidRaw))
 		if err == nil {
 			outletID = &parsed
 		}
 	}
 
-	isMaster := false
-	if input.IsMaster != nil {
-		isMaster = *input.IsMaster
-	}
-
-	// Produk master bersifat cross-outlet, jadi tidak menempel pada satu outlet.
-	// Jika produk ditambahkan dari Katalog Produk Utama (isMaster == true),
-	// asalnya adalah Master Pusat langsung (bukan dari toko kasir), sehingga originalOutletID nil.
-	originalOutletID := (*uuid.UUID)(nil)
-	if input.OriginalOutletID != nil {
-		originalOutletID = input.OriginalOutletID
-	}
-
-	if isMaster {
-		outletID = nil
-	}
-
-	// If creating a store product directly (is_master is false, outlet_id is provided, master_product_id is nil)
-	if !isMaster && outletID != nil && input.MasterProductID == nil {
-		// 1. Create Master Product first so it appears in Master Product Catalog
-		masterProduct := models.Product{
-			CategoryID:       input.CategoryID,
-			MerchantID:       merchantID,
-			OutletID:         nil, // Master product is cross-outlet
-			OriginalOutletID: outletID,
-			Name:             input.Name,
-			Merk:             input.Merk,
-			ProductType:      input.ProductType,
-			Price:            input.Price,
-			CostPrice:        input.CostPrice,
-			Stock:            input.Stock,
-			Unit:             input.Unit,
-			Barcode:          input.Barcode,
-			ImageURL:         input.ImageURL,
-			IsActive:         true,
-			IsMaster:         true,
+	if outletID == nil {
+		var firstOutlet models.Outlet
+		if err := database.DB.Where("merchant_id = ? AND is_active = ?", merchantID, true).First(&firstOutlet).Error; err == nil {
+			outletID = &firstOutlet.ID
 		}
-		if input.IsActive != nil {
-			masterProduct.IsActive = *input.IsActive
-		}
-		if err := database.DB.Create(&masterProduct).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk master"})
-			return
-		}
-
-		// 2. Create Store Product linked to the Master Product
-		masterID := masterProduct.ID
-		storeProduct := models.Product{
-			CategoryID:      input.CategoryID,
-			MerchantID:      merchantID,
-			OutletID:        outletID,
-			Name:            input.Name,
-			Merk:            input.Merk,
-			ProductType:     input.ProductType,
-			Price:           input.Price,
-			CostPrice:       input.CostPrice,
-			Stock:           input.Stock,
-			Unit:            input.Unit,
-			Barcode:         input.Barcode,
-			ImageURL:        input.ImageURL,
-			IsActive:        true,
-			IsMaster:        false,
-			MasterProductID: &masterID,
-		}
-		if input.IsActive != nil {
-			storeProduct.IsActive = *input.IsActive
-		}
-		if err := database.DB.Create(&storeProduct).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk kasir toko"})
-			return
-		}
-
-		if err := database.DB.Preload("Category").First(&storeProduct, storeProduct.ID).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
-			return
-		}
-		c.JSON(http.StatusCreated, storeProduct)
-		return
 	}
 
 	product := models.Product{
-		CategoryID:        input.CategoryID,
-		MerchantID:        merchantID,
-		OutletID:          outletID,
-		OriginalOutletID:  originalOutletID,
-		Name:              input.Name,
-		Merk:              input.Merk,
-		ProductType:       input.ProductType,
-		Price:             input.Price,
-		CostPrice:         input.CostPrice,
-		Stock:             input.Stock,
-		Unit:              input.Unit,
-		Barcode:           input.Barcode,
-		ImageURL:          input.ImageURL,
-		MasterProductID:   input.MasterProductID,
-		IsMaster:          isMaster,
+		CategoryID:  input.CategoryID,
+		MerchantID:  merchantID,
+		OutletID:    outletID,
+		Name:        input.Name,
+		Merk:        input.Merk,
+		ProductType: input.ProductType,
+		Price:       input.Price,
+		CostPrice:   input.CostPrice,
+		Stock:       input.Stock,
+		Unit:        input.Unit,
+		Barcode:     input.Barcode,
+		ImageURL:    input.ImageURL,
+		IsMaster:    false,
 	}
 	if input.IsActive != nil {
 		product.IsActive = *input.IsActive
 	}
 	if err := database.DB.Create(&product).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menyimpan produk: " + err.Error()})
 		return
 	}
+
 	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk tersimpan, tetapi gagal memuat detailnya"})
 		return
@@ -324,7 +239,6 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
 		return
 	}
-
 	var input productInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -357,30 +271,6 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	// Synchronize common catalog fields to master product if editing a store product
-	if !product.IsMaster && product.MasterProductID != nil {
-		database.DB.Model(&models.Product{}).Where("id = ?", *product.MasterProductID).Updates(map[string]interface{}{
-			"category_id":  input.CategoryID,
-			"name":         input.Name,
-			"merk":         input.Merk,
-			"product_type": input.ProductType,
-			"barcode":      input.Barcode,
-			"image_url":    input.ImageURL,
-			"unit":         input.Unit,
-		})
-	} else if product.IsMaster {
-		// Synchronize common catalog fields to all store products linked to this master product
-		database.DB.Model(&models.Product{}).Where("master_product_id = ?", product.ID).Updates(map[string]interface{}{
-			"category_id":  input.CategoryID,
-			"name":         input.Name,
-			"merk":         input.Merk,
-			"product_type": input.ProductType,
-			"barcode":      input.Barcode,
-			"image_url":    input.ImageURL,
-			"unit":         input.Unit,
-		})
-	}
-
 	if err := database.DB.Preload("Category").First(&product, product.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Produk diperbarui, tetapi gagal memuat kategorinya"})
 		return
@@ -394,11 +284,6 @@ func DeleteProduct(c *gin.Context) {
 	if err := database.DB.First(&product, "id = ?", id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Produk tidak ditemukan"})
 		return
-	}
-
-	if product.IsMaster {
-		// Delete linked store products when master product is deleted
-		database.DB.Where("master_product_id = ?", product.ID).Delete(&models.Product{})
 	}
 
 	if err := database.DB.Delete(&product).Error; err != nil {

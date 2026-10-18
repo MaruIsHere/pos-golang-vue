@@ -83,7 +83,8 @@ frontend/.nuxt/
 *.out
 vendor/
 
-# ========== BACKUP ==========
+# ========== BACKUP & SCRATCH ==========
 *.bak
 *.orig
 *.patch
+scratch/

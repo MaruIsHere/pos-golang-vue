@@ -104,7 +104,7 @@
           </div>
           <div v-else class="flex flex-col gap-3">
             <div v-for="(p, index) in stats.top_products" :key="index" class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-700/50">
-              <div class="w-8 h-8 flex shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-slate-400 text-xs"">#{{ index + 1 }}</div>
+              <div class="w-8 h-8 flex shrink-0 items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm font-black text-slate-400 text-xs">#{{ index + 1 }}</div>
               <div class="flex flex-col flex-1 min-w-0">
                 <span class="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">{{ p.product_name }}</span>
                 <span class="text-xs text-slate-500 truncate mt-0.5">{{ p.merk || p.artist }} • {{ p.product_type }}</span>
