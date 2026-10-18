@@ -10,11 +10,13 @@ import (
 
 	"github.com/glebarez/sqlite"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
+
 
 var DB *gorm.DB
 
@@ -230,109 +232,115 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 		})
 	}
 
-	// Seed Categories
+	// Seed Categories & Products sekaligus.
+	// Pengecekan produk dilakukan TERPISAH dari kategori agar seed produk
+	// tetap berjalan jika tabel produk kosong (misalnya setelah migrasi ulang).
 	var catCount int64
 	db.Model(&models.Category{}).Count(&catCount)
+
+	// Simpan ID kategori langsung dari Create (tidak query ulang)
+	// untuk menghindari masalah visibility di SQLite WAL mode.
+	catIDs := map[string]uuid.UUID{}
+
 	if catCount == 0 {
-		catMakanan := models.Category{MerchantID: &defaultMerchant.ID, Name: "Makanan Utama", Icon: "utensils"}
-		catSnack := models.Category{MerchantID: &defaultMerchant.ID, Name: "Snack & Camilan", Icon: "cookie"}
-		catKopi := models.Category{MerchantID: &defaultMerchant.ID, Name: "Kopi", Icon: "coffee"}
-		catNonKopi := models.Category{MerchantID: &defaultMerchant.ID, Name: "Non-Kopi", Icon: "cup-soda"}
-		catDessert := models.Category{MerchantID: &defaultMerchant.ID, Name: "Dessert", Icon: "cake-slice"}
-		catPaket := models.Category{MerchantID: &defaultMerchant.ID, Name: "Paket Hemat", Icon: "box"}
-		db.Create(&catMakanan)
-		db.Create(&catSnack)
-		db.Create(&catKopi)
-		db.Create(&catNonKopi)
-		db.Create(&catDessert)
-		db.Create(&catPaket)
-
-		// Seed Products
-		products := []models.Product{
-			// === MAKANAN UTAMA ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Nasi Goreng Special", ProductType: "FNB", Price: 28000, CostPrice: 15000, Stock: 50},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Nasi Goreng Seafood", ProductType: "FNB", Price: 32000, CostPrice: 18000, Stock: 30},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Mie Goreng Jawa", ProductType: "FNB", Price: 25000, CostPrice: 12000, Stock: 40},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Indomie Goreng Telur", ProductType: "FNB", Price: 18000, CostPrice: 8000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Indomie Kuah Telur", ProductType: "FNB", Price: 18000, CostPrice: 8000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Chicken Katsu Rice", ProductType: "FNB", Price: 35000, CostPrice: 20000, Stock: 25},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Beef Teriyaki Rice", ProductType: "FNB", Price: 38000, CostPrice: 22000, Stock: 20},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Sandwich Tuna Melt", ProductType: "FNB", Price: 30000, CostPrice: 16000, Stock: 15},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Croissant Ham & Cheese", ProductType: "FNB", Price: 28000, CostPrice: 14000, Stock: 20},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Spaghetti Bolognese", ProductType: "FNB", Price: 33000, CostPrice: 17000, Stock: 20},
-
-			// === SNACK & CAMILAN ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "French Fries", ProductType: "FNB", Price: 18000, CostPrice: 7000, Stock: 50},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Chicken Wings (5pcs)", ProductType: "FNB", Price: 25000, CostPrice: 13000, Stock: 30},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Pisang Goreng Keju", ProductType: "FNB", Price: 15000, CostPrice: 6000, Stock: 40},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Roti Bakar Coklat", ProductType: "FNB", Price: 15000, CostPrice: 5000, Stock: 35},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Dimsum Ayam (4pcs)", ProductType: "FNB", Price: 20000, CostPrice: 10000, Stock: 25},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Onion Rings", ProductType: "FNB", Price: 16000, CostPrice: 6000, Stock: 30},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Kentang Wedges", ProductType: "FNB", Price: 20000, CostPrice: 8000, Stock: 30},
-
-			// === KOPI ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Espresso", ProductType: "FNB", Price: 15000, CostPrice: 5000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Americano (Hot)", ProductType: "FNB", Price: 18000, CostPrice: 6000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Americano (Ice)", ProductType: "FNB", Price: 20000, CostPrice: 7000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Cafe Latte (Hot)", ProductType: "FNB", Price: 25000, CostPrice: 9000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Cafe Latte (Ice)", ProductType: "FNB", Price: 27000, CostPrice: 10000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Cappuccino", ProductType: "FNB", Price: 25000, CostPrice: 9000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Caramel Macchiato", ProductType: "FNB", Price: 30000, CostPrice: 12000, Stock: 150},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Mocha Latte", ProductType: "FNB", Price: 28000, CostPrice: 11000, Stock: 150},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Vanilla Latte", ProductType: "FNB", Price: 28000, CostPrice: 11000, Stock: 150},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Hazelnut Latte", ProductType: "FNB", Price: 28000, CostPrice: 11000, Stock: 150},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Kopi Susu Gula Aren", ProductType: "FNB", Price: 22000, CostPrice: 8000, Stock: 200},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "V60 Single Origin", ProductType: "FNB", Price: 35000, CostPrice: 15000, Stock: 50},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Affogato", ProductType: "FNB", Price: 30000, CostPrice: 12000, Stock: 80},
-
-			// === NON-KOPI ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Matcha Latte (Hot)", ProductType: "FNB", Price: 28000, CostPrice: 12000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Matcha Latte (Ice)", ProductType: "FNB", Price: 30000, CostPrice: 13000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Coklat Panas", ProductType: "FNB", Price: 22000, CostPrice: 9000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Ice Chocolate", ProductType: "FNB", Price: 25000, CostPrice: 10000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Thai Tea", ProductType: "FNB", Price: 20000, CostPrice: 7000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Taro Milk", ProductType: "FNB", Price: 22000, CostPrice: 8000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Lemon Tea", ProductType: "FNB", Price: 15000, CostPrice: 5000, Stock: 100},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Fresh Orange Juice", ProductType: "FNB", Price: 20000, CostPrice: 8000, Stock: 80},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Strawberry Smoothie", ProductType: "FNB", Price: 25000, CostPrice: 10000, Stock: 60},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Air Mineral", ProductType: "FNB", Price: 5000, CostPrice: 2000, Stock: 300},
-
-			// === DESSERT ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Brownies Coklat", ProductType: "FNB", Price: 18000, CostPrice: 8000, Stock: 30},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Cheesecake Slice", ProductType: "FNB", Price: 25000, CostPrice: 12000, Stock: 20},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Tiramisu", ProductType: "FNB", Price: 28000, CostPrice: 14000, Stock: 15},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Banana Split", ProductType: "FNB", Price: 25000, CostPrice: 10000, Stock: 20},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Waffle Ice Cream", ProductType: "FNB", Price: 30000, CostPrice: 13000, Stock: 20},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Pancake Maple Syrup", ProductType: "FNB", Price: 22000, CostPrice: 9000, Stock: 25},
-
-			// === PAKET HEMAT ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Nasi + Es Teh", ProductType: "FNB", Price: 35000, CostPrice: 18000, Stock: 50},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Indomie + Kopi Susu", ProductType: "FNB", Price: 32000, CostPrice: 14000, Stock: 50},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Snack Platter", ProductType: "FNB", Price: 45000, CostPrice: 22000, Stock: 30},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Berdua (2 Kopi + 1 Snack)", ProductType: "FNB", Price: 55000, CostPrice: 25000, Stock: 30},
+		cats := []models.Category{
+			{MerchantID: &defaultMerchant.ID, Name: "Makanan Utama", Icon: "utensils"},
+			{MerchantID: &defaultMerchant.ID, Name: "Snack & Camilan", Icon: "cookie"},
+			{MerchantID: &defaultMerchant.ID, Name: "Kopi", Icon: "coffee"},
+			{MerchantID: &defaultMerchant.ID, Name: "Non-Kopi", Icon: "cup-soda"},
+			{MerchantID: &defaultMerchant.ID, Name: "Dessert", Icon: "cake-slice"},
 		}
-		for _, prod := range products {
-			// Buat produk master (katalog) terlebih dahulu
-			master := prod
-			master.IsMaster = true
-			master.OutletID = nil
-			master.OriginalOutletID = nil
-			if err := db.Create(&master).Error; err != nil {
-				log.Printf("Gagal membuat produk master %q: %v", prod.Name, err)
+		for i := range cats {
+			if err := db.Create(&cats[i]).Error; err != nil {
+				log.Printf("[seeder] Gagal membuat kategori %q: %v", cats[i].Name, err)
 				continue
 			}
-
-			// Buat produk toko yang langsung terhubung ke master,
-			// sehingga BackfillMasterProducts tidak akan buat duplikat.
-			storeProd := prod
-			storeProd.IsMaster = false
-			storeProd.MasterProductID = &master.ID
-			if err := db.Create(&storeProd).Error; err != nil {
-				log.Printf("Gagal membuat produk toko %q: %v", prod.Name, err)
-			}
+			catIDs[cats[i].Name] = cats[i].ID
+		}
+		log.Printf("[seeder] %d kategori default dibuat.", len(catIDs))
+	} else {
+		// Kategori sudah ada — ambil ID-nya untuk seed produk
+		var existingCats []models.Category
+		db.Where("merchant_id = ?", defaultMerchant.ID).Find(&existingCats)
+		for _, c := range existingCats {
+			catIDs[c.Name] = c.ID
 		}
 	}
+
+	// Seed Products: cek jumlah produk secara independen
+	var prodCount int64
+	db.Model(&models.Product{}).Count(&prodCount)
+	if prodCount == 0 {
+		// Definisi 5 produk seeder
+		type seedProduct struct {
+			categoryName string
+			name         string
+			price        float64
+			costPrice    float64
+			stock        float64
+			productType  string
+		}
+		seedProducts := []seedProduct{
+			{"Makanan Utama", "Nasi Goreng Special", 28000, 15000, 50, "FNB"},
+			{"Snack & Camilan", "French Fries", 18000, 7000, 50, "FNB"},
+			{"Kopi", "Kopi Susu Gula Aren", 22000, 8000, 200, "FNB"},
+			{"Non-Kopi", "Matcha Latte (Ice)", 30000, 13000, 100, "FNB"},
+			{"Dessert", "Cheesecake Slice", 25000, 12000, 20, "FNB"},
+		}
+
+		for _, sp := range seedProducts {
+			catID, ok := catIDs[sp.categoryName]
+			if !ok {
+				log.Printf("[seeder] Kategori %q tidak ditemukan, lewati produk %q", sp.categoryName, sp.name)
+				continue
+			}
+			catIDPtr := catID
+
+			// 1. Produk MASTER — is_master=true, outlet_id=nil
+			masterProd := models.Product{
+				MerchantID:  defaultMerchant.ID,
+				OutletID:    nil,
+				CategoryID:  &catIDPtr,
+				Name:        sp.name,
+				ProductType: sp.productType,
+				Price:       sp.price,
+				CostPrice:   sp.costPrice,
+				Stock:       sp.stock,
+				Unit:        "pcs",
+				IsActive:    true,
+				IsMaster:    true,
+			}
+			if err := db.Create(&masterProd).Error; err != nil {
+				log.Printf("[seeder] Gagal membuat produk master %q: %v", sp.name, err)
+				continue
+			}
+			log.Printf("[seeder] Master produk dibuat: %s (is_master=true)", masterProd.Name)
+
+			// 2. Produk TOKO — is_master=false, terhubung ke master
+			masterID := masterProd.ID
+			storeProd := models.Product{
+				MerchantID:      defaultMerchant.ID,
+				OutletID:        &defaultOutlet.ID,
+				CategoryID:      &catIDPtr,
+				Name:            sp.name,
+				ProductType:     sp.productType,
+				Price:           sp.price,
+				CostPrice:       sp.costPrice,
+				Stock:           sp.stock,
+				Unit:            "pcs",
+				IsActive:        true,
+				IsMaster:        false,
+				MasterProductID: &masterID,
+			}
+			if err := db.Create(&storeProd).Error; err != nil {
+				log.Printf("[seeder] Gagal membuat produk toko %q: %v", sp.name, err)
+			}
+		}
+		log.Println("[seeder] Seeding produk selesai: 5 master + 5 produk toko.")
+	}
 }
+
+
 
 func migrateArtistToMerk(db *gorm.DB) {
 	// 1. Rename table 'artists' to 'merks'

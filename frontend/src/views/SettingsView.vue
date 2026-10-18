@@ -1134,9 +1134,17 @@ const switchDatabaseEngine = async () => {
 
     const data = res.data;
     dbEngine.value = data.db_engine;
-    dbMessage.value = data.message || 'Engine database berhasil diperbarui!';
     dbMessageType.value = 'success';
     emit('refresh-settings');
+
+    // Wajib logout & login ulang setelah switch DB:
+    // JWT token menyimpan merchant_id dari database lama, sehingga
+    // semua query (produk, orders, dll) akan gagal di database baru.
+    await showAppAlert(
+      `✅ Berhasil pindah ke ${data.db_engine.toUpperCase()}!\n\nAnda akan di-logout secara otomatis. Silakan login ulang agar sesi Anda menggunakan database ${data.db_engine.toUpperCase()} dengan benar.`,
+      'success'
+    );
+    authStore.logout();
   } catch (err: any) {
     dbMessage.value = 'Terjadi kesalahan koneksi server: ' + (err.response?.data?.error || err.message || 'Error occurred');
     dbMessageType.value = 'error';
