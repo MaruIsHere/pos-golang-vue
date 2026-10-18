@@ -286,80 +286,23 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 		}
 	}
 
-	// Seed Products (1 produk = 1 record per toko, tanpa duplikasi master)
+	// Seed Products (5 produk contoh standar, 1 per kategori)
 	var prodCount int64
 	db.Model(&models.Product{}).Count(&prodCount)
 	if prodCount == 0 {
-		var catMakanan, catSnack, catKopi, catNonKopi, catDessert, catPaket models.Category
+		var catMakanan, catSnack, catKopi, catNonKopi, catDessert models.Category
 		db.Where("merchant_id = ? AND name = ?", defaultMerchant.ID, "Makanan Utama").First(&catMakanan)
 		db.Where("merchant_id = ? AND name = ?", defaultMerchant.ID, "Snack & Camilan").First(&catSnack)
 		db.Where("merchant_id = ? AND name = ?", defaultMerchant.ID, "Kopi").First(&catKopi)
 		db.Where("merchant_id = ? AND name = ?", defaultMerchant.ID, "Non-Kopi").First(&catNonKopi)
 		db.Where("merchant_id = ? AND name = ?", defaultMerchant.ID, "Dessert").First(&catDessert)
-		db.Where("merchant_id = ? AND name = ?", defaultMerchant.ID, "Paket Hemat").First(&catPaket)
 
 		products := []models.Product{
-			// === MAKANAN UTAMA ===
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Nasi Goreng Special", Merk: "Umum", ProductType: "FNB", Price: 28000, CostPrice: 15000, Stock: 50, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Nasi Goreng Seafood", Merk: "Umum", ProductType: "FNB", Price: 32000, CostPrice: 18000, Stock: 30, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Mie Goreng Jawa", Merk: "Umum", ProductType: "FNB", Price: 25000, CostPrice: 12000, Stock: 40, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Indomie Goreng Telur", Merk: "Indofood", ProductType: "FNB", Price: 18000, CostPrice: 8000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Indomie Kuah Telur", Merk: "Indofood", ProductType: "FNB", Price: 18000, CostPrice: 8000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Chicken Katsu Rice", Merk: "Umum", ProductType: "FNB", Price: 35000, CostPrice: 20000, Stock: 25, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Beef Teriyaki Rice", Merk: "Umum", ProductType: "FNB", Price: 38000, CostPrice: 22000, Stock: 20, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Sandwich Tuna Melt", Merk: "Umum", ProductType: "FNB", Price: 30000, CostPrice: 16000, Stock: 15, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Croissant Ham & Cheese", Merk: "Umum", ProductType: "FNB", Price: 28000, CostPrice: 14000, Stock: 20, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catMakanan.ID, Name: "Spaghetti Bolognese", Merk: "Umum", ProductType: "FNB", Price: 33000, CostPrice: 17000, Stock: 20, Unit: "pcs", IsActive: true},
-
-			// === SNACK & CAMILAN ===
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "French Fries", Merk: "Umum", ProductType: "FNB", Price: 18000, CostPrice: 7000, Stock: 50, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Chicken Wings (5pcs)", Merk: "Umum", ProductType: "FNB", Price: 25000, CostPrice: 13000, Stock: 30, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Pisang Goreng Keju", Merk: "Umum", ProductType: "FNB", Price: 15000, CostPrice: 6000, Stock: 40, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Roti Bakar Coklat", Merk: "Umum", ProductType: "FNB", Price: 15000, CostPrice: 5000, Stock: 35, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Dimsum Ayam (4pcs)", Merk: "Umum", ProductType: "FNB", Price: 20000, CostPrice: 10000, Stock: 25, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Onion Rings", Merk: "Umum", ProductType: "FNB", Price: 16000, CostPrice: 6000, Stock: 30, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catSnack.ID, Name: "Kentang Wedges", Merk: "Umum", ProductType: "FNB", Price: 20000, CostPrice: 8000, Stock: 30, Unit: "pcs", IsActive: true},
-
-			// === KOPI ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Espresso", Merk: "House Blend", ProductType: "FNB", Price: 15000, CostPrice: 5000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Americano (Hot)", Merk: "House Blend", ProductType: "FNB", Price: 18000, CostPrice: 6000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Americano (Ice)", Merk: "House Blend", ProductType: "FNB", Price: 20000, CostPrice: 7000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Cafe Latte (Hot)", Merk: "House Blend", ProductType: "FNB", Price: 25000, CostPrice: 9000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Cafe Latte (Ice)", Merk: "House Blend", ProductType: "FNB", Price: 27000, CostPrice: 10000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Cappuccino", Merk: "House Blend", ProductType: "FNB", Price: 25000, CostPrice: 9000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Caramel Macchiato", Merk: "House Blend", ProductType: "FNB", Price: 30000, CostPrice: 12000, Stock: 150, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Mocha Latte", Merk: "House Blend", ProductType: "FNB", Price: 28000, CostPrice: 11000, Stock: 150, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Vanilla Latte", Merk: "House Blend", ProductType: "FNB", Price: 28000, CostPrice: 11000, Stock: 150, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Hazelnut Latte", Merk: "House Blend", ProductType: "FNB", Price: 28000, CostPrice: 11000, Stock: 150, Unit: "pcs", IsActive: true},
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Kopi Susu Gula Aren", Merk: "House Blend", ProductType: "FNB", Price: 22000, CostPrice: 8000, Stock: 200, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "V60 Single Origin", Merk: "House Blend", ProductType: "FNB", Price: 35000, CostPrice: 15000, Stock: 50, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catKopi.ID, Name: "Affogato", Merk: "House Blend", ProductType: "FNB", Price: 30000, CostPrice: 12000, Stock: 80, Unit: "pcs", IsActive: true},
-
-			// === NON-KOPI ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Matcha Latte (Hot)", Merk: "Umum", ProductType: "FNB", Price: 28000, CostPrice: 12000, Stock: 100, Unit: "pcs", IsActive: true},
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Matcha Latte (Ice)", Merk: "Umum", ProductType: "FNB", Price: 30000, CostPrice: 13000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Coklat Panas", Merk: "Nestle", ProductType: "FNB", Price: 22000, CostPrice: 9000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Ice Chocolate", Merk: "Nestle", ProductType: "FNB", Price: 25000, CostPrice: 10000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Thai Tea", Merk: "Umum", ProductType: "FNB", Price: 20000, CostPrice: 7000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Taro Milk", Merk: "Umum", ProductType: "FNB", Price: 22000, CostPrice: 8000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Lemon Tea", Merk: "Sosro", ProductType: "FNB", Price: 15000, CostPrice: 5000, Stock: 100, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Fresh Orange Juice", Merk: "Umum", ProductType: "FNB", Price: 20000, CostPrice: 8000, Stock: 80, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Strawberry Smoothie", Merk: "Umum", ProductType: "FNB", Price: 25000, CostPrice: 10000, Stock: 60, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catNonKopi.ID, Name: "Air Mineral", Merk: "Nestle", ProductType: "FNB", Price: 5000, CostPrice: 2000, Stock: 300, Unit: "pcs", IsActive: true},
-
-			// === DESSERT ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Brownies Coklat", Merk: "Umum", ProductType: "FNB", Price: 18000, CostPrice: 8000, Stock: 30, Unit: "pcs", IsActive: true},
 			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Cheesecake Slice", Merk: "Umum", ProductType: "FNB", Price: 25000, CostPrice: 12000, Stock: 20, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Tiramisu", Merk: "Umum", ProductType: "FNB", Price: 28000, CostPrice: 14000, Stock: 15, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Banana Split", Merk: "Umum", ProductType: "FNB", Price: 25000, CostPrice: 10000, Stock: 20, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Waffle Ice Cream", Merk: "Umum", ProductType: "FNB", Price: 30000, CostPrice: 13000, Stock: 20, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catDessert.ID, Name: "Pancake Maple Syrup", Merk: "Umum", ProductType: "FNB", Price: 22000, CostPrice: 9000, Stock: 25, Unit: "pcs", IsActive: true},
-
-			// === PAKET HEMAT ===
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Nasi + Es Teh", Merk: "Umum", ProductType: "FNB", Price: 35000, CostPrice: 18000, Stock: 50, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Indomie + Kopi Susu", Merk: "Indofood", ProductType: "FNB", Price: 32000, CostPrice: 14000, Stock: 50, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Snack Platter", Merk: "Umum", ProductType: "FNB", Price: 45000, CostPrice: 22000, Stock: 30, Unit: "pcs", IsActive: true},
-			{MerchantID: defaultMerchant.ID, OutletID: &defaultOutlet.ID, CategoryID: &catPaket.ID, Name: "Paket Berdua (2 Kopi + 1 Snack)", Merk: "House Blend", ProductType: "FNB", Price: 55000, CostPrice: 25000, Stock: 30, Unit: "pcs", IsActive: true},
 		}
 		for _, prod := range products {
 			prod.IsMaster = false
@@ -368,6 +311,7 @@ func SeedInitialData(db *gorm.DB, engine string, mysqlDsn string) {
 				log.Printf("Gagal membuat produk toko %q: %v", prod.Name, err)
 			}
 		}
+		log.Println("[seeder] Seeding 5 produk contoh default berhasil.")
 	}
 }
 
