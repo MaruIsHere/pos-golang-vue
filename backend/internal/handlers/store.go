@@ -356,3 +356,95 @@ func ImportBatchMasterProductsToStore(c *gin.Context) {
 		"count":   importedCount,
 	})
 }
+
+// CopyProductsPayload
+type CopyProductsPayload struct {
+	SourceOutletID string   `json:"source_outlet_id" binding:"required"`
+	TargetOutletID string   `json:"target_outlet_id" binding:"required"`
+	ProductIDs     []string `json:"product_ids"`
+}
+
+// CopyProductsBetweenStores - Salin produk antar-toko (Branch Clone) tanpa duplikasi master
+func CopyProductsBetweenStores(c *gin.Context) {
+	var payload CopyProductsPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Toko asal dan toko tujuan wajib diisi"})
+		return
+	}
+
+	sourceUUID, err := uuid.Parse(payload.SourceOutletID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID toko asal tidak valid"})
+		return
+	}
+
+	targetUUID, err := uuid.Parse(payload.TargetOutletID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID toko tujuan tidak valid"})
+		return
+	}
+
+	if sourceUUID == targetUUID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Toko asal dan toko tujuan tidak boleh sama"})
+		return
+	}
+
+	var targetOutlet models.Outlet
+	if err := database.DB.First(&targetOutlet, "id = ?", targetUUID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Toko tujuan tidak ditemukan"})
+		return
+	}
+
+	var sourceProducts []models.Product
+	query := database.DB.Where("outlet_id = ?", sourceUUID)
+	if len(payload.ProductIDs) > 0 {
+		query = query.Where("id IN ?", payload.ProductIDs)
+	}
+	if err := query.Find(&sourceProducts).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data produk toko asal"})
+		return
+	}
+
+	copiedCount := 0
+	skippedCount := 0
+
+	for _, p := range sourceProducts {
+		var existingCount int64
+		database.DB.Model(&models.Product{}).
+			Where("outlet_id = ? AND LOWER(name) = LOWER(?)", targetUUID, strings.TrimSpace(p.Name)).
+			Count(&existingCount)
+
+		if existingCount > 0 {
+			skippedCount++
+			continue
+		}
+
+		newProd := models.Product{
+			MerchantID:  targetOutlet.MerchantID,
+			OutletID:    &targetUUID,
+			CategoryID:  p.CategoryID,
+			Name:        p.Name,
+			Merk:        p.Merk,
+			ProductType: p.ProductType,
+			Price:       p.Price,
+			CostPrice:   p.CostPrice,
+			Stock:       p.Stock,
+			Unit:        p.Unit,
+			Barcode:     p.Barcode,
+			ImageURL:    p.ImageURL,
+			IsActive:    true,
+			IsMaster:    false,
+		}
+
+		if err := database.DB.Create(&newProd).Error; err == nil {
+			copiedCount++
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       fmt.Sprintf("Berhasil menyalin %d produk ke %s", copiedCount, targetOutlet.Name),
+		"copied_count":  copiedCount,
+		"skipped_count": skippedCount,
+	})
+}
+

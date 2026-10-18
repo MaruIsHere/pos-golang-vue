@@ -12,6 +12,7 @@ declare module 'xlsx-js-style/dist/xlsx.bundle.js' {
   export const utils: any;
   export const writeFile: any;
   export const write: any;
+  export const read: any;
   const XLSX: any;
   export default XLSX;
 }

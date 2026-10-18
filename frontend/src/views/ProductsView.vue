@@ -70,6 +70,10 @@
           </p>
         </div>
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <AppButton variant="secondary" class="w-full sm:w-auto min-h-11 flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-700 dark:text-slate-200" @click="openImportCopyModal">
+            <ArrowDownTrayIcon class="w-4 h-4 text-slate-600 dark:text-slate-300" />
+            <span>Impor & Salin</span>
+          </AppButton>
           <AppButton variant="secondary" class="w-full sm:w-auto min-h-11 flex items-center justify-center gap-2 rounded-xl border-slate-200/60 font-bold text-slate-700 dark:text-slate-200" @click="openCategoryModal">
             <PlusIcon class="w-4 h-4" />
             <span>Master Data</span>
@@ -401,6 +405,317 @@
       </div>
     </div>
 
+    <!-- Modal Impor & Salin Produk (Gabungan Opsi A & B) -->
+    <div v-if="isImportModalOpen" class="modal-overlay" @click.self="isImportModalOpen = false">
+      <div class="modal-content modal-lg backdrop-blur-md bg-white/95 dark:bg-slate-900/95 max-w-4xl w-full">
+        <div class="modal-header">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <ArrowDownTrayIcon class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Impor & Salin Produk</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Pilih salin dari cabang lain atau unggah spreadsheet Excel/CSV.</p>
+            </div>
+          </div>
+          <AppButton variant="secondary" type="button" @click="isImportModalOpen = false">
+            <XMarkIcon class="w-5 h-5 text-slate-500" />
+          </AppButton>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="px-6 pt-3 border-b border-slate-200 dark:border-slate-800 flex gap-4">
+          <button
+            type="button"
+            class="pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer"
+            :class="activeImportTab === 'copy' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'"
+            @click="activeImportTab = 'copy'"
+          >
+            <DocumentDuplicateIcon class="w-4 h-4" />
+            <span>Salin dari Cabang Lain</span>
+          </button>
+          <button
+            type="button"
+            class="pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer"
+            :class="activeImportTab === 'excel' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400'"
+            @click="activeImportTab = 'excel'"
+          >
+            <TableCellsIcon class="w-4 h-4" />
+            <span>Impor Excel / CSV</span>
+          </button>
+        </div>
+
+        <!-- TAB 1: SALIN DARI CABANG LAIN (BRANCH CLONE) -->
+        <div v-if="activeImportTab === 'copy'" class="p-6 flex flex-col gap-5">
+          <div class="p-4 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 flex items-start gap-3">
+            <BuildingStorefrontIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+            <div class="text-xs leading-relaxed text-indigo-900 dark:text-indigo-200">
+              <span class="font-bold">Salin Independen Tanpa Duplikasi:</span> Produk yang disalin akan menjadi item mandiri di toko tujuan dengan stok & harga yang dapat disesuaikan. Jika nama produk sudah ada di toko tujuan, sistem otomatis melewatinya agar database tetap rapi.
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Toko Asal (Sumber Data)</label>
+              <select
+                v-model="copySourceStoreId"
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="" disabled>-- Pilih Toko Asal --</option>
+                <option
+                  v-for="st in storeContextStore.stores"
+                  :key="st.id"
+                  :value="st.id"
+                  :disabled="st.id === copyTargetStoreId"
+                >
+                  {{ st.name }} ({{ st.code }})
+                </option>
+              </select>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Toko Tujuan (Penerima Salinan)</label>
+              <select
+                v-model="copyTargetStoreId"
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="" disabled>-- Pilih Toko Tujuan --</option>
+                <option
+                  v-for="st in storeContextStore.stores"
+                  :key="st.id"
+                  :value="st.id"
+                  :disabled="st.id === copySourceStoreId"
+                >
+                  {{ st.name }} ({{ st.code }})
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Product Picker List -->
+          <div v-if="copySourceStoreId" class="flex flex-col gap-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <input
+                  id="select-all-copy"
+                  type="checkbox"
+                  :checked="isAllSourceProductsSelected"
+                  class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                  @change="toggleSelectAllSourceProducts"
+                />
+                <label for="select-all-copy" class="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                  Pilih Semua ({{ filteredSourceProducts.length }} produk)
+                </label>
+              </div>
+
+              <div class="relative w-full sm:w-64">
+                <AppInput
+                  v-model="copySearchQuery"
+                  type="text"
+                  placeholder="Cari produk toko asal..."
+                  class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
+                />
+                <MagnifyingGlassIcon class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            </div>
+
+            <!-- List of products -->
+            <div class="border border-slate-200 dark:border-slate-700/80 rounded-xl overflow-hidden max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+              <div
+                v-if="filteredSourceProducts.length === 0"
+                class="p-6 text-center text-xs text-slate-400"
+              >
+                Tidak ada produk di toko asal yang cocok.
+              </div>
+              <div
+                v-for="prod in filteredSourceProducts"
+                :key="prod.id"
+                class="p-3 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <input
+                    type="checkbox"
+                    :value="prod.id"
+                    v-model="selectedCopyProductIds"
+                    class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 shrink-0"
+                  />
+                  <div class="min-w-0 flex flex-col">
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ prod.name }}</span>
+                    <span class="text-[0.7rem] text-slate-400 truncate">
+                      Kategori: {{ prod.category?.name || 'Umum' }}
+                      <template v-if="prod.merk"> · Merk: {{ prod.merk }}</template>
+                    </span>
+                  </div>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">Rp {{ formatPrice(prod.price) }}</span>
+                  <div class="text-[0.7rem] text-slate-400">Stok: {{ prod.stock }} {{ prod.unit }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="p-8 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+            Silakan pilih Toko Asal terlebih dahulu untuk melihat daftar produk.
+          </div>
+
+          <div class="modal-footer pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+            <AppButton variant="secondary" type="button" @click="isImportModalOpen = false">Batal</AppButton>
+            <AppButton
+              variant="primary"
+              type="button"
+              :disabled="isCopying || selectedCopyProductIds.length === 0 || !copySourceStoreId || !copyTargetStoreId"
+              @click="submitCopyProducts"
+            >
+              {{ isCopying ? 'Menyalin...' : `Salin ${selectedCopyProductIds.length} Produk Terpilih` }}
+            </AppButton>
+          </div>
+        </div>
+
+        <!-- TAB 2: IMPOR DARI FILE EXCEL / CSV -->
+        <div v-if="activeImportTab === 'excel'" class="p-6 flex flex-col gap-5">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50">
+            <div class="flex items-center gap-3">
+              <TableCellsIcon class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <div>
+                <h4 class="text-xs font-bold text-emerald-900 dark:text-emerald-200">Gunakan Format Template Resmi</h4>
+                <p class="text-[0.75rem] text-emerald-700 dark:text-emerald-300">Unduh format spreadsheet siap pakai dengan header yang telah disesuaikan.</p>
+              </div>
+            </div>
+            <AppButton
+              variant="secondary"
+              size="sm"
+              class="shrink-0 flex items-center gap-2 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+              @click="downloadExcelTemplate"
+            >
+              <ArrowDownTrayIcon class="w-3.5 h-3.5" />
+              <span>Unduh Template (.xlsx)</span>
+            </AppButton>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Toko Tujuan Impor</label>
+            <select
+              v-model="importTargetStoreId"
+              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/20"
+            >
+              <option value="" disabled>-- Pilih Toko Tujuan --</option>
+              <option v-for="st in storeContextStore.stores" :key="st.id" :value="st.id">
+                {{ st.name }} ({{ st.code }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Upload Dropzone -->
+          <div
+            v-if="parsedImportItems.length === 0"
+            class="flex flex-col items-center justify-center p-8 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer text-center"
+            @dragover.prevent
+            @drop.prevent="handleFileDrop"
+            @click="triggerFileInput"
+          >
+            <input
+              ref="excelFileInput"
+              type="file"
+              accept=".xlsx, .xls, .csv"
+              class="hidden"
+              @change="handleFileUpload"
+            />
+            <div class="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-3">
+              <DocumentArrowUpIcon class="w-6 h-6" />
+            </div>
+            <p class="text-sm font-bold text-slate-800 dark:text-slate-200">
+              Klik atau geser file Excel / CSV ke sini
+            </p>
+            <p class="text-xs text-slate-400 mt-1">
+              Mendukung format .xlsx, .xls, dan .csv (Maksimal 5 MB)
+            </p>
+            <span v-if="isParsingFile" class="mt-3 text-xs font-semibold text-indigo-600 animate-pulse">
+              Sedang membaca dan memvalidasi file...
+            </span>
+          </div>
+
+          <!-- Error Alert if any -->
+          <div v-if="importFileError" class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs">
+            {{ importFileError }}
+          </div>
+
+          <!-- Preview Parsed Products Table -->
+          <div v-if="parsedImportItems.length > 0" class="flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-200">File: {{ importFileName }}</span>
+                <span class="px-2 py-0.5 rounded-full text-[0.7rem] font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-300">
+                  {{ validImportItemsCount }} valid dari {{ parsedImportItems.length }} baris
+                </span>
+              </div>
+              <AppButton variant="secondary" size="sm" @click="resetImportState">
+                Ganti File
+              </AppButton>
+            </div>
+
+            <div class="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold sticky top-0">
+                  <tr>
+                    <th class="p-2.5">Status</th>
+                    <th class="p-2.5">Nama Produk</th>
+                    <th class="p-2.5">Kategori</th>
+                    <th class="p-2.5">Merk</th>
+                    <th class="p-2.5 text-right">Harga Jual</th>
+                    <th class="p-2.5 text-right">Stok</th>
+                    <th class="p-2.5">Satuan</th>
+                    <th class="p-2.5">Barcode</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr
+                    v-for="(item, idx) in parsedImportItems"
+                    :key="idx"
+                    :class="item.isValid ? 'hover:bg-slate-50 dark:hover:bg-slate-800/40' : 'bg-rose-50/50 dark:bg-rose-950/20'"
+                  >
+                    <td class="p-2.5">
+                      <span
+                        v-if="item.isValid"
+                        class="inline-flex items-center text-[0.65rem] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                      >
+                        Siap
+                      </span>
+                      <span
+                        v-else
+                        :title="item.error"
+                        class="inline-flex items-center text-[0.65rem] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+                      >
+                        Error
+                      </span>
+                    </td>
+                    <td class="p-2.5 font-bold text-slate-800 dark:text-slate-100">{{ item.name || '(Kosong)' }}</td>
+                    <td class="p-2.5 text-slate-500">{{ item.category }}</td>
+                    <td class="p-2.5 text-slate-500">{{ item.merk || '-' }}</td>
+                    <td class="p-2.5 text-right font-medium">Rp {{ formatPrice(item.price) }}</td>
+                    <td class="p-2.5 text-right font-medium">{{ item.stock }}</td>
+                    <td class="p-2.5 text-slate-500">{{ item.unit }}</td>
+                    <td class="p-2.5 text-slate-400 font-mono text-[0.7rem]">{{ item.barcode || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="modal-footer pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
+            <AppButton variant="secondary" type="button" @click="isImportModalOpen = false">Batal</AppButton>
+            <AppButton
+              variant="primary"
+              type="button"
+              :disabled="isImporting || validImportItemsCount === 0 || !importTargetStoreId"
+              @click="submitBulkImport"
+            >
+              {{ isImporting ? 'Mengimpor...' : `Impor ${validImportItemsCount} Produk ke Toko` }}
+            </AppButton>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
   </div>
   </div>
@@ -414,7 +729,19 @@ import AppBadge from '@/components/ui/AppBadge.vue';
 import { ref, computed, onMounted } from 'vue';
 import api from '@/utils/api';
 import type { Category, Merk, Product, ProductType } from '../types';
-import { MagnifyingGlassIcon, PencilIcon, TrashIcon, PlusIcon, XMarkIcon, BuildingStorefrontIcon } from '@heroicons/vue/24/outline';
+import {
+  MagnifyingGlassIcon,
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
+  XMarkIcon,
+  BuildingStorefrontIcon,
+  ArrowDownTrayIcon,
+  DocumentDuplicateIcon,
+  TableCellsIcon,
+  DocumentArrowUpIcon
+} from '@heroicons/vue/24/outline';
+import * as XLSX from 'xlsx-js-style/dist/xlsx.bundle.js';
 import { showAppAlert, showAppConfirm } from '@/composables/useAppDialog';
 import { useStoreContextStore } from '@/stores/storeContext';
 
@@ -944,6 +1271,318 @@ const deleteProductType = async (productType: ProductType): Promise<void> => {
     await fetchCatalogs();
   } catch (err: any) {
     categoryError.value = err.response?.data?.error || err.message || 'Gagal menghapus tipe produk.';
+  }
+};
+
+// -------------------------------------------------------------
+// LOGIKA MODAL IMPOR & SALIN PRODUK (GABUNGAN OPSI A & B)
+// -------------------------------------------------------------
+const isImportModalOpen = ref(false);
+const activeImportTab = ref<'copy' | 'excel'>('copy');
+
+// TAB 1: Salin Produk Antar-Toko (Branch Clone)
+const copySourceStoreId = ref<string>('');
+const copyTargetStoreId = ref<string>('');
+const copySearchQuery = ref<string>('');
+const selectedCopyProductIds = ref<string[]>([]);
+const isCopying = ref(false);
+
+const sourceStoreProducts = computed(() => {
+  if (!copySourceStoreId.value) return [];
+  return products.value.filter(p => p.outlet_id === copySourceStoreId.value);
+});
+
+const filteredSourceProducts = computed(() => {
+  const query = copySearchQuery.value.trim().toLowerCase();
+  if (!query) return sourceStoreProducts.value;
+  return sourceStoreProducts.value.filter(p =>
+    p.name.toLowerCase().includes(query) ||
+    (p.merk && p.merk.toLowerCase().includes(query)) ||
+    (p.barcode && p.barcode.toLowerCase().includes(query))
+  );
+});
+
+const isAllSourceProductsSelected = computed(() => {
+  if (filteredSourceProducts.value.length === 0) return false;
+  return filteredSourceProducts.value.every(p => selectedCopyProductIds.value.includes(p.id));
+});
+
+const toggleSelectAllSourceProducts = () => {
+  if (isAllSourceProductsSelected.value) {
+    const idsToRemove = new Set(filteredSourceProducts.value.map(p => p.id));
+    selectedCopyProductIds.value = selectedCopyProductIds.value.filter(id => !idsToRemove.has(id));
+  } else {
+    const existing = new Set(selectedCopyProductIds.value);
+    filteredSourceProducts.value.forEach(p => existing.add(p.id));
+    selectedCopyProductIds.value = Array.from(existing);
+  }
+};
+
+const submitCopyProducts = async () => {
+  if (!copySourceStoreId.value || !copyTargetStoreId.value) {
+    await showAppAlert('Pilih toko asal dan toko tujuan terlebih dahulu.', 'warning');
+    return;
+  }
+  if (copySourceStoreId.value === copyTargetStoreId.value) {
+    await showAppAlert('Toko asal dan toko tujuan tidak boleh sama.', 'warning');
+    return;
+  }
+  if (selectedCopyProductIds.value.length === 0) {
+    await showAppAlert('Pilih minimal satu produk untuk disalin.', 'warning');
+    return;
+  }
+
+  isCopying.value = true;
+  try {
+    const payload = {
+      source_outlet_id: copySourceStoreId.value,
+      target_outlet_id: copyTargetStoreId.value,
+      product_ids: selectedCopyProductIds.value
+    };
+
+    const res = await api.post('/stores/copy-products', payload);
+    const data = res.data;
+    let msg = `Berhasil menyalin ${data.copied_count || 0} produk.`;
+    if (data.skipped_count > 0) {
+      msg += ` (${data.skipped_count} produk dilewati karena sudah ada di toko tujuan)`;
+    }
+    await showAppAlert(msg, 'success', 'Salin Berhasil');
+    isImportModalOpen.value = false;
+    resetImportState();
+    await fetchProducts();
+  } catch (err: any) {
+    await showAppAlert(err.response?.data?.error || err.message || 'Gagal menyalin produk', 'error');
+  } finally {
+    isCopying.value = false;
+  }
+};
+
+// TAB 2: Impor dari File Excel / CSV
+const excelFileInput = ref<HTMLInputElement | null>(null);
+const importTargetStoreId = ref<string>('');
+const importFileName = ref<string>('');
+const importFileError = ref<string>('');
+const isParsingFile = ref(false);
+const isImporting = ref(false);
+const parsedImportItems = ref<Array<{
+  rowNum: number;
+  name: string;
+  category: string;
+  merk: string;
+  product_type: string;
+  price: number;
+  cost_price: number;
+  stock: number;
+  unit: 'pcs' | 'gram' | 'liter';
+  barcode: string;
+  isValid: boolean;
+  error?: string;
+}>>([]);
+
+const validImportItemsCount = computed(() => {
+  return parsedImportItems.value.filter(item => item.isValid).length;
+});
+
+const triggerFileInput = () => {
+  excelFileInput.value?.click();
+};
+
+const resetImportState = () => {
+  importFileName.value = '';
+  importFileError.value = '';
+  parsedImportItems.value = [];
+  selectedCopyProductIds.value = [];
+  if (excelFileInput.value) {
+    excelFileInput.value.value = '';
+  }
+};
+
+const openImportCopyModal = () => {
+  const currentTarget = selectedStoreFilter.value || storeContextStore.activeStoreId || (storeContextStore.stores[0]?.id) || '';
+  importTargetStoreId.value = currentTarget;
+  copyTargetStoreId.value = currentTarget;
+
+  const otherStore = storeContextStore.stores.find(s => s.id !== currentTarget);
+  copySourceStoreId.value = otherStore ? otherStore.id : '';
+
+  selectedCopyProductIds.value = [];
+  copySearchQuery.value = '';
+  resetImportState();
+  isImportModalOpen.value = true;
+};
+
+const downloadExcelTemplate = () => {
+  const sampleData = [
+    {
+      'Nama Produk': 'Nasi Goreng Spesial',
+      'Kategori': 'Makanan',
+      'Merk': 'Dapur Nusantara',
+      'Tipe Produk': 'FnB',
+      'Harga Jual': 25000,
+      'Harga Modal': 15000,
+      'Stok': 50,
+      'Satuan': 'pcs',
+      'Barcode': '899123456001'
+    },
+    {
+      'Nama Produk': 'Es Kopi Susu Aren',
+      'Kategori': 'Kopi',
+      'Merk': 'Kopi Lokal',
+      'Tipe Produk': 'FnB',
+      'Harga Jual': 18000,
+      'Harga Modal': 9000,
+      'Stok': 100,
+      'Satuan': 'pcs',
+      'Barcode': '899123456002'
+    },
+    {
+      'Nama Produk': 'Kopi Bubuk Robusta',
+      'Kategori': 'Kopi',
+      'Merk': 'Kopi Lokal',
+      'Tipe Produk': 'Retail',
+      'Harga Jual': 65000,
+      'Harga Modal': 40000,
+      'Stok': 1500,
+      'Satuan': 'gram',
+      'Barcode': '899123456003'
+    }
+  ];
+
+  const ws = XLSX.utils.json_to_sheet(sampleData, {
+    header: ['Nama Produk', 'Kategori', 'Merk', 'Tipe Produk', 'Harga Jual', 'Harga Modal', 'Stok', 'Satuan', 'Barcode']
+  });
+  ws['!cols'] = [
+    { wch: 30 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 15 },
+    { wch: 14 },
+    { wch: 14 },
+    { wch: 12 },
+    { wch: 10 },
+    { wch: 18 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template Produk');
+  XLSX.writeFile(wb, 'Template_Impor_Produk_POS.xlsx');
+};
+
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+  parseExcelFile(file);
+};
+
+const handleFileDrop = (event: DragEvent) => {
+  const file = event.dataTransfer?.files?.[0];
+  if (!file) return;
+  parseExcelFile(file);
+};
+
+const parseExcelFile = (file: File) => {
+  importFileError.value = '';
+  importFileName.value = file.name;
+  isParsingFile.value = true;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rawRows: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      if (rawRows.length === 0) {
+        importFileError.value = 'File Excel kosong atau tidak memiliki data produk.';
+        parsedImportItems.value = [];
+        return;
+      }
+
+      parsedImportItems.value = rawRows.map((row, index) => {
+        const name = String(row['Nama Produk'] || row['Nama'] || row['nama'] || row['Product Name'] || row['name'] || '').trim();
+        const category = String(row['Kategori'] || row['kategori'] || row['Category'] || row['category'] || 'Umum').trim();
+        const merk = String(row['Merk'] || row['merk'] || row['Brand'] || row['brand'] || row['Artist'] || '').trim();
+        const productType = String(row['Tipe Produk'] || row['Tipe'] || row['tipe'] || row['Product Type'] || row['product_type'] || '').trim();
+        const price = Number(row['Harga Jual'] || row['Harga'] || row['harga'] || row['Price'] || row['price'] || 0);
+        const costPrice = Number(row['Harga Modal'] || row['HPP'] || row['Cost Price'] || row['cost_price'] || 0);
+        const stock = Number(row['Stok'] || row['stok'] || row['Stock'] || row['stock'] || row['Qty'] || 0);
+        let unit = String(row['Satuan'] || row['satuan'] || row['Unit'] || row['unit'] || 'pcs').toLowerCase().trim();
+        if (unit !== 'pcs' && unit !== 'gram' && unit !== 'liter') {
+          unit = 'pcs';
+        }
+        const barcode = String(row['Barcode'] || row['barcode'] || row['SKU'] || row['sku'] || '').trim();
+
+        const isValid = name.length > 0 && !isNaN(price) && price >= 0 && !isNaN(stock) && stock >= 0;
+
+        return {
+          rowNum: index + 2,
+          name,
+          category,
+          merk,
+          product_type: productType,
+          price: isNaN(price) ? 0 : price,
+          cost_price: isNaN(costPrice) ? 0 : costPrice,
+          stock: isNaN(stock) ? 0 : stock,
+          unit: unit as 'pcs' | 'gram' | 'liter',
+          barcode,
+          isValid,
+          error: !name ? 'Nama produk wajib diisi' : (isNaN(price) || price < 0) ? 'Harga jual tidak valid' : ''
+        };
+      });
+    } catch (err: any) {
+      importFileError.value = 'Gagal membaca file: ' + (err.message || 'Format tidak didukung');
+    } finally {
+      isParsingFile.value = false;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+const submitBulkImport = async () => {
+  if (!importTargetStoreId.value) {
+    await showAppAlert('Pilih toko tujuan terlebih dahulu.', 'warning');
+    return;
+  }
+  const validItems = parsedImportItems.value.filter(i => i.isValid);
+  if (validItems.length === 0) {
+    await showAppAlert('Tidak ada data produk valid untuk diimpor.', 'warning');
+    return;
+  }
+
+  isImporting.value = true;
+  try {
+    const payload = {
+      outlet_id: importTargetStoreId.value,
+      products: validItems.map(item => ({
+        name: item.name,
+        category: item.category,
+        merk: item.merk,
+        product_type: item.product_type,
+        price: item.price,
+        cost_price: item.cost_price,
+        stock: item.stock,
+        unit: item.unit,
+        barcode: item.barcode
+      }))
+    };
+
+    const res = await api.post('/products/bulk-import', payload);
+    const data = res.data;
+    let msg = `Berhasil mengimpor ${data.imported_count || 0} produk.`;
+    if (data.skipped_count > 0) {
+      msg += ` (${data.skipped_count} produk dilewati karena sudah terdaftar)`;
+    }
+    await showAppAlert(msg, 'success', 'Impor Sukses');
+    isImportModalOpen.value = false;
+    resetImportState();
+    await Promise.all([fetchProducts(), fetchCatalogs(), fetchCategories()]);
+  } catch (err: any) {
+    await showAppAlert(err.response?.data?.error || err.message || 'Gagal mengimpor produk', 'error');
+  } finally {
+    isImporting.value = false;
   }
 };
 </script>

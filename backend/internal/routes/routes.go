@@ -66,6 +66,7 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.GET("/products", handlers.GetProducts)
 			protected.GET("/products/filters", handlers.GetProductFilters)
 			protected.POST("/products", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CreateProduct)
+			protected.POST("/products/bulk-import", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.BulkImportProducts)
 			protected.PUT("/products/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UpdateProduct)
 			protected.DELETE("/products/:id", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.DeleteProduct)
 			protected.POST("/products/images", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.UploadProductImage)
@@ -100,6 +101,7 @@ func RegisterAPIRoutes(router *gin.Engine) {
 			protected.PUT("/stores/:id", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.UpdateStore)
 			protected.DELETE("/stores/:id", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.DeleteStore)
 			protected.POST("/stores/assign-user", middleware.RoleMiddleware("administrator", "owner", "admin"), handlers.AssignUserStore)
+			protected.POST("/stores/copy-products", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.CopyProductsBetweenStores)
 			protected.POST("/stores/import-product", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.ImportMasterProductToStore)
 			protected.POST("/stores/import-batch", middleware.RoleMiddleware("administrator", "owner", "admin", "kepala_kasir"), handlers.ImportBatchMasterProductsToStore)
 

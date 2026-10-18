@@ -292,3 +292,161 @@ func DeleteProduct(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Produk berhasil dihapus"})
 }
+
+// BulkImportItem represents a single product item in bulk import
+type BulkImportItem struct {
+	Name        string  `json:"name"`
+	Category    string  `json:"category"`
+	Merk        string  `json:"merk"`
+	ProductType string  `json:"product_type"`
+	Price       float64 `json:"price"`
+	CostPrice   float64 `json:"cost_price"`
+	Stock       float64 `json:"stock"`
+	Unit        string  `json:"unit"`
+	Barcode     string  `json:"barcode"`
+}
+
+// BulkImportPayload represents payload for importing products in bulk to an outlet
+type BulkImportPayload struct {
+	OutletID string           `json:"outlet_id" binding:"required"`
+	Products []BulkImportItem `json:"products" binding:"required"`
+}
+
+// BulkImportProducts handles bulk product import directly into an outlet without master duplication
+func BulkImportProducts(c *gin.Context) {
+	var payload BulkImportPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Toko tujuan dan daftar produk wajib disertakan"})
+		return
+	}
+
+	targetUUID, err := uuid.Parse(payload.OutletID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID toko tujuan tidak valid"})
+		return
+	}
+
+	var targetOutlet models.Outlet
+	if err := database.DB.First(&targetOutlet, "id = ?", targetUUID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Toko tujuan tidak ditemukan"})
+		return
+	}
+
+	if len(payload.Products) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Daftar produk tidak boleh kosong"})
+		return
+	}
+
+	importedCount := 0
+	skippedCount := 0
+	var errorMessages []string
+
+	for idx, item := range payload.Products {
+		name := strings.TrimSpace(item.Name)
+		if name == "" {
+			skippedCount++
+			continue
+		}
+
+		// Prevent duplicate name in the same outlet
+		var existingCount int64
+		database.DB.Model(&models.Product{}).
+			Where("outlet_id = ? AND LOWER(name) = LOWER(?)", targetUUID, name).
+			Count(&existingCount)
+
+		if existingCount > 0 {
+			skippedCount++
+			continue
+		}
+
+		// Resolve or create category
+		categoryName := strings.TrimSpace(item.Category)
+		if categoryName == "" {
+			categoryName = "Umum"
+		}
+		var category models.Category
+		if err := database.DB.Where("LOWER(name) = LOWER(?)", categoryName).First(&category).Error; err != nil {
+			category = models.Category{
+				MerchantID: &targetOutlet.MerchantID,
+				Name:       categoryName,
+				Icon:       "utensils",
+			}
+			database.DB.Create(&category)
+		}
+
+		// Resolve or create merk if given
+		merkName := strings.TrimSpace(item.Merk)
+		if merkName != "" {
+			var merk models.Merk
+			if err := database.DB.Where("LOWER(name) = LOWER(?)", merkName).First(&merk).Error; err != nil {
+				merk = models.Merk{
+					MerchantID: &targetOutlet.MerchantID,
+					Name:       merkName,
+				}
+				database.DB.Create(&merk)
+			}
+		}
+
+		// Resolve or create product type if given
+		typeName := strings.TrimSpace(item.ProductType)
+		if typeName != "" {
+			var pType models.ProductType
+			if err := database.DB.Where("LOWER(name) = LOWER(?)", typeName).First(&pType).Error; err != nil {
+				pType = models.ProductType{
+					MerchantID: &targetOutlet.MerchantID,
+					Name:       typeName,
+				}
+				database.DB.Create(&pType)
+			}
+		}
+
+		// Unit validation
+		unit := strings.ToLower(strings.TrimSpace(item.Unit))
+		if unit != "pcs" && unit != "gram" && unit != "liter" {
+			unit = "pcs"
+		}
+
+		price := item.Price
+		if price < 0 {
+			price = 0
+		}
+		costPrice := item.CostPrice
+		if costPrice < 0 {
+			costPrice = 0
+		}
+		stock := item.Stock
+		if stock < 0 {
+			stock = 0
+		}
+
+		newProduct := models.Product{
+			MerchantID:  targetOutlet.MerchantID,
+			OutletID:    &targetUUID,
+			CategoryID:  &category.ID,
+			Name:        name,
+			Merk:        merkName,
+			ProductType: typeName,
+			Price:       price,
+			CostPrice:   costPrice,
+			Stock:       stock,
+			Unit:        unit,
+			Barcode:     strings.TrimSpace(item.Barcode),
+			IsActive:    true,
+			IsMaster:    false,
+		}
+
+		if err := database.DB.Create(&newProduct).Error; err != nil {
+			errorMessages = append(errorMessages, fmt.Sprintf("Baris %d (%s): %v", idx+1, name, err))
+			continue
+		}
+
+		importedCount++
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":        fmt.Sprintf("Berhasil mengimpor %d produk ke %s", importedCount, targetOutlet.Name),
+		"imported_count": importedCount,
+		"skipped_count":  skippedCount,
+		"errors":         errorMessages,
+	})
+}
