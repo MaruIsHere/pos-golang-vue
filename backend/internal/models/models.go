@@ -121,6 +121,7 @@ type Product struct {
 	BaseModel
 	MerchantID      uuid.UUID  `gorm:"type:char(36);index;not null" json:"merchant_id"`
 	OutletID        *uuid.UUID `gorm:"type:char(36);index" json:"outlet_id,omitempty"`
+	Outlet          *Outlet    `gorm:"foreignKey:OutletID" json:"outlet,omitempty"`
 	CategoryID      *uuid.UUID `gorm:"type:char(36);index" json:"category_id"`
 	Category        Category   `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
 	Name            string     `gorm:"size:150;not null" json:"name"`
